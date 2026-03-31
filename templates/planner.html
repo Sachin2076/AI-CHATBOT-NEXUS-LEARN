@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Weekly Planner — Nexus Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<style>
+.pl-page{max-width:1100px;margin:0 auto;padding:28px 20px}
+.pl-hdr{margin-bottom:24px}
+.pl-hdr h2{font-size:1.5rem;margin-bottom:4px}
+.pl-hdr p{color:var(--tx-m);font-size:13px}
+
+/* Add task form */
+.add-card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:18px;padding:18px 20px;margin-bottom:24px}
+.add-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.add-row .fg{margin-bottom:0;flex:1;min-width:120px}
+.add-row .fg label{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);display:block;margin-bottom:5px}
+.add-row select,.add-row input{background:var(--bg-s);border:1px solid var(--bdr);border-radius:7px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:10px 12px;outline:none;width:100%;transition:border-color .2s}
+.add-row select:focus,.add-row input:focus{border-color:var(--amber)}
+.add-row select option{background:var(--bg-r)}
+
+/* Section headers */
+.plan-section{margin-bottom:28px}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr)}
+.section-hdr-left{display:flex;align-items:center;gap:10px}
+.section-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.icon-learning{background:rgba(240,160,64,.12);border:1px solid rgba(240,160,64,.2)}
+.icon-interview{background:rgba(76,175,118,.1);border:1px solid rgba(76,175,118,.2)}
+.icon-manual{background:var(--bg-r);border:1px solid var(--bdr)}
+.section-title{font-family:var(--fD);font-size:1.1rem}
+.section-sub{font-size:11px;color:var(--tx-m);font-family:var(--fM);margin-top:2px}
+.section-count{font-family:var(--fM);font-size:11px;padding:3px 10px;border-radius:100px;background:var(--bg-r);border:1px solid var(--bdr);color:var(--tx-m)}
+
+/* Plan group (within a section — e.g. "Java Learning") */
+.plan-group{background:var(--bg-c);border:1px solid var(--bdr);border-radius:16px;overflow:hidden;margin-bottom:12px}
+.plan-group-hdr{padding:12px 18px;background:var(--bg-s);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.plan-group-name{font-size:13px;font-weight:600}
+.plan-group-meta{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
+.plan-group-body{padding:14px 18px}
+
+/* Day columns inside a plan group */
+.day-cols{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+@media(max-width:900px){.day-cols{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:580px){.day-cols{grid-template-columns:repeat(2,1fr)}}
+.day-col{background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:10px;min-height:70px}
+.day-col.today{border-color:rgba(240,160,64,.3);background:rgba(240,160,64,.05)}
+.day-name{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:6px}
+.day-col.today .day-name{color:var(--amber)}
+
+/* Manual tasks — full day columns */
+.manual-week{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+@media(max-width:900px){.manual-week{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:580px){.manual-week{grid-template-columns:repeat(2,1fr)}}
+.manual-col{background:var(--bg-c);border:1px solid var(--bdr);border-radius:14px;overflow:hidden}
+.manual-col.today{border-color:rgba(240,160,64,.3)}
+.mcol-hdr{padding:10px 14px;background:var(--bg-s);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.mcol-name{font-family:var(--fM);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-m)}
+.manual-col.today .mcol-name{color:var(--amber)}
+.mcol-count{font-family:var(--fM);font-size:11px;color:var(--tx-m)}
+.mcol-tasks{padding:10px 12px;min-height:60px}
+
+/* Task items */
+.ti{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:12px;line-height:1.4}
+.ti:last-child{border-bottom:none}
+.tcb{accent-color:var(--amber);margin-top:2px;flex-shrink:0;cursor:pointer}
+.ttxt{flex:1;word-break:break-word;transition:opacity .2s}
+.ttxt.done{text-decoration:line-through;opacity:.4}
+.tdel{background:none;border:none;color:var(--tx-m);cursor:pointer;font-size:11px;padding:1px 4px;flex-shrink:0;opacity:0;transition:opacity .2s}
+.ti:hover .tdel{opacity:1}
+.ti:hover .tdel:hover{color:var(--red)}
+.dempty{font-size:12px;color:var(--tx-m);font-style:italic;padding:4px 0}
+
+/* Empty section */
+.section-empty{text-align:center;padding:28px;color:var(--tx-m);font-size:13px;background:var(--bg-c);border:1px solid var(--bdr);border-radius:14px;border-style:dashed}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div class="nav-r">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/chat"      class="nav-link">Chatbot</a>
+    <a href="/interview" class="nav-link">Interview</a>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="pl-page">
+  <div class="pl-hdr">
+    <h2>📅 Weekly Planner</h2>
+    <p>Your study plans from all sources — organised in one place.</p>
+  </div>
+
+  <!-- Add manual task -->
+  <div class="add-card">
+    <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:10px">Add a Personal Task</div>
+    <div class="add-row">
+      <div class="fg" style="max-width:140px">
+        <label>Day</label>
+        <select id="task-day">
+          <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+          <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Task</label>
+        <input type="text" id="task-input" placeholder="e.g. Read chapter 4, watch lecture video…" maxlength="200"/>
+      </div>
+      <button class="btn btn-primary" id="add-btn" onclick="addTask()" style="flex-shrink:0">+ Add</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" style="text-align:center;padding:40px;color:var(--tx-m)">
+    <span class="spin"></span> Loading your plans…
+  </div>
+
+  <!-- Main planner content -->
+  <div id="planner-content" style="display:none">
+
+    <!-- Section 1: Learning Plans -->
+    <div class="plan-section">
+      <div class="section-hdr">
+        <div class="section-hdr-left">
+          <div class="section-icon icon-learning">📚</div>
+          <div>
+            <div class="section-title">Learning Plans</div>
+            <div class="section-sub">Added from AI Chatbot</div>
+          </div>
+        </div>
+        <span class="section-count" id="learning-count">0 tasks</span>
+      </div>
+      <div id="learning-section"></div>
+    </div>
+
+    <!-- Section 2: Interview Prep -->
+    <div class="plan-section">
+      <div class="section-hdr">
+        <div class="section-hdr-left">
+          <div class="section-icon icon-interview">🎯</div>
+          <div>
+            <div class="section-title">Interview Preparation</div>
+            <div class="section-sub">Added from Interview Prep page</div>
+          </div>
+        </div>
+        <span class="section-count" id="interview-count">0 tasks</span>
+      </div>
+      <div id="interview-section"></div>
+    </div>
+
+    <!-- Section 3: My Tasks -->
+    <div class="plan-section">
+      <div class="section-hdr">
+        <div class="section-hdr-left">
+          <div class="section-icon icon-manual">✅</div>
+          <div>
+            <div class="section-title">My Own Tasks</div>
+            <div class="section-sub">Added manually by you</div>
+          </div>
+        </div>
+        <span class="section-count" id="manual-count">0 tasks</span>
+      </div>
+      <div id="manual-section"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const TODAY = new Date().toLocaleDateString('en-GB',{weekday:'long'});
+let allTasks = [];
+
+async function init(){
+  // Set today in the add form
+  const sel = document.getElementById('task-day');
+  const opt = [...sel.options].find(o=>o.value===TODAY);
+  if(opt) sel.value = TODAY;
+  document.getElementById('task-input').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();addTask();}
+  });
+  await loadTasks();
+}
+
+async function loadTasks(){
+  try{
+    const r = await fetch('/api/planner');
+    if(r.status===401){location.href='/login';return;}
+    const d = await r.json();
+    allTasks = d.tasks || [];
+    document.getElementById('loading').style.display='none';
+    document.getElementById('planner-content').style.display='';
+    render();
+  }catch(e){
+    document.getElementById('loading').textContent='Failed to load. Please refresh.';
+  }
+}
+
+function render(){
+  // Split tasks into three groups
+  const learning  = allTasks.filter(t=>t.source==='learning');
+  const interview = allTasks.filter(t=>t.source==='interview');
+  const manual    = allTasks.filter(t=>!t.source||t.source==='manual');
+
+  // Update counts
+  document.getElementById('learning-count').textContent  = learning.length  + ' task' + (learning.length!==1?'s':'');
+  document.getElementById('interview-count').textContent = interview.length + ' task' + (interview.length!==1?'s':'');
+  document.getElementById('manual-count').textContent    = manual.length    + ' task' + (manual.length!==1?'s':'');
+
+  renderGroupedSection('learning-section',  learning,  'No learning plans yet — go to the AI Chatbot and say "I want to learn Java" to generate one!');
+  renderGroupedSection('interview-section', interview, 'No interview prep plan yet — go to the Interview Prep page and build your roadmap!');
+  renderManualSection('manual-section', manual);
+}
+
+/* Grouped section — groups by plan_name, shows day columns inside each group */
+function renderGroupedSection(containerId, tasks, emptyMsg){
+  const div = document.getElementById(containerId);
+  if(tasks.length===0){
+    div.innerHTML=`<div class="section-empty">${escH(emptyMsg)}</div>`;
+    return;
+  }
+  // Group by plan_name
+  const groups = {};
+  tasks.forEach(t=>{
+    const key = t.plan_name || 'My Plan';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(t);
+  });
+
+  div.innerHTML='';
+  Object.entries(groups).forEach(([planName, planTasks])=>{
+    const group = document.createElement('div');
+    group.className='plan-group';
+    const totalCount = planTasks.length;
+
+    // Build day columns
+    const dayMap = {};
+    DAYS.forEach(d=>dayMap[d]=[]);
+    planTasks.forEach(t=>{ if(dayMap[t.day]) dayMap[t.day].push(t); });
+
+    const dayCols = DAYS.map(day=>{
+      const isToday = day===TODAY;
+      const dayTasks = dayMap[day];
+      const taskHtml = dayTasks.length===0
+        ? `<div class="dempty">—</div>`
+        : dayTasks.map(t=>`
+          <div class="ti" id="ti-${escA(t._id)}">
+            <input type="checkbox" class="tcb" onchange="toggleDone(this,'${escA(t._id)}')">
+            <span class="ttxt">${escH(t.task_text)}</span>
+            <button class="tdel" onclick="deleteTask('${escA(t._id)}','${escA(day)}')" title="Remove">✕</button>
+          </div>`).join('');
+      return `
+        <div class="day-col${isToday?' today':''}">
+          <div class="day-name">${day.substring(0,3)}</div>
+          ${taskHtml}
+        </div>`;
+    }).join('');
+
+    group.innerHTML=`
+      <div class="plan-group-hdr">
+        <div class="plan-group-name">${escH(planName)}</div>
+        <div class="plan-group-meta">${totalCount} task${totalCount!==1?'s':''}</div>
+      </div>
+      <div class="plan-group-body">
+        <div class="day-cols">${dayCols}</div>
+      </div>`;
+    div.appendChild(group);
+  });
+}
+
+/* Manual section — full day columns with add capability */
+function renderManualSection(containerId, tasks){
+  const div = document.getElementById(containerId);
+  const dayMap = {};
+  DAYS.forEach(d=>dayMap[d]=[]);
+  tasks.forEach(t=>{ if(dayMap[t.day]) dayMap[t.day].push(t); });
+
+  const cols = DAYS.map(day=>{
+    const isToday = day===TODAY;
+    const dayTasks = dayMap[day];
+    const taskHtml = dayTasks.length===0
+      ? `<div class="dempty">No tasks</div>`
+      : dayTasks.map(t=>`
+        <div class="ti" id="ti-${escA(t._id)}">
+          <input type="checkbox" class="tcb" onchange="toggleDone(this,'${escA(t._id)}')">
+          <span class="ttxt">${escH(t.task_text)}</span>
+          <button class="tdel" onclick="deleteTask('${escA(t._id)}','${escA(day)}')" title="Remove">✕</button>
+        </div>`).join('');
+    return `
+      <div class="manual-col${isToday?' today':''}">
+        <div class="mcol-hdr">
+          <span class="mcol-name">${day}</span>
+          <span class="mcol-count">${dayTasks.length}</span>
+        </div>
+        <div class="mcol-tasks">${taskHtml}</div>
+      </div>`;
+  }).join('');
+
+  div.innerHTML = tasks.length===0 && false ? `<div class="section-empty">No personal tasks yet — add one above!</div>`
+    : `<div class="manual-week">${cols}</div>`;
+}
+
+/* Add manual task */
+async function addTask(){
+  const day  = document.getElementById('task-day').value;
+  const inp  = document.getElementById('task-input');
+  const text = inp.value.trim();
+  if(!text){inp.focus();return;}
+  const btn = document.getElementById('add-btn');
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const r = await fetch('/api/planner',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({day, task_text:text, source:'manual', plan_name:'My Tasks'})
+    });
+    if(r.status===401){location.href='/login';return;}
+    const d = await r.json();
+    if(r.ok && d.task){
+      allTasks.push(d.task);
+      render();
+      inp.value=''; inp.focus();
+    } else { alert(d.error||'Failed to add task.'); }
+  }catch(e){ alert('Network error.'); }
+  finally{ btn.disabled=false; btn.textContent='+ Add'; }
+}
+
+/* Delete task */
+async function deleteTask(id, day){
+  try{
+    const r = await fetch('/api/planner',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({task_id:id})
+    });
+    if(r.ok){
+      allTasks = allTasks.filter(t=>t._id!==id);
+      render();
+    }
+  }catch(e){ console.error('Delete failed:',e); }
+}
+
+/* Toggle done */
+function toggleDone(cb, id){
+  const el = document.getElementById('ti-'+id);
+  if(el) el.querySelector('.ttxt').classList.toggle('done', cb.checked);
+}
+
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escA(s){ return String(s||'').replace(/'/g,"\\'"); }
+async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

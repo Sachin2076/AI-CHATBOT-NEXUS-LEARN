@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Interview Prep — Nexus Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<style>
+/* ══ Base ══ */
+.iv-page{max-width:880px;margin:0 auto;padding:28px 20px}
+.screen{display:none}.screen.active{display:block}
+.section-tag{font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+.card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:20px;padding:26px}
+.card+.card{margin-top:14px}
+
+/* ══ Step tabs ══ */
+.steps-nav{display:flex;gap:0;margin-bottom:28px;background:var(--bg-c);border:1px solid var(--bdr);border-radius:12px;overflow:hidden}
+.step-tab{flex:1;padding:12px 8px;text-align:center;font-family:var(--fM);font-size:11px;letter-spacing:.06em;color:var(--tx-m);cursor:pointer;border-right:1px solid var(--bdr);transition:all .2s;position:relative}
+.step-tab:last-child{border-right:none}
+.step-tab.active{background:var(--amber-g);color:var(--amber)}
+.step-tab.done{color:var(--green)}
+.step-tab .step-num{display:block;font-size:16px;margin-bottom:2px}
+
+/* ══ Screen 1 — Setup ══ */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:580px){.setup-grid{grid-template-columns:1fr}}
+.setup-grid label,.form-label{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);display:block;margin-bottom:6px}
+.setup-grid select,.setup-grid input,.fi-dark{background:var(--bg-s);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:11px 13px;outline:none;width:100%;transition:border-color .2s,box-shadow .2s}
+.setup-grid select:focus,.setup-grid input:focus,.fi-dark:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-g)}
+.setup-grid select option{background:var(--bg-r)}
+.nervousness-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.nerv-chip{padding:7px 14px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;cursor:pointer;transition:all .2s;user-select:none}
+.nerv-chip:hover{border-color:var(--amber-d);color:var(--amber)}
+.nerv-chip.selected{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+
+/* ══ Roadmap ══ */
+.roadmap-greeting{font-family:var(--fD);font-size:1.15rem;color:var(--tx);margin-bottom:16px;line-height:1.5;padding:16px;background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:12px;border-left:3px solid var(--amber)}
+.focus-list{list-style:none;margin-bottom:16px}
+.focus-list li{padding:8px 0;border-bottom:1px solid var(--bdr);font-size:13px;display:flex;align-items:flex-start;gap:10px}
+.focus-list li:last-child{border-bottom:none}
+.focus-list li::before{content:'→';color:var(--amber);font-family:var(--fM);flex-shrink:0}
+.day-plan{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+@media(max-width:580px){.day-plan{grid-template-columns:1fr 1fr}}
+.day-card{background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:10px;text-align:center}
+.day-label{font-family:var(--fM);font-size:10px;color:var(--amber);margin-bottom:4px}
+.day-task{font-size:11px;color:var(--tx-s);line-height:1.4}
+.encouragement-box{background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:14px 16px;font-size:14px;color:var(--green);font-style:italic}
+
+/* ══ Screen 2 — Learn ══ */
+.framework-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.fw-tab{padding:8px 16px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;font-family:var(--fM);cursor:pointer;transition:all .2s}
+.fw-tab:hover{border-color:var(--amber-d);color:var(--amber)}
+.fw-tab.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+.fw-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+@media(max-width:580px){.fw-steps{grid-template-columns:1fr 1fr}}
+.fw-step{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}
+.fw-letter{font-family:var(--fD);font-size:1.8rem;color:var(--amber);line-height:1}
+.fw-word{font-size:12px;font-weight:600;margin:4px 0}
+.fw-explain{font-size:11px;color:var(--tx-m);line-height:1.4}
+.q-type-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.qt-btn{padding:7px 14px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;cursor:pointer;transition:all .2s}
+.qt-btn:hover{border-color:var(--amber-d);color:var(--amber)}
+.qt-btn.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+.example-q{font-family:var(--fD);font-size:1.1rem;line-height:1.55;padding:16px 20px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;border-left:3px solid var(--amber);margin-bottom:20px}
+.answer-level{border-radius:14px;padding:18px;margin-bottom:12px;border:1px solid}
+.level-poor   {background:rgba(224,90,90,.06);border-color:rgba(224,90,90,.2)}
+.level-avg    {background:rgba(240,160,64,.06);border-color:rgba(240,160,64,.2)}
+.level-excel  {background:rgba(76,175,118,.06);border-color:rgba(76,175,118,.2)}
+.level-badge  {font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.level-text   {font-size:13px;line-height:1.7;color:var(--tx-s);margin-bottom:8px}
+.level-why    {font-size:12px;line-height:1.5;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.2)}
+.key-tip{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--tx-s);margin-top:8px}
+.key-tip strong{color:var(--amber)}
+
+/* ══ Screen 3 — Guided Practice ══ */
+.practice-q-box{font-family:var(--fD);font-size:1.15rem;line-height:1.6;padding:20px;background:var(--bg-s);border:1px solid var(--amber-d);border-radius:14px;border-left:3px solid var(--amber);margin-bottom:18px}
+.framework-hint{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:14px;margin-bottom:16px}
+.fh-label{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px}
+.fh-steps{display:flex;gap:8px;flex-wrap:wrap}
+.fh-step{background:var(--bg-r);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;font-size:12px}
+.fh-step strong{color:var(--amber);font-family:var(--fM)}
+.attempt-badge{font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-bottom:8px}
+.ans-textarea{width:100%;background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:14px;outline:none;resize:vertical;min-height:120px;transition:border-color .2s;line-height:1.7}
+.ans-textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-g)}
+.ans-textarea::placeholder{color:var(--tx-m)}
+/* Feedback bubble */
+.buddy-bubble{background:var(--bg-s);border:1px solid var(--bdr);border-radius:16px;padding:20px;margin-top:16px;animation:fadeUp .35s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.buddy-av{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.buddy-icon{width:38px;height:38px;background:var(--amber-g);border:1px solid var(--amber-d);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.buddy-name{font-size:13px;font-weight:600}
+.buddy-sub{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
+.fb-reaction{font-size:14px;line-height:1.7;margin-bottom:14px;padding:12px 14px;background:rgba(76,175,118,.06);border:1px solid rgba(76,175,118,.15);border-radius:10px;color:var(--tx-s)}
+.fb-section{margin-bottom:12px}
+.fb-section-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:5px}
+.fb-section-txt{font-size:13px;line-height:1.65;color:var(--tx-s)}
+.try-this-box{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;font-style:italic;color:var(--tx-s)}
+.reflection-q{background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--green)}
+.encouragement-line{font-size:13px;color:var(--amber);font-family:var(--fM);text-align:center;padding:8px}
+.practice-score{display:inline-flex;align-items:center;gap:8px;font-family:var(--fM);font-size:12px;margin-bottom:12px}
+.ps-bar{height:6px;border-radius:3px;background:var(--bdr);flex:1;min-width:80px}
+.ps-fill{height:100%;border-radius:3px;background:var(--amber);transition:width .6s ease}
+
+/* ══ Body language checklist ══ */
+.checklist-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+@media(max-width:580px){.checklist-grid{grid-template-columns:1fr}}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;cursor:pointer;transition:all .2s}
+.check-item:hover{border-color:var(--amber-d)}
+.check-item.checked{border-color:var(--green);background:rgba(76,175,118,.06)}
+.check-box{width:20px;height:20px;border:2px solid var(--bdr);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;margin-top:1px}
+.check-item.checked .check-box{border-color:var(--green);background:var(--green);color:#0c0d0f}
+.check-label{font-size:13px;line-height:1.4}
+.check-tip{font-size:11px;color:var(--tx-m);margin-top:2px}
+.self-reflection{width:100%;background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;color:var(--tx);font-family:var(--fB);font-size:13px;padding:12px;outline:none;resize:none;min-height:80px;margin-top:10px;transition:border-color .2s}
+.self-reflection:focus{border-color:var(--amber)}
+.self-reflection::placeholder{color:var(--tx-m)}
+
+/* ══ Screen 4 — Simulation ══ */
+.sim-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--bg-s);border-bottom:1px solid var(--bdr)}
+.sim-tags{display:flex;gap:8px;flex-wrap:wrap}
+.sim-tag{font-family:var(--fM);font-size:10px;padding:3px 10px;border-radius:100px}
+.tag-amber{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);color:var(--amber)}
+.tag-green{background:rgba(76,175,118,.1);border:1px solid rgba(76,175,118,.2);color:var(--green)}
+.tag-muted{background:var(--bg-r);border:1px solid var(--bdr);color:var(--tx-s)}
+.timer-box{font-family:var(--fM);font-size:20px;font-weight:500;transition:color .3s}
+.timer-warn{color:var(--amber)}.timer-danger{color:var(--red)}
+.prog-bar{height:3px;background:var(--bdr)}.prog-fill{height:100%;background:var(--amber);border-radius:2px;transition:width .5s}
+.sim-q-area{padding:28px}
+.sim-interviewer{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sim-av{width:40px;height:40px;background:linear-gradient(135deg,var(--amber-g),var(--bg-r));border:1px solid var(--amber-d);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sim-q-text{font-family:var(--fD);font-size:1.15rem;line-height:1.6;padding:18px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:14px;border-left:3px solid var(--amber);margin-bottom:20px}
+.sim-fb{padding:0 28px 28px;animation:fadeUp .35s ease both}
+.sim-score-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.sim-score-circle{width:60px;height:60px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid;flex-shrink:0}
+.ssc-num{font-family:var(--fM);font-size:15px;font-weight:500;line-height:1}
+.ssc-lbl{font-size:9px;color:var(--tx-m);font-family:var(--fM)}
+.sim-fb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+@media(max-width:580px){.sim-fb-grid{grid-template-columns:1fr}}
+.sim-fb-item{background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px}
+.sfi-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:5px}
+.sfi-txt{font-size:13px;line-height:1.6;color:var(--tx-s)}
+.better-box{background:rgba(76,175,118,.07);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:14px;margin-bottom:14px}
+.better-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
+.better-txt{font-size:13px;line-height:1.7;color:var(--tx-s);font-style:italic}
+/* Final results */
+.final-score{text-align:center;padding:28px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:18px;margin-bottom:20px}
+.final-num{font-family:var(--fM);font-size:4rem;font-weight:500;line-height:1;color:var(--amber)}
+.final-grade{font-family:var(--fD);font-size:1.6rem;margin-top:4px}
+.final-summary{font-size:14px;color:var(--tx-s);line-height:1.7;margin-top:10px;max-width:480px;margin-left:auto;margin-right:auto}
+.q-accordion{border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:10px}
+.qa-hdr{padding:13px 18px;background:var(--bg-s);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .2s}
+.qa-hdr:hover{background:var(--bg-r)}
+.qa-title{font-size:13px;font-weight:600}
+.qa-score{font-family:var(--fM);font-size:12px}
+.qa-body{padding:16px;display:none}
+.qa-body.open{display:block}
+.qa-sec{margin-bottom:10px}
+.qa-sec-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:4px}
+.qa-sec-txt{font-size:13px;line-height:1.6;color:var(--tx-s)}
+/* History */
+.hist-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:6px}
+.hist-row:last-child{border-bottom:none}
+.hist-role{font-size:14px;font-weight:600}.hist-meta{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
+.hist-score{font-family:var(--fM);font-size:15px;font-weight:500}
+.grade-A{color:#4caf76}.grade-B{color:#f0a040}.grade-C{color:#ffcc44}.grade-D{color:#e07040}.grade-F{color:#e05a5a}
+/* Loading */
+.ai-load{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px;gap:12px}
+.ai-load p{font-size:13px;color:var(--tx-m);font-family:var(--fM)}
+.dots span{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin:0 3px;animation:db .9s ease-in-out infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes db{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div class="nav-r">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/chat"      class="nav-link">Chat</a>
+    <a href="/planner"   class="nav-link">Planner</a>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="iv-page">
+
+  <!-- Header -->
+  <div style="margin-bottom:24px">
+    <div class="section-tag">Interview Preparation Academy</div>
+    <h2 style="font-size:1.6rem;margin-bottom:4px">🎯 Get Interview Ready</h2>
+    <p style="color:var(--tx-m);font-size:13px">Learn how to answer, practise with your study buddy, then simulate the real thing.</p>
+  </div>
+
+  <!-- Step navigation -->
+  <div class="steps-nav">
+    <div class="step-tab active" id="tab-1" onclick="goTab(1)"><span class="step-num">①</span>YOUR GOAL</div>
+    <div class="step-tab" id="tab-2" onclick="goTab(2)"><span class="step-num">②</span>LEARN</div>
+    <div class="step-tab" id="tab-3" onclick="goTab(3)"><span class="step-num">③</span>PRACTISE</div>
+    <div class="step-tab" id="tab-4" onclick="goTab(4)"><span class="step-num">④</span>SIMULATE</div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       SCREEN 1 — SETUP & ROADMAP
+  ══════════════════════════════════ -->
+  <div class="screen active" id="screen-1">
+
+    <!-- Past stats if any -->
+    <div id="stats-banner" style="display:none" class="card" style="margin-bottom:14px">
+      <div class="section-tag">Your Progress</div>
+      <div id="stats-content"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-tag">Step 1 — Tell us about yourself</div>
+      <h3 style="font-family:var(--fD);font-size:1.15rem;margin-bottom:18px">What are you preparing for?</h3>
+
+      <div class="setup-grid">
+        <div>
+          <label>Target Role</label>
+          <select id="sel-role"><option value="">Select a role…</option></select>
+        </div>
+        <div>
+          <label>Your Experience Level</label>
+          <select id="sel-exp"><option value="">Select experience…</option></select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label class="form-label">What are you most nervous about? (Select all that apply)</label>
+        <div class="nervousness-grid" id="nerv-chips"></div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <label class="form-label">Your personal goal (optional)</label>
+        <input type="text" id="inp-goal" placeholder="e.g. Land a job at a tech startup, pass my first ever interview…" style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:11px 13px;outline:none;width:100%;transition:border-color .2s" onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--bdr)'"/>
+      </div>
+
+      <div id="setup-err" class="alert alert-err hidden"></div>
+      <button class="btn btn-primary btn-lg" id="roadmap-btn" onclick="generateRoadmap()" style="width:100%">
+        🗺 Build My Preparation Roadmap
+      </button>
+    </div>
+
+    <!-- Roadmap result -->
+    <div id="roadmap-result" style="display:none;margin-top:14px">
+      <div class="card">
+        <div class="section-tag">Your Personalised Roadmap</div>
+        <div class="roadmap-greeting" id="rm-greeting"></div>
+        <div style="margin-bottom:14px">
+          <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px">Your Strengths</div>
+          <div id="rm-strengths" style="font-size:13px;color:var(--tx-s);line-height:1.6"></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px">Focus Areas</div>
+          <ul class="focus-list" id="rm-focus"></ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px">Your 5-Day Plan</div>
+          <div class="day-plan" id="rm-plan"></div>
+        </div>
+        <div class="encouragement-box" id="rm-encourage"></div>
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="goTab(2)">Next: Learn How to Answer →</button>
+          <button class="btn btn-outline btn-sm" onclick="goTab(3)">Skip to Practice</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════
+       SCREEN 2 — LEARN
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-2">
+
+    <!-- Framework selector -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-tag">Step 2 — Learn the Frameworks</div>
+      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:12px">Choose an answer framework</h3>
+      <div class="framework-tabs" id="fw-tabs"></div>
+      <div id="fw-steps-display"></div>
+    </div>
+
+    <!-- Body language checklist -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-tag">Presentation Skills</div>
+      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">Body Language & Appearance Checklist</h3>
+      <p style="font-size:13px;color:var(--tx-m);margin-bottom:14px">Rate yourself honestly. Tick each area you feel confident about.</p>
+      <div class="checklist-grid" id="bl-checklist"></div>
+      <div style="margin-top:4px">
+        <label class="form-label" style="margin-bottom:6px">Self-reflection: What do you need to work on most?</label>
+        <textarea class="self-reflection" placeholder="e.g. I tend to look down when nervous. I need to practise maintaining eye contact…"></textarea>
+      </div>
+    </div>
+
+    <!-- Answer examples -->
+    <div class="card">
+      <div class="section-tag">See the Difference</div>
+      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">Poor vs Average vs Excellent Answers</h3>
+      <p style="font-size:13px;color:var(--tx-m);margin-bottom:14px">See exactly what separates a weak answer from a great one.</p>
+
+      <div style="margin-bottom:14px">
+        <label class="form-label">Question Type</label>
+        <div class="q-type-row" id="qt-btns"></div>
+      </div>
+
+      <button class="btn btn-outline" id="load-examples-btn" onclick="loadExamples()" style="margin-bottom:18px;width:100%">
+        Generate Example Questions & Answers
+      </button>
+
+      <div id="examples-loading" style="display:none">
+        <div class="ai-load"><div class="dots"><span></span><span></span><span></span></div><p>Generating examples for your role…</p></div>
+      </div>
+
+      <div id="examples-result" style="display:none">
+        <div class="example-q" id="ex-question"></div>
+        <div class="answer-level level-poor">
+          <div class="level-badge"><span style="color:#e05a5a">✗</span><span style="color:#e05a5a;font-family:var(--fM);font-size:10px">POOR ANSWER</span></div>
+          <div class="level-text" id="ex-poor"></div>
+          <div class="level-why" style="color:#e08080" id="ex-poor-why"></div>
+        </div>
+        <div class="answer-level level-avg">
+          <div class="level-badge"><span style="color:var(--amber)">◐</span><span style="color:var(--amber);font-family:var(--fM);font-size:10px">AVERAGE ANSWER</span></div>
+          <div class="level-text" id="ex-avg"></div>
+          <div class="level-why" style="color:#c8883a" id="ex-avg-why"></div>
+        </div>
+        <div class="answer-level level-excel">
+          <div class="level-badge"><span style="color:var(--green)">✓</span><span style="color:var(--green);font-family:var(--fM);font-size:10px">EXCELLENT ANSWER</span></div>
+          <div class="level-text" id="ex-excel"></div>
+          <div class="level-why" style="color:#6abf8a" id="ex-excel-why"></div>
+        </div>
+        <div class="key-tip" id="ex-tip"></div>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="goTab(3)">Next: Start Practising →</button>
+        <button class="btn btn-outline btn-sm" id="reload-examples-btn" onclick="loadExamples()" style="display:none">New Example</button>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════
+       SCREEN 3 — GUIDED PRACTICE
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-3">
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-tag">Step 3 — Guided Practice</div>
+      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">Practice with your study buddy</h3>
+      <p style="font-size:13px;color:var(--tx-m);margin-bottom:14px">No judgment here. Answer, get coaching feedback, retry as many times as you want.</p>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        <div style="flex:1;min-width:160px">
+          <label class="form-label">Question Type</label>
+          <div class="q-type-row" id="prac-qt-btns"></div>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="form-label">Framework to use</label>
+          <div class="framework-tabs" id="prac-fw-tabs"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-outline" id="new-prac-q-btn" onclick="loadPracticeQuestion()" style="width:100%;margin-bottom:18px">
+        🎲 Get a Practice Question
+      </button>
+
+      <div id="prac-q-loading" style="display:none">
+        <div class="ai-load"><div class="dots"><span></span><span></span><span></span></div><p>Your study buddy is picking a question…</p></div>
+      </div>
+
+      <div id="prac-q-area" style="display:none">
+        <div class="practice-q-box" id="prac-question"></div>
+
+        <div class="framework-hint" id="prac-fw-hint">
+          <div class="fh-label" id="prac-fw-name"></div>
+          <div class="fh-steps" id="prac-fw-hint-steps"></div>
+        </div>
+
+        <div class="attempt-badge" id="prac-attempt-lbl">Attempt 1 — take your time!</div>
+        <textarea class="ans-textarea" id="prac-answer" placeholder="Use the framework above as your guide. Write your answer here…"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;margin-bottom:14px">
+          <span style="font-size:11px;color:var(--tx-m);font-family:var(--fM)" id="prac-char">0 characters</span>
+          <span style="font-size:12px;color:var(--tx-m)">💡 Speak your answer out loud as you type — builds real confidence</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="submit-prac-btn" onclick="submitPractice()">Get Feedback from Study Buddy →</button>
+          <button class="btn btn-outline btn-sm" onclick="loadPracticeQuestion()">Different Question</button>
+        </div>
+      </div>
+
+      <!-- Buddy feedback -->
+      <div id="prac-feedback" style="display:none">
+        <div class="buddy-bubble">
+          <div class="buddy-av">
+            <div class="buddy-icon">🤝</div>
+            <div>
+              <div class="buddy-name">Nexus Study Buddy</div>
+              <div class="buddy-sub" id="prac-attempt-sub">Attempt 1 feedback</div>
+            </div>
+          </div>
+          <div class="practice-score">
+            <span style="color:var(--amber);font-family:var(--fM)" id="prac-score-txt">Building up…</span>
+            <div class="ps-bar"><div class="ps-fill" id="prac-score-bar" style="width:0%"></div></div>
+          </div>
+          <div class="fb-reaction" id="prac-reaction"></div>
+          <div class="fb-section">
+            <div class="fb-section-lbl">⭐ What Worked</div>
+            <div class="fb-section-txt" id="prac-worked"></div>
+          </div>
+          <div class="fb-section">
+            <div class="fb-section-lbl">📈 Make It Stronger</div>
+            <div class="fb-section-txt" id="prac-stronger"></div>
+          </div>
+          <div class="fb-section">
+            <div class="fb-section-lbl">🎯 The One Missing Piece</div>
+            <div class="fb-section-txt" id="prac-missing"></div>
+          </div>
+          <div class="try-this-box" id="prac-try-this" style="display:none">
+            <strong style="font-family:var(--fM);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber)">Try opening with:</strong><br/>
+            <span id="prac-try-text"></span>
+          </div>
+          <div class="reflection-q" id="prac-reflection">
+            <strong>💭 Think about this:</strong> <span id="prac-ref-text"></span>
+          </div>
+          <div class="encouragement-line" id="prac-encourage"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <button class="btn btn-primary" onclick="retryPractice()">🔄 Try Again</button>
+            <button class="btn btn-outline btn-sm" onclick="loadPracticeQuestion()">New Question</button>
+            <button class="btn btn-outline btn-sm" onclick="goTab(4)">Ready for Simulation →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Body language reminder -->
+    <div class="card">
+      <div class="section-tag">Before You Simulate</div>
+      <h3 style="font-family:var(--fD);font-size:1.05rem;margin-bottom:12px">📹 Record Yourself Practice</h3>
+      <p style="font-size:13px;color:var(--tx-s);line-height:1.7;margin-bottom:12px">Use your phone camera to record yourself answering the question above. Then play it back and check:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">👁 Am I making eye contact with the camera?</div>
+        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">🪑 Is my posture straight and open?</div>
+        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">🗣 Do I sound clear and confident?</div>
+        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">⏱ Am I speaking at a good pace?</div>
+        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">😐 Is my expression engaged and natural?</div>
+        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">👔 Am I dressed appropriately?</div>
+      </div>
+      <div>
+        <label class="form-label">After watching your recording — what will you improve?</label>
+        <textarea class="self-reflection" placeholder="e.g. I said 'um' too many times. I need to pause instead of filling silence…" id="rec-reflection"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════
+       SCREEN 4 — SIMULATION
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-4">
+
+    <!-- Pre-simulation setup -->
+    <div id="sim-setup" class="card">
+      <div class="section-tag">Step 4 — Real Interview Simulation</div>
+      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:8px">You've prepared — now test yourself</h3>
+      <p style="font-size:13px;color:var(--tx-m);margin-bottom:18px">This time: no hints, no framework guide. Just you and the interview. Your answers are scored and saved.</p>
+
+      <div style="background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:12px;padding:14px 16px;margin-bottom:18px">
+        <div style="font-family:var(--fM);font-size:11px;color:var(--amber);margin-bottom:6px">ROLE DETECTED</div>
+        <div style="font-size:15px;font-weight:600" id="sim-role-display">General / Any Role</div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        <div style="flex:1;min-width:140px">
+          <label class="form-label">Interview Type</label>
+          <div class="q-type-row" id="sim-qt-btns"></div>
+        </div>
+        <div style="flex:1;min-width:120px">
+          <label class="form-label">Questions</label>
+          <input type="range" id="sim-q-count" min="3" max="8" value="5" style="accent-color:var(--amber);width:100%" oninput="document.getElementById('sim-q-display').textContent=this.value"/>
+          <div style="font-family:var(--fM);font-size:12px;color:var(--amber);margin-top:4px"><span id="sim-q-display">5</span> questions</div>
+        </div>
+      </div>
+
+      <!-- Past results if any -->
+      <div id="sim-history" style="margin-bottom:16px"></div>
+
+      <button class="btn btn-primary btn-lg" id="start-sim-btn" onclick="startSimulation()" style="width:100%">
+        🎯 Start Simulation
+      </button>
+    </div>
+
+    <!-- Active simulation -->
+    <div id="sim-room" style="display:none">
+      <div style="background:var(--bg-c);border:1px solid var(--bdr);border-radius:20px;overflow:hidden;margin-bottom:12px">
+        <div class="sim-hdr">
+          <div class="sim-tags">
+            <span class="sim-tag tag-amber" id="sim-role-tag"></span>
+            <span class="sim-tag tag-green" id="sim-type-tag"></span>
+          </div>
+          <div class="timer-box" id="sim-timer">02:00</div>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="sim-prog" style="width:0%"></div></div>
+        <div class="sim-q-area" id="sim-q-area">
+          <div id="sim-q-loading" class="ai-load"><div class="dots"><span></span><span></span><span></span></div><p>Interviewer is ready…</p></div>
+          <div id="sim-q-content" style="display:none">
+            <div class="sim-interviewer">
+              <div class="sim-av">🎓</div>
+              <div>
+                <div style="font-size:13px;font-weight:600">Nexus Interviewer</div>
+                <div style="font-size:11px;color:var(--tx-m);font-family:var(--fM)" id="sim-role-sub"></div>
+              </div>
+              <div style="margin-left:auto;font-family:var(--fM);font-size:12px;color:var(--tx-m)" id="sim-q-counter"></div>
+            </div>
+            <div class="sim-q-text" id="sim-q-text"></div>
+            <textarea class="ans-textarea" id="sim-answer" placeholder="Answer as you would in a real interview. Take a breath first."></textarea>
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+              <button class="btn btn-primary" id="sim-submit-btn" onclick="submitSimulation()">Submit Answer →</button>
+              <button class="btn btn-ghost btn-sm" onclick="if(confirm('Skip this question?')){document.getElementById('sim-answer').value='[Skipped]';submitSimulation()}">Skip</button>
+            </div>
+          </div>
+          <div id="sim-feedback-area" style="display:none" class="sim-fb"></div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="if(confirm('End early?')){endSimEarly()}">✕ End Simulation</button>
+    </div>
+
+    <!-- Final results -->
+    <div id="sim-results" style="display:none">
+      <div class="card">
+        <div class="section-tag">Simulation Complete</div>
+        <h3 style="font-family:var(--fD);font-size:1.2rem;margin-bottom:16px">🏆 Your Results</h3>
+        <div class="final-score">
+          <div class="final-num" id="fin-score"></div>
+          <div class="final-grade" id="fin-grade"></div>
+          <div class="final-summary" id="fin-summary"></div>
+        </div>
+        <div id="fin-reviews"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          <button class="btn btn-primary" onclick="resetSim()">🔄 New Simulation</button>
+          <button class="btn btn-outline btn-sm" onclick="goTab(3)">← Back to Practice</button>
+          <button class="btn btn-outline btn-sm" onclick="location.href='/dashboard'">Dashboard</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- end iv-page -->
+
+<script>
+/* ══════════════════════════════════════
+   GLOBAL STATE
+══════════════════════════════════════ */
+let cfg           = {};
+let userRole      = "General / Any Role";
+let selectedFw    = "STAR";
+let learnQType    = "Behavioural";
+let pracQType     = "Mixed";
+let pracFw        = "STAR";
+let simQType      = "Mixed";
+let pracQuestion  = "";
+let pracAttempt   = 1;
+let prevPracQs    = [];
+let simSessionId  = null;
+let simCurrentQ   = 0;
+let simTotal      = 5;
+let simAnswers    = [];
+let timerInt      = null;
+let timerSec      = 120;
+
+const BL_CHECKLIST = [
+  {label:"Eye Contact",          tip:"Look at the interviewer / camera naturally, not constantly"},
+  {label:"Upright Posture",      tip:"Sit straight, shoulders back — projects confidence"},
+  {label:"Clear Voice",          tip:"Speak clearly and at a moderate pace"},
+  {label:"Confident Smile",      tip:"A natural smile shows you are comfortable"},
+  {label:"No Filler Words",      tip:"Avoid 'um', 'uh', 'like' — pause instead"},
+  {label:"Professional Dress",   tip:"Dress one level above what you think the role requires"},
+  {label:"Open Body Language",   tip:"Avoid crossing arms or looking down"},
+  {label:"Enthusiastic Energy",  tip:"Show genuine interest — interviewers remember enthusiasm"},
+];
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+async function init(){
+  try{
+    const r = await fetch('/api/interview/config');
+    if(r.status===401){location.href='/login';return;}
+    cfg = await r.json();
+    buildSelects();
+    buildChecklists();
+    buildFrameworkTabs();
+    buildQTypeBtns();
+    loadStats();
+    loadSimHistory();
+
+    // Load saved profile AND roadmap
+    const pr = await fetch('/api/interview/roadmap');
+    const pd = await pr.json();
+
+    if(pd.profile){
+      document.getElementById('sel-role').value = pd.profile.role || '';
+      document.getElementById('sel-exp').value  = pd.profile.experience || '';
+      userRole = pd.profile.role || "General / Any Role";
+      document.getElementById('sim-role-display').textContent = userRole;
+      if(pd.profile.nervousness){
+        pd.profile.nervousness.forEach(n=>{
+          document.querySelectorAll('.nerv-chip').forEach(c=>{
+            if(c.dataset.val===n) c.classList.add('selected');
+          });
+        });
+        if(pd.profile.goals) document.getElementById('inp-goal').value = pd.profile.goals;
+      }
+    }
+
+    // If saved roadmap exists — show it automatically
+    if(pd.roadmap){
+      renderRoadmap(pd.roadmap);
+      document.getElementById('roadmap-result').style.display='';
+      document.getElementById('tab-1').classList.add('done');
+      // Show resume banner
+      showResumeBanner(pd.roadmap);
+    }
+  }catch(e){ console.error('Init error:',e); }
+}
+
+function showResumeBanner(roadmap){
+  const existing = document.getElementById('resume-banner');
+  if(existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id = 'resume-banner';
+  banner.style.cssText = 'background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px';
+  banner.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:20px">🔄</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--green)">Welcome back! Your roadmap is saved.</div>
+        <div style="font-size:12px;color:var(--tx-m)">Preparing for: <strong>${escH(roadmap.role||'')}</strong> — continue where you left off</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" style="color:var(--green);border-color:rgba(76,175,118,.3)" onclick="goTab(3)">Continue Practising →</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('resume-banner').remove()">✕</button>
+    </div>`;
+  const setupCard = document.querySelector('.screen.active .card');
+  if(setupCard) setupCard.before(banner);
+}
+
+function buildSelects(){
+  const roleS = document.getElementById('sel-role');
+  cfg.roles.forEach(r=>{ const o=document.createElement('option');o.value=r;o.textContent=r;roleS.appendChild(o); });
+  roleS.addEventListener('change',()=>{ userRole=roleS.value; document.getElementById('sim-role-display').textContent=userRole||'General / Any Role'; });
+
+  const expS = document.getElementById('sel-exp');
+  cfg.experience.forEach(e=>{ const o=document.createElement('option');o.value=e;o.textContent=e;expS.appendChild(o); });
+
+  const nervDiv = document.getElementById('nerv-chips');
+  cfg.nervousness.forEach(n=>{
+    const c=document.createElement('div');
+    c.className='nerv-chip'; c.textContent=n; c.dataset.val=n;
+    c.onclick=()=>c.classList.toggle('selected');
+    nervDiv.appendChild(c);
+  });
+}
+
+function buildChecklists(){
+  const grid = document.getElementById('bl-checklist');
+  BL_CHECKLIST.forEach(item=>{
+    const d=document.createElement('div');
+    d.className='check-item';
+    d.innerHTML=`<div class="check-box"></div><div><div class="check-label">${escH(item.label)}</div><div class="check-tip">${escH(item.tip)}</div></div>`;
+    d.onclick=()=>{ d.classList.toggle('checked'); d.querySelector('.check-box').textContent=d.classList.contains('checked')?'✓':''; };
+    grid.appendChild(d);
+  });
+}
+
+function buildFrameworkTabs(){
+  // Learn screen
+  const div = document.getElementById('fw-tabs');
+  Object.keys(cfg.frameworks||{}).forEach((k,i)=>{
+    const b=document.createElement('button');
+    b.className='fw-tab'+(i===0?' active':'');
+    b.textContent=cfg.frameworks[k].name;
+    b.onclick=()=>{ document.querySelectorAll('#fw-tabs .fw-tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selectedFw=k; renderFwSteps(k); };
+    div.appendChild(b);
+  });
+  // Practice screen
+  const pdiv = document.getElementById('prac-fw-tabs');
+  Object.keys(cfg.frameworks||{}).forEach((k,i)=>{
+    const b=document.createElement('button');
+    b.className='fw-tab'+(i===0?' active':'');
+    b.textContent=cfg.frameworks[k].name;
+    b.onclick=()=>{ document.querySelectorAll('#prac-fw-tabs .fw-tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); pracFw=k; renderPracFwHint(k); };
+    pdiv.appendChild(b);
+  });
+  if(Object.keys(cfg.frameworks||{}).length>0){
+    renderFwSteps(Object.keys(cfg.frameworks)[0]);
+  }
+}
+
+function renderFwSteps(key){
+  const fw  = cfg.frameworks[key];
+  const div = document.getElementById('fw-steps-display');
+  if(!fw){div.innerHTML='';return;}
+  const cols = fw.steps.length<=3?fw.steps.length:4;
+  div.innerHTML=`
+    <div style="font-size:12px;color:var(--tx-m);margin-bottom:10px">${escH(fw.desc)}</div>
+    <div class="fw-steps" style="grid-template-columns:repeat(${cols},1fr)">
+      ${fw.steps.map(s=>`
+        <div class="fw-step">
+          <div class="fw-letter">${s.letter}</div>
+          <div class="fw-word">${escH(s.word)}</div>
+          <div class="fw-explain">${escH(s.explain)}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderPracFwHint(key){
+  const fw = cfg.frameworks[key];
+  if(!fw) return;
+  document.getElementById('prac-fw-name').textContent = fw.name + ' — ' + fw.desc;
+  const div = document.getElementById('prac-fw-hint-steps');
+  div.innerHTML = fw.steps.map(s=>`
+    <div class="fh-step"><strong>${s.letter}</strong> ${escH(s.word)}: ${escH(s.explain)}</div>`).join('');
+}
+
+function buildQTypeBtns(){
+  const types = ["Behavioural","Technical","HR / Culture","Mixed"];
+  // Learn
+  const ld = document.getElementById('qt-btns');
+  types.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='qt-btn'+(i===0?' active':'');
+    b.textContent=t;
+    b.onclick=()=>{ document.querySelectorAll('#qt-btns .qt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); learnQType=t; };
+    ld.appendChild(b);
+  });
+  // Practice
+  const pd = document.getElementById('prac-qt-btns');
+  types.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='qt-btn'+(i===3?' active':'');
+    b.textContent=t;
+    b.onclick=()=>{ document.querySelectorAll('#prac-qt-btns .qt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); pracQType=t; };
+    pd.appendChild(b);
+  });
+  pracQType="Mixed";
+  // Simulation
+  const sd = document.getElementById('sim-qt-btns');
+  types.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='qt-btn'+(i===3?' active':'');
+    b.textContent=t;
+    b.onclick=()=>{ document.querySelectorAll('#sim-qt-btns .qt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); simQType=t; };
+    sd.appendChild(b);
+  });
+  simQType="Mixed";
+}
+
+/* ══════════════════════════════════════
+   STEP NAVIGATION
+══════════════════════════════════════ */
+function goTab(n){
+  [1,2,3,4].forEach(i=>{
+    document.getElementById(`screen-${i}`).classList.toggle('active',i===n);
+    document.getElementById(`tab-${i}`).classList.toggle('active',i===n);
+  });
+  if(n===2 && Object.keys(cfg.frameworks||{}).length>0){
+    renderPracFwHint(pracFw||Object.keys(cfg.frameworks)[0]);
+  }
+  if(n===4){
+    document.getElementById('sim-role-display').textContent = userRole||'General / Any Role';
+  }
+  window.scrollTo(0,0);
+}
+
+/* ══════════════════════════════════════
+   ROADMAP
+══════════════════════════════════════ */
+async function generateRoadmap(){
+  const role = document.getElementById('sel-role').value;
+  const exp  = document.getElementById('sel-exp').value;
+  if(!role||!exp){
+    const err=document.getElementById('setup-err');
+    err.textContent='Please select your target role and experience level.';
+    err.classList.remove('hidden');
+    return;
+  }
+  document.getElementById('setup-err').classList.add('hidden');
+  userRole = role;
+
+  const nerv = [...document.querySelectorAll('.nerv-chip.selected')].map(c=>c.dataset.val);
+  const goals = document.getElementById('inp-goal').value.trim();
+
+  // Save profile
+  await fetch('/api/interview/profile',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({role,experience:exp,nervousness:nerv,goals})});
+
+  const btn = document.getElementById('roadmap-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Building your roadmap…';
+
+  try{
+    const r = await fetch('/api/interview/roadmap',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role,experience:exp,nervousness:nerv,goals})});
+    const d = await r.json();
+    if(r.ok){
+      renderRoadmap(d.roadmap||d);
+      document.getElementById('roadmap-result').style.display='';
+      document.getElementById('roadmap-result').scrollIntoView({behavior:'smooth'});
+      document.getElementById('tab-1').classList.add('done');
+      // Show planner confirmation
+      if(d.planner_saved > 0){
+        const note = document.createElement('div');
+        note.style.cssText='background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:10px 14px;margin-top:10px;font-size:13px;color:var(--green)';
+        note.innerHTML=`✅ <strong>${d.planner_saved} tasks</strong> added to your <a href="/planner" style="color:var(--green);text-decoration:underline">Weekly Planner</a> under "Interview Preparation"`;
+        document.getElementById('roadmap-result').appendChild(note);
+      }
+    } else { alert(d.error||'Failed to generate roadmap.'); }
+  }catch(e){ alert('Network error.'); }
+  finally{ btn.disabled=false; btn.innerHTML='🗺 Build My Preparation Roadmap'; }
+}
+
+function renderRoadmap(d){
+  document.getElementById('rm-greeting').textContent   = d.greeting;
+  document.getElementById('rm-strengths').textContent  = d.strengths;
+  document.getElementById('rm-encourage').textContent  = d.encouragement;
+  const fl = document.getElementById('rm-focus');
+  fl.innerHTML = (d.focus_areas||[]).map(f=>`<li>${escH(f)}</li>`).join('');
+  const pl = document.getElementById('rm-plan');
+  pl.innerHTML = Object.entries(d.daily_plan||{}).map(([day,task])=>`
+    <div class="day-card">
+      <div class="day-label">${escH(day)}</div>
+      <div class="day-task">${escH(task)}</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════
+   LEARN — EXAMPLES
+══════════════════════════════════════ */
+async function loadExamples(){
+  document.getElementById('examples-loading').style.display='';
+  document.getElementById('examples-result').style.display='none';
+  document.getElementById('load-examples-btn').style.display='none';
+  document.getElementById('reload-examples-btn').style.display='none';
+
+  try{
+    const r = await fetch('/api/interview/learn',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole||'General / Any Role',question_type:learnQType,framework:selectedFw})});
+    const d = await r.json();
+    if(r.ok){
+      document.getElementById('ex-question').textContent  = d.question;
+      document.getElementById('ex-poor').textContent      = d.poor_answer;
+      document.getElementById('ex-poor-why').textContent  = '❌ ' + d.poor_why;
+      document.getElementById('ex-avg').textContent       = d.average_answer;
+      document.getElementById('ex-avg-why').textContent   = '◐ ' + d.average_why;
+      document.getElementById('ex-excel').textContent     = d.excellent_answer;
+      document.getElementById('ex-excel-why').textContent = '✓ ' + d.excellent_why;
+      document.getElementById('ex-tip').innerHTML         = `<strong>💡 Key Tip:</strong> ${escH(d.key_tip)}`;
+      document.getElementById('examples-result').style.display='';
+      document.getElementById('reload-examples-btn').style.display='';
+      document.getElementById('tab-2').classList.add('done');
+    } else { alert(d.error||'Failed.'); document.getElementById('load-examples-btn').style.display=''; }
+  }catch(e){ alert('Network error.'); document.getElementById('load-examples-btn').style.display=''; }
+  finally{ document.getElementById('examples-loading').style.display='none'; }
+}
+
+/* ══════════════════════════════════════
+   GUIDED PRACTICE
+══════════════════════════════════════ */
+async function loadPracticeQuestion(){
+  pracAttempt = 1;
+  document.getElementById('prac-feedback').style.display='none';
+  document.getElementById('prac-q-area').style.display='none';
+  document.getElementById('prac-q-loading').style.display='';
+
+  try{
+    const r = await fetch('/api/interview/practice/question',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole||'General / Any Role',question_type:pracQType,previous_questions:prevPracQs})});
+    const d = await r.json();
+    if(r.ok){
+      pracQuestion = d.question;
+      prevPracQs.push(d.question);
+      document.getElementById('prac-question').textContent = d.question;
+      renderPracFwHint(pracFw||'STAR');
+      document.getElementById('prac-answer').value = '';
+      document.getElementById('prac-char').textContent = '0 characters';
+      document.getElementById('prac-attempt-lbl').textContent = 'Attempt 1 — take your time!';
+      document.getElementById('prac-q-area').style.display='';
+      document.getElementById('prac-answer').focus();
+    } else { alert(d.error||'Failed to load question.'); }
+  }catch(e){ alert('Network error.'); }
+  finally{ document.getElementById('prac-q-loading').style.display='none'; }
+}
+
+async function submitPractice(){
+  const ans = document.getElementById('prac-answer').value.trim();
+  if(!ans){alert('Please type your answer first.');return;}
+  const btn = document.getElementById('submit-prac-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Study buddy is reviewing…';
+
+  try{
+    const r = await fetch('/api/interview/practice/feedback',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole||'General / Any Role',question:pracQuestion,answer:ans,attempt:pracAttempt,framework:pracFw||'STAR'})});
+    const d = await r.json();
+    if(r.ok){
+      renderPracFeedback(d);
+      document.getElementById('tab-3').classList.add('done');
+    } else { alert(d.error||'Failed to get feedback.'); }
+  }catch(e){ alert('Network error.'); }
+  finally{ btn.disabled=false; btn.textContent='Get Feedback from Study Buddy →'; }
+}
+
+function renderPracFeedback(d){
+  document.getElementById('prac-attempt-sub').textContent = `Attempt ${d.attempt} feedback`;
+  document.getElementById('prac-score-txt').textContent   = `${d.score}% — ${d.attempt===1?'First try!':d.attempt===2?'Getting better!':'Improving!'}`;
+  document.getElementById('prac-score-bar').style.width   = d.score+'%';
+  document.getElementById('prac-reaction').textContent    = d.buddy_reaction;
+  document.getElementById('prac-worked').textContent      = d.what_worked;
+  document.getElementById('prac-stronger').textContent    = d.make_it_stronger;
+  document.getElementById('prac-missing').textContent     = d.missing_piece;
+  document.getElementById('prac-ref-text').textContent    = d.reflection_q;
+  document.getElementById('prac-encourage').textContent   = d.encouragement;
+  if(d.try_this){
+    document.getElementById('prac-try-text').textContent  = d.try_this;
+    document.getElementById('prac-try-this').style.display='';
+  } else {
+    document.getElementById('prac-try-this').style.display='none';
+  }
+  document.getElementById('prac-feedback').style.display='';
+  document.getElementById('prac-feedback').scrollIntoView({behavior:'smooth'});
+}
+
+function retryPractice(){
+  pracAttempt++;
+  document.getElementById('prac-attempt-lbl').textContent = `Attempt ${pracAttempt} — you got this!`;
+  document.getElementById('prac-answer').value='';
+  document.getElementById('prac-feedback').style.display='none';
+  document.getElementById('prac-answer').focus();
+  document.getElementById('prac-q-area').scrollIntoView({behavior:'smooth'});
+}
+
+// Char counter
+document.addEventListener('DOMContentLoaded',()=>{
+  const ta = document.getElementById('prac-answer');
+  if(ta) ta.addEventListener('input',()=>{ document.getElementById('prac-char').textContent=ta.value.length+' characters'; });
+  const sa = document.getElementById('sim-answer');
+  if(sa) sa.addEventListener('input',()=>{}); // silence errors
+});
+
+/* ══════════════════════════════════════
+   SIMULATION
+══════════════════════════════════════ */
+async function startSimulation(){
+  const btn = document.getElementById('start-sim-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Setting up…';
+  simTotal   = parseInt(document.getElementById('sim-q-count').value);
+  simAnswers = [];
+
+  try{
+    const r = await fetch('/api/interview/simulation/start',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole||'General / Any Role',question_type:simQType,total_questions:simTotal})});
+    const d = await r.json();
+    if(r.ok){
+      simSessionId = d.session._id;
+      simCurrentQ  = 1;
+      document.getElementById('sim-setup').style.display='none';
+      document.getElementById('sim-room').style.display='';
+      document.getElementById('sim-results').style.display='none';
+      document.getElementById('sim-role-tag').textContent = d.session.role;
+      document.getElementById('sim-type-tag').textContent = d.session.question_type;
+      document.getElementById('sim-role-sub').textContent = d.session.role;
+      showSimQ(d.session.current_question, 1, simTotal);
+    } else { alert(d.error||'Failed to start.'); }
+  }catch(e){ alert('Network error.'); }
+  finally{ btn.disabled=false; btn.innerHTML='🎯 Start Simulation'; }
+}
+
+function showSimQ(question, qNum, total){
+  simCurrentQ = qNum;
+  document.getElementById('sim-prog').style.width = (((qNum-1)/total)*100)+'%';
+  document.getElementById('sim-q-counter').textContent = `${qNum} / ${total}`;
+  document.getElementById('sim-q-text').textContent    = question;
+  document.getElementById('sim-answer').value = '';
+  document.getElementById('sim-q-loading').style.display='none';
+  document.getElementById('sim-q-content').style.display='';
+  document.getElementById('sim-feedback-area').style.display='none';
+  startSimTimer();
+  document.getElementById('sim-answer').focus();
+}
+
+function startSimTimer(){
+  if(timerInt) clearInterval(timerInt);
+  timerSec = 120;
+  updateSimTimer();
+  timerInt = setInterval(()=>{ timerSec--; updateSimTimer(); if(timerSec<=0){clearInterval(timerInt);autoSimSubmit();} },1000);
+}
+
+function updateSimTimer(){
+  const m=Math.floor(timerSec/60); const s=timerSec%60;
+  const el=document.getElementById('sim-timer');
+  el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.className='timer-box'+(timerSec<=30?' timer-warn':'')+(timerSec<=10?' timer-danger':'');
+}
+
+function autoSimSubmit(){
+  if(!document.getElementById('sim-answer').value.trim()){
+    document.getElementById('sim-answer').value='[No answer given in time]';
+  }
+  submitSimulation();
+}
+
+async function submitSimulation(){
+  const ans = document.getElementById('sim-answer').value.trim();
+  if(!ans){alert('Please type your answer.');return;}
+  if(timerInt){clearInterval(timerInt);timerInt=null;}
+  const btn = document.getElementById('sim-submit-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Getting feedback…';
+  document.getElementById('sim-q-content').style.display='none';
+  document.getElementById('sim-q-loading').style.display='';
+  document.getElementById('sim-q-loading').querySelector('p').textContent='Analysing your answer…';
+
+  try{
+    const r = await fetch(`/api/interview/simulation/${simSessionId}/answer`,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({answer:ans,question_number:simCurrentQ})});
+    const d = await r.json();
+    if(r.ok){
+      document.getElementById('sim-q-loading').style.display='none';
+      simAnswers.push({question:document.getElementById('sim-q-text').textContent,answer:ans,feedback:d.feedback});
+      renderSimFeedback(d.feedback, d.is_last, d);
+    } else { alert(d.error||'Failed.'); showSimContent(); }
+  }catch(e){ alert('Network error.'); showSimContent(); }
+  finally{ btn.disabled=false; btn.textContent='Submit Answer →'; }
+}
+
+function showSimContent(){
+  document.getElementById('sim-q-loading').style.display='none';
+  document.getElementById('sim-q-content').style.display='';
+}
+
+function renderSimFeedback(fb, isLast, fullData){
+  const gc = fb.grade==='A'?'#4caf76':fb.grade==='B'?'#f0a040':fb.grade==='C'?'#ffcc44':'#e05a5a';
+  const area = document.getElementById('sim-feedback-area');
+  area.innerHTML=`
+    <div class="sim-score-row">
+      <div class="sim-score-circle" style="border-color:${gc}">
+        <div class="ssc-num" style="color:${gc}">${fb.score}</div>
+        <div class="ssc-lbl">/100</div>
+      </div>
+      <div>
+        <div style="font-family:var(--fD);font-size:1.3rem;color:${gc}">Grade ${fb.grade}</div>
+        <div style="font-size:12px;color:var(--tx-m)">Question ${simCurrentQ} of ${simTotal}</div>
+      </div>
+    </div>
+    ${fb.strength?`<div style="background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--tx-s)">⭐ <strong>Strength:</strong> ${escH(fb.strength)}</div>`:''}
+    <div class="sim-fb-grid">
+      <div class="sim-fb-item"><div class="sfi-lbl">💬 Clarity</div><div class="sfi-txt">${escH(fb.clarity)}</div></div>
+      <div class="sim-fb-item"><div class="sfi-lbl">🧠 Content</div><div class="sfi-txt">${escH(fb.content)}</div></div>
+    </div>
+    <div class="sim-fb-item" style="margin-bottom:12px"><div class="sfi-lbl">📈 Improvement</div><div class="sfi-txt">${escH(fb.improvement)}</div></div>
+    ${fb.better_answer?`<div class="better-box"><div class="better-lbl">✨ Stronger Answer</div><div class="better-txt">${escH(fb.better_answer)}</div></div>`:''}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+      ${isLast
+        ? `<button class="btn btn-primary" onclick="showFinalResults()">View Final Results 🏆</button>`
+        : `<button class="btn btn-primary" onclick="simNextQ(${JSON.stringify(fullData).replace(/"/g,'&quot;')})">Next Question →</button>`
+      }
+    </div>`;
+  area.style.display='';
+  area.scrollIntoView({behavior:'smooth'});
+  document.getElementById('sim-prog').style.width=(((simCurrentQ)/simTotal)*100)+'%';
+  if(isLast && fullData.overall){ window._simOverall=fullData.overall; }
+}
+
+function simNextQ(data){
+  showSimQ(data.next_question, data.next_q_num, data.total_questions);
+  document.getElementById('sim-q-area').scrollIntoView({behavior:'smooth'});
+}
+
+function showFinalResults(){
+  document.getElementById('sim-room').style.display='none';
+  document.getElementById('sim-results').style.display='';
+  const ov = window._simOverall||{score:0,grade:'F',summary:''};
+  const gc = ov.grade==='A'?'#4caf76':ov.grade==='B'?'#f0a040':ov.grade==='C'?'#ffcc44':'#e05a5a';
+  document.getElementById('fin-score').textContent   = ov.score+'%';
+  document.getElementById('fin-score').style.color   = gc;
+  document.getElementById('fin-grade').textContent   = 'Grade '+ov.grade;
+  document.getElementById('fin-grade').style.color   = gc;
+  document.getElementById('fin-summary').textContent = ov.summary;
+  let html='';
+  simAnswers.forEach((a,i)=>{
+    const fb=a.feedback||{}; const gc2=fb.grade==='A'?'#4caf76':fb.grade==='B'?'#f0a040':fb.grade==='C'?'#ffcc44':'#e05a5a';
+    html+=`<div class="q-accordion">
+      <div class="qa-hdr" onclick="toggleQA(${i})">
+        <div class="qa-title">Q${i+1}: ${escH((a.question||'').substring(0,55))}…</div>
+        <div class="qa-score" style="color:${gc2}">${fb.score||0}% ${fb.grade||''}</div>
+      </div>
+      <div class="qa-body" id="qa-${i}">
+        <div class="qa-sec"><div class="qa-sec-lbl">Your Answer</div><div class="qa-sec-txt">${escH(a.answer)}</div></div>
+        <div class="qa-sec"><div class="qa-sec-lbl">Clarity</div><div class="qa-sec-txt">${escH(fb.clarity||'')}</div></div>
+        <div class="qa-sec"><div class="qa-sec-lbl">How to Improve</div><div class="qa-sec-txt">${escH(fb.improvement||'')}</div></div>
+        ${fb.better_answer?`<div class="qa-sec"><div class="qa-sec-lbl">Stronger Answer</div><div class="qa-sec-txt" style="font-style:italic">${escH(fb.better_answer)}</div></div>`:''}
+      </div></div>`;
+  });
+  document.getElementById('fin-reviews').innerHTML=html;
+  loadSimHistory();
+  window.scrollTo(0,0);
+}
+
+function toggleQA(i){ document.getElementById('qa-'+i).classList.toggle('open'); }
+function endSimEarly(){ if(timerInt){clearInterval(timerInt);timerInt=null;} resetSim(); }
+function resetSim(){
+  simSessionId=null; simCurrentQ=0; simAnswers=[];
+  document.getElementById('sim-setup').style.display='';
+  document.getElementById('sim-room').style.display='none';
+  document.getElementById('sim-results').style.display='none';
+  loadSimHistory();
+}
+
+/* ══════════════════════════════════════
+   STATS & HISTORY
+══════════════════════════════════════ */
+async function loadStats(){
+  try{
+    const r=await fetch('/api/interview/stats');
+    const d=await r.json();
+    if(!d.total||d.total===0) return;
+    document.getElementById('stats-banner').style.display='';
+    document.getElementById('stats-content').innerHTML=`
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        ${[['Avg Score',d.avg_score+'%'],['Grade',d.grade],['Sessions',d.total],['Best',d.best_score+'%']].map(([lbl,val])=>`
+          <div style="flex:1;min-width:80px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-family:var(--fM);font-size:1.3rem;color:var(--amber)">${escH(val)}</div>
+            <div style="font-size:11px;color:var(--tx-m)">${lbl}</div>
+          </div>`).join('')}
+      </div>`;
+  }catch(e){}
+}
+
+async function loadSimHistory(){
+  try{
+    const r=await fetch('/api/interview/history');
+    const d=await r.json();
+    const div=document.getElementById('sim-history');
+    if(!d.history||d.history.length===0){div.innerHTML='';return;}
+    let html='<div style="margin-bottom:14px"><div class="section-tag" style="margin-bottom:8px">Past Simulations</div>';
+    d.history.slice(0,4).forEach(h=>{
+      const gc='grade-'+(h.overall_grade||'C');
+      html+=`<div class="hist-row">
+        <div class="hist-left">
+          <div class="hist-role">${escH(h.role)}</div>
+          <div class="hist-meta">${escH(h.question_type)} · ${h.total_questions}Q · ${fmtDate(h.created_at)}</div>
+        </div>
+        <div class="hist-score ${gc}">${h.overall_score}% ${h.overall_grade}</div>
+      </div>`;
+    });
+    html+='</div>';
+    div.innerHTML=html;
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(iso){ if(!iso)return''; return new Date(iso).toLocaleDateString([],{month:'short',day:'numeric'}); }
+async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
+
+init();
+</script>
+</body>
+</html>

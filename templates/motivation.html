@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Motivation — Nexus Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<style>
+.mot-body{max-width:720px;margin:0 auto;padding:28px}
+.mot-hdr{margin-bottom:28px}
+.mot-hdr h2{font-size:1.5rem;margin-bottom:4px}
+.mot-hdr p{color:var(--tx-m);font-size:13px}
+.story-card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:24px;padding:32px;margin-bottom:16px;position:relative;overflow:hidden}
+.story-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,var(--amber-g) 0%,transparent 70%);pointer-events:none}
+.story-topic{font-family:var(--fM);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+.story-title{font-family:var(--fD);font-size:1.4rem;margin-bottom:16px}
+.story-text{font-size:14px;line-height:1.8;color:var(--tx-s);white-space:pre-line}
+.tip-card{background:var(--amber-g);border:1px solid rgba(240,160,64,.25);border-radius:18px;padding:20px 24px;display:flex;gap:14px;align-items:flex-start}
+.tip-icon{font-size:24px;flex-shrink:0}
+.tip-label{font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-d);margin-bottom:4px}
+.tip-text{font-size:14px;line-height:1.6;color:var(--tx)}
+.slogan{text-align:center;padding:32px 20px;border-top:1px solid var(--bdr);margin-top:28px}
+.slogan-text{font-family:var(--fD);font-size:1.2rem;color:var(--tx-s);font-style:italic}
+.slogan-by{font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-top:8px;letter-spacing:.08em}
+.empty-mot{text-align:center;padding:60px 20px;color:var(--tx-m)}
+.empty-mot-icon{font-size:52px;opacity:.28;margin-bottom:12px}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div class="nav-r">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/chat"      class="nav-link">Chat</a>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="mot-body">
+  <div class="mot-hdr">
+    <h2>🔥 Motivation Hub</h2>
+    <p>Your personalised success story and daily tip based on what you're learning.</p>
+  </div>
+
+  <div id="loading" style="text-align:center;padding:40px;color:var(--tx-m)">
+    <span class="spin"></span> Loading…
+  </div>
+
+  <div id="content" style="display:none"></div>
+
+  <div class="slogan">
+    <div class="slogan-text">"Fragmented hurts, not the technology."</div>
+    <div class="slogan-by">— NEXUS LEARN SLOGAN</div>
+  </div>
+</div>
+
+<script>
+async function load(){
+  try{
+    const r = await fetch('/api/motivation');
+    if(r.status===401){location.href='/login';return;}
+    const d = await r.json();
+    document.getElementById('loading').style.display='none';
+    document.getElementById('content').style.display='';
+
+    if(!d.motivation){
+      document.getElementById('content').innerHTML=`
+        <div class="empty-mot">
+          <div class="empty-mot-icon">🔥</div>
+          <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:8px">No motivation yet</h3>
+          <p>Go to the <a href="/chat">AI Chatbot</a> and say "I want to learn Java" to generate your personalised success story!</p>
+        </div>`;
+      return;
+    }
+
+    const m = d.motivation;
+    document.getElementById('content').innerHTML=`
+      <div class="story-card">
+        <div class="story-topic">🎯 ${escH(m.topic)} — Success Story</div>
+        <div class="story-title">From Beginner to Builder</div>
+        <div class="story-text">${escH(m.story)}</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">💡</div>
+        <div>
+          <div class="tip-label">Daily Tip</div>
+          <div class="tip-text">${escH(m.daily_tip)}</div>
+        </div>
+      </div>`;
+  }catch(e){
+    document.getElementById('loading').innerHTML='Failed to load. Please refresh.';
+  }
+}
+
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
+load();
+</script>
+</body>
+</html>

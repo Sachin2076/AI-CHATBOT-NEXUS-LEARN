@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard — Nexus Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+<nav class="navbar">
+  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div class="nav-r">
+    <span id="nav-email" class="tx-m" style="font-size:13px;margin-right:6px"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+<div class="dash-body">
+  <aside class="sidebar">
+    <div class="sl">Navigation</div>
+    <a href="/dashboard" class="slink active"><span class="si">⊞</span>Dashboard</a>
+    <a href="/chat"      class="slink"><span class="si">💬</span>AI Chatbot</a>
+    <a href="/planner"   class="slink"><span class="si">📅</span>Weekly Planner</a>
+    <a href="/coding"    class="slink"><span class="si">💻</span>Coding Practice</a>
+    <a href="/interview" class="slink"><span class="si">🎯</span>Interview Sim</a>
+    <a href="/motivation"class="slink"><span class="si">🔥</span>Motivation</a>
+    <a href="/groups" class="nav-item">👥 Study Groups</a>
+    <div class="sb-spacer"></div>
+    <div class="s-user">
+      <div class="s-av" id="s-av">?</div>
+      <div><div class="s-name" id="s-name">Loading…</div><div class="s-role">Student</div></div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="dw">
+      <h2>Good day, <span id="dw-name">…</span> 👋</h2>
+      <p>Here's your learning overview. Ready to continue?</p>
+    </div>
+    <div class="stats">
+  <div class="stat"><div class="stat-v" id="st-score">—</div><div class="stat-l">Avg quiz score</div></div>
+  <div class="stat"><div class="stat-v" id="st-grade">—</div><div class="stat-l">Overall grade</div></div>
+  <div class="stat"><div class="stat-v" id="st-days">—</div><div class="stat-l">Active days</div></div>
+  <div class="stat"><div class="stat-v" id="st-quizzes">—</div><div class="stat-l">Quizzes done</div></div>
+</div>
+    <h3 style="margin-bottom:14px;font-family:var(--fD)">Quick access</h3>
+    <div class="qa">
+      <a href="/chat"       class="ac"><span class="ac-icon">🤖</span><div class="ac-title">AI Chatbot</div><div class="ac-desc">Ask questions with full conversation memory.</div></a>
+      <a href="/planner"    class="ac"><span class="ac-icon">📅</span><div class="ac-title">Weekly Planner</div><div class="ac-desc">Add and track study tasks for each day.</div></a>
+      <a href="/coding"     class="ac"><span class="ac-icon">💻</span><div class="ac-title">Coding Practice</div><div class="ac-desc">Exercises with AI hints.</div></a>
+      <a href="/interview"  class="ac"><span class="ac-icon">🎯</span><div class="ac-title">Interview Sim</div><div class="ac-desc">AI-generated interview scenarios.</div></a>
+      <a href="/motivation" class="ac"><span class="ac-icon">🔥</span><div class="ac-title">Motivation Hub</div><div class="ac-desc">Streaks and progress tracking.</div></a>
+    </div>
+  </main>
+</div>
+<script>
+async function load(){
+  try{
+    const r = await fetch('/api/me');
+    if(!r.ok){location.href='/login';return;}
+    const d = await r.json();
+    const n = d.name||'Student';
+    const initials = n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('s-av').textContent  = initials;
+    document.getElementById('s-name').textContent = n;
+    document.getElementById('dw-name').textContent = n.split(' ')[0];
+    document.getElementById('nav-email').textContent = d.email||'';
+
+    // Load practice stats separately
+    const sr = await fetch('/api/practice/stats');
+    const sd = await sr.json();
+    document.getElementById('st-score').textContent   = sd.avg_score ? sd.avg_score+'%' : '—';
+    document.getElementById('st-grade').textContent   = sd.grade || '—';
+    document.getElementById('st-days').textContent    = d.stats?.active_days ?? 0;
+    document.getElementById('st-quizzes').textContent = sd.total_quizzes ?? 0;
+  }catch(e){location.href='/login';}
+}
+async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/';}
+load();
+</script>
+</body>
+</html>

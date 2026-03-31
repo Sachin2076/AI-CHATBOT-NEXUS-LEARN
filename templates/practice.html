@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Practice — Nexus Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<style>
+.prac-body{max-width:860px;margin:0 auto;padding:28px}
+.prac-hdr{margin-bottom:24px}
+.prac-hdr h2{font-size:1.5rem;margin-bottom:4px}
+.prac-hdr p{color:var(--tx-m);font-size:13px}
+.day-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px}
+.day-tab{padding:7px 14px;border-radius:100px;font-size:12px;font-family:var(--fM);border:1px solid var(--bdr);color:var(--tx-s);cursor:pointer;transition:all .2s}
+.day-tab:hover{border-color:var(--amber-d);color:var(--amber)}
+.day-tab.active{background:var(--amber);color:#0c0d0f;border-color:var(--amber)}
+.day-tab.done{border-color:var(--green);color:var(--green)}
+.quiz-card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:18px;padding:24px;margin-bottom:16px}
+.q-num{font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-bottom:6px;letter-spacing:.08em}
+.q-text{font-size:15px;font-weight:500;margin-bottom:14px;line-height:1.5}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--bdr);cursor:pointer;transition:all .2s;font-size:14px}
+.opt:hover{border-color:var(--amber-d);background:var(--amber-g)}
+.opt.selected{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+.opt.correct{border-color:var(--green)!important;background:rgba(76,175,118,.1)!important;color:var(--green)!important}
+.opt.wrong{border-color:var(--red)!important;background:rgba(224,90,90,.1)!important;color:var(--red)!important}
+.opt-letter{width:24px;height:24px;border-radius:6px;background:var(--bg-r);display:flex;align-items:center;justify-content:center;font-family:var(--fM);font-size:12px;font-weight:500;flex-shrink:0}
+.coding-card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:18px;padding:24px;margin-bottom:16px}
+.coding-card h4{margin-bottom:8px;font-family:var(--fD)}
+.coding-task{font-size:14px;line-height:1.6;margin-bottom:10px}
+.coding-hint{font-size:13px;color:var(--tx-m);background:var(--bg-r);border:1px solid var(--bdr);border-radius:6px;padding:8px 12px;font-family:var(--fM)}
+.score-card{background:var(--amber-g);border:1px solid rgba(240,160,64,.3);border-radius:18px;padding:24px;text-align:center;margin-bottom:20px}
+.score-big{font-family:var(--fM);font-size:3rem;font-weight:500;color:var(--amber);line-height:1}
+.score-grade{font-size:1.2rem;font-weight:600;margin-top:6px}
+.score-sub{color:var(--tx-m);font-size:13px;margin-top:4px}
+.empty-prac{text-align:center;padding:60px 20px;color:var(--tx-m)}
+.empty-prac-icon{font-size:48px;opacity:.3;margin-bottom:12px}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div class="nav-r">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/chat"      class="nav-link">Chat</a>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="prac-body">
+  <div class="prac-hdr">
+    <h2>📝 Practice</h2>
+    <p>Daily MCQ quizzes and coding tasks generated from your learning plan.</p>
+  </div>
+
+  <div id="loading" style="text-align:center;padding:40px;color:var(--tx-m)">
+    <span class="spin"></span> Loading practice sets…
+  </div>
+
+  <div id="content" style="display:none"></div>
+</div>
+
+<script>
+let practiceSet = null;
+let currentDay  = 1;
+let userAnswers = {};
+let submitted   = false;
+
+async function load(){
+  try{
+    const r = await fetch('/api/practice');
+    if(r.status===401){location.href='/login';return;}
+    const d = await r.json();
+    document.getElementById('loading').style.display='none';
+    document.getElementById('content').style.display='';
+    if(!d.practice_sets || d.practice_sets.length===0){
+      document.getElementById('content').innerHTML=`
+        <div class="empty-prac">
+          <div class="empty-prac-icon">📝</div>
+          <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:8px">No practice sets yet</h3>
+          <p>Go to the <a href="/chat">AI Chatbot</a> and say "I want to learn Java" to generate your first practice set!</p>
+        </div>`;
+      return;
+    }
+    practiceSet = d.practice_sets[0];
+    renderPractice();
+  }catch(e){
+    document.getElementById('loading').innerHTML='Failed to load. Please refresh.';
+  }
+}
+
+function renderPractice(){
+  const content = document.getElementById('content');
+  const days = [...new Set(practiceSet.mcq.map(q=>q.day))].sort((a,b)=>a-b);
+
+  // Day tabs
+  const tabsHtml = days.map(d=>`
+    <div class="day-tab ${d===currentDay?'active':''}" onclick="switchDay(${d})">Day ${d}</div>
+  `).join('');
+
+  content.innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-bottom:6px">TOPIC</div>
+      <div style="font-size:1.1rem;font-weight:600">${escH(practiceSet.topic)}</div>
+    </div>
+    <div class="day-tabs" id="day-tabs">${tabsHtml}</div>
+    <div id="day-content"></div>`;
+
+  renderDay();
+}
+
+function switchDay(day){
+  currentDay  = day;
+  userAnswers = {};
+  submitted   = false;
+  document.querySelectorAll('.day-tab').forEach(t=>{
+    t.classList.toggle('active', parseInt(t.textContent.replace('Day ',''))===day);
+  });
+  renderDay();
+}
+
+function renderDay(){
+  const dayQ    = practiceSet.mcq.filter(q=>q.day===currentDay);
+  const dayCode = (practiceSet.coding||[]).filter(c=>c.day===currentDay);
+  const dc      = document.getElementById('day-content');
+
+  let html = `<h3 style="font-family:var(--fD);margin-bottom:16px">Day ${currentDay} — MCQ Quiz</h3>`;
+
+  dayQ.forEach((q,i)=>{
+    html+=`
+    <div class="quiz-card" id="qcard-${i}">
+      <div class="q-num">QUESTION ${i+1} OF ${dayQ.length}</div>
+      <div class="q-text">${escH(q.question)}</div>
+      <div class="opts">
+        ${['A','B','C','D'].map(letter=>`
+          <div class="opt" id="opt-${i}-${letter}" onclick="selectAnswer(${i},'${letter}')">
+            <div class="opt-letter">${letter}</div>
+            ${escH(q.options[letter]||'')}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  if(dayCode.length>0){
+    html+=`<h3 style="font-family:var(--fD);margin:20px 0 14px">Day ${currentDay} — Coding Task</h3>`;
+    dayCode.forEach(c=>{
+      html+=`
+      <div class="coding-card">
+        <h4>💻 Coding Task</h4>
+        <div class="coding-task">${escH(c.task)}</div>
+        <div class="coding-hint">💡 Hint: ${escH(c.hint)}</div>
+      </div>`;
+    });
+  }
+
+  if(dayQ.length>0){
+    html+=`
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-primary" id="submit-btn" onclick="submitQuiz()">Submit Quiz</button>
+      <button class="btn btn-outline" onclick="switchDay(${currentDay<7?currentDay+1:1})">
+        ${currentDay<7?'Next Day →':'Back to Day 1'}
+      </button>
+    </div>`;
+  }
+
+  dc.innerHTML = html;
+}
+
+function selectAnswer(qIndex, letter){
+  if(submitted) return;
+  userAnswers[qIndex] = letter;
+  // Update UI
+  ['A','B','C','D'].forEach(l=>{
+    const el = document.getElementById(`opt-${qIndex}-${l}`);
+    if(el) el.classList.toggle('selected', l===letter);
+  });
+}
+
+async function submitQuiz(){
+  const dayQ = practiceSet.mcq.filter(q=>q.day===currentDay);
+  if(Object.keys(userAnswers).length < dayQ.length){
+    alert('Please answer all questions before submitting!');
+    return;
+  }
+  submitted = true;
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').textContent = 'Submitting…';
+
+  try{
+    const r = await fetch(`/api/practice/${practiceSet._id}/submit`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({day: currentDay, answers: userAnswers})
+    });
+    const d = await r.json();
+    if(r.ok){
+      showResults(d, dayQ);
+    } else {
+      alert(d.error || 'Submission failed.');
+    }
+  }catch(e){
+    alert('Network error. Please try again.');
+    submitted = false;
+  }
+}
+
+function showResults(result, dayQ){
+  // Show correct/wrong on each option
+  dayQ.forEach((q,i)=>{
+    const correct  = q.answer;
+    const selected = userAnswers[i];
+    ['A','B','C','D'].forEach(l=>{
+      const el = document.getElementById(`opt-${i}-${l}`);
+      if(!el) return;
+      el.classList.remove('selected');
+      if(l===correct)   el.classList.add('correct');
+      else if(l===selected) el.classList.add('wrong');
+    });
+  });
+
+  // Show score card
+  const gradeColor = result.grade==='A'?'#4caf76':result.grade==='B'?'#f0a040':result.grade==='C'?'#ffcc44':'#e05a5a';
+  const dc = document.getElementById('day-content');
+  const scoreHtml = `
+    <div class="score-card" style="margin-top:20px">
+      <div class="score-big">${result.score}%</div>
+      <div class="score-grade" style="color:${gradeColor}">Grade ${result.grade}</div>
+      <div class="score-sub">${result.correct} out of ${result.total} correct</div>
+    </div>`;
+  dc.insertAdjacentHTML('beforeend', scoreHtml);
+
+  // Update submit button
+  const btn = document.getElementById('submit-btn');
+  if(btn){ btn.textContent='✅ Submitted'; btn.disabled=true; }
+
+  // Mark tab as done
+  document.querySelectorAll('.day-tab').forEach(t=>{
+    if(parseInt(t.textContent.replace('Day ',''))===currentDay){
+      t.classList.add('done');
+      t.classList.remove('active');
+    }
+  });
+
+  scrollToBottom();
+}
+
+function scrollToBottom(){ window.scrollTo(0,document.body.scrollHeight); }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
+
+load();
+</script>
+</body>
+</html>

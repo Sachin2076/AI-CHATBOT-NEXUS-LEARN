@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{{ page_title }} — Nexus Learn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+<nav class="navbar">
+  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div class="nav-r"><a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a></div>
+</nav>
+<div class="ph">
+  <div class="ph-icon">{{ page_icon }}</div>
+  <div class="cs-badge">Coming soon</div>
+  <h2>{{ page_title }}</h2>
+  <p>{{ page_desc }}</p>
+  <a href="/dashboard" class="btn btn-outline" style="margin-top:10px">← Back to Dashboard</a>
+</div>
+</body>
+</html>
