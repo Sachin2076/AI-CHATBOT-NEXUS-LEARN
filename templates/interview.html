@@ -9,168 +9,237 @@
 <link rel="stylesheet" href="/static/css/style.css"/>
 <style>
 /* ══ Base ══ */
-.iv-page{max-width:880px;margin:0 auto;padding:28px 20px}
+.iv-page{max-width:900px;margin:0 auto;padding:28px 20px 60px}
 .screen{display:none}.screen.active{display:block}
-.section-tag{font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
-.card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:20px;padding:26px}
-.card+.card{margin-top:14px}
+.stag{font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+.card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:20px;padding:26px;margin-bottom:14px}
 
-/* ══ Step tabs ══ */
-.steps-nav{display:flex;gap:0;margin-bottom:28px;background:var(--bg-c);border:1px solid var(--bdr);border-radius:12px;overflow:hidden}
-.step-tab{flex:1;padding:12px 8px;text-align:center;font-family:var(--fM);font-size:11px;letter-spacing:.06em;color:var(--tx-m);cursor:pointer;border-right:1px solid var(--bdr);transition:all .2s;position:relative}
-.step-tab:last-child{border-right:none}
-.step-tab.active{background:var(--amber-g);color:var(--amber)}
-.step-tab.done{color:var(--green)}
-.step-tab .step-num{display:block;font-size:16px;margin-bottom:2px}
+/* ══ Page tabs ══ */
+.page-tabs{display:flex;gap:0;margin-bottom:28px;background:var(--bg-c);border:1px solid var(--bdr);border-radius:12px;overflow:hidden}
+.ptab{flex:1;padding:13px 6px;text-align:center;font-family:var(--fM);font-size:11px;letter-spacing:.05em;color:var(--tx-m);cursor:pointer;border-right:1px solid var(--bdr);transition:all .2s}
+.ptab:last-child{border-right:none}
+.ptab .pnum{display:block;font-size:15px;margin-bottom:2px}
+.ptab:hover{color:var(--tx);background:var(--bg-s)}
+.ptab.active{background:var(--amber-g);color:var(--amber)}
+.ptab.done .pnum::after{content:' ✓';font-size:11px;color:var(--green)}
 
-/* ══ Screen 1 — Setup ══ */
+/* ══ Screen 1 — Goal ══ */
 .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 @media(max-width:580px){.setup-grid{grid-template-columns:1fr}}
-.setup-grid label,.form-label{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);display:block;margin-bottom:6px}
-.setup-grid select,.setup-grid input,.fi-dark{background:var(--bg-s);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:11px 13px;outline:none;width:100%;transition:border-color .2s,box-shadow .2s}
-.setup-grid select:focus,.setup-grid input:focus,.fi-dark:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-g)}
+.setup-grid label,.fl2{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);display:block;margin-bottom:5px}
+.setup-grid select,.inp-dark{background:var(--bg-s);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:11px 13px;outline:none;width:100%;transition:border-color .2s}
+.setup-grid select:focus,.inp-dark:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-g)}
 .setup-grid select option{background:var(--bg-r)}
-.nervousness-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.nerv-chip{padding:7px 14px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;cursor:pointer;transition:all .2s;user-select:none}
-.nerv-chip:hover{border-color:var(--amber-d);color:var(--amber)}
-.nerv-chip.selected{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
-
-/* ══ Roadmap ══ */
-.roadmap-greeting{font-family:var(--fD);font-size:1.15rem;color:var(--tx);margin-bottom:16px;line-height:1.5;padding:16px;background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:12px;border-left:3px solid var(--amber)}
-.focus-list{list-style:none;margin-bottom:16px}
-.focus-list li{padding:8px 0;border-bottom:1px solid var(--bdr);font-size:13px;display:flex;align-items:flex-start;gap:10px}
-.focus-list li:last-child{border-bottom:none}
-.focus-list li::before{content:'→';color:var(--amber);font-family:var(--fM);flex-shrink:0}
-.day-plan{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
-@media(max-width:580px){.day-plan{grid-template-columns:1fr 1fr}}
-.day-card{background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:10px;text-align:center}
-.day-label{font-family:var(--fM);font-size:10px;color:var(--amber);margin-bottom:4px}
-.day-task{font-size:11px;color:var(--tx-s);line-height:1.4}
-.encouragement-box{background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:14px 16px;font-size:14px;color:var(--green);font-style:italic}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.chip{padding:6px 13px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;cursor:pointer;transition:all .2s;user-select:none}
+.chip:hover{border-color:var(--amber-d);color:var(--amber)}
+.chip.on{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+/* Roadmap */
+.rm-greeting{font-family:var(--fD);font-size:1.1rem;color:var(--tx);margin-bottom:14px;line-height:1.5;padding:14px 18px;background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:12px;border-left:3px solid var(--amber)}
+.rm-focus li{padding:7px 0;border-bottom:1px solid var(--bdr);font-size:13px;display:flex;align-items:flex-start;gap:9px;list-style:none}
+.rm-focus li:last-child{border-bottom:none}
+.rm-focus li::before{content:'→';color:var(--amber);font-family:var(--fM);flex-shrink:0}
+.day-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:500px){.day-grid{grid-template-columns:1fr 1fr}}
+.day-box{background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:10px;text-align:center}
+.day-box .dl{font-family:var(--fM);font-size:10px;color:var(--amber);margin-bottom:4px}
+.day-box .dt{font-size:11px;color:var(--tx-s);line-height:1.4}
+.enc-box{background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--green);font-style:italic}
+.resume-banner{background:rgba(76,175,118,.07);border:1px solid rgba(76,175,118,.2);border-radius:14px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 
 /* ══ Screen 2 — Learn ══ */
-.framework-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
-.fw-tab{padding:8px 16px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;font-family:var(--fM);cursor:pointer;transition:all .2s}
-.fw-tab:hover{border-color:var(--amber-d);color:var(--amber)}
-.fw-tab.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
-.fw-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
-@media(max-width:580px){.fw-steps{grid-template-columns:1fr 1fr}}
-.fw-step{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}
-.fw-letter{font-family:var(--fD);font-size:1.8rem;color:var(--amber);line-height:1}
-.fw-word{font-size:12px;font-weight:600;margin:4px 0}
-.fw-explain{font-size:11px;color:var(--tx-m);line-height:1.4}
-.q-type-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.qt-btn{padding:7px 14px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;cursor:pointer;transition:all .2s}
-.qt-btn:hover{border-color:var(--amber-d);color:var(--amber)}
-.qt-btn.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
-.example-q{font-family:var(--fD);font-size:1.1rem;line-height:1.55;padding:16px 20px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;border-left:3px solid var(--amber);margin-bottom:20px}
-.answer-level{border-radius:14px;padding:18px;margin-bottom:12px;border:1px solid}
-.level-poor   {background:rgba(224,90,90,.06);border-color:rgba(224,90,90,.2)}
-.level-avg    {background:rgba(240,160,64,.06);border-color:rgba(240,160,64,.2)}
-.level-excel  {background:rgba(76,175,118,.06);border-color:rgba(76,175,118,.2)}
-.level-badge  {font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.level-text   {font-size:13px;line-height:1.7;color:var(--tx-s);margin-bottom:8px}
-.level-why    {font-size:12px;line-height:1.5;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.2)}
-.key-tip{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--tx-s);margin-top:8px}
-.key-tip strong{color:var(--amber)}
-
-/* ══ Screen 3 — Guided Practice ══ */
-.practice-q-box{font-family:var(--fD);font-size:1.15rem;line-height:1.6;padding:20px;background:var(--bg-s);border:1px solid var(--amber-d);border-radius:14px;border-left:3px solid var(--amber);margin-bottom:18px}
-.framework-hint{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:14px;margin-bottom:16px}
-.fh-label{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px}
-.fh-steps{display:flex;gap:8px;flex-wrap:wrap}
-.fh-step{background:var(--bg-r);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;font-size:12px}
-.fh-step strong{color:var(--amber);font-family:var(--fM)}
-.attempt-badge{font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-bottom:8px}
-.ans-textarea{width:100%;background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:14px;outline:none;resize:vertical;min-height:120px;transition:border-color .2s;line-height:1.7}
-.ans-textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-g)}
-.ans-textarea::placeholder{color:var(--tx-m)}
-/* Feedback bubble */
-.buddy-bubble{background:var(--bg-s);border:1px solid var(--bdr);border-radius:16px;padding:20px;margin-top:16px;animation:fadeUp .35s ease both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.buddy-av{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.buddy-icon{width:38px;height:38px;background:var(--amber-g);border:1px solid var(--amber-d);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.learn-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.ltab{padding:9px 18px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:13px;font-family:var(--fB);cursor:pointer;transition:all .2s;font-weight:500}
+.ltab:hover{border-color:var(--amber-d);color:var(--amber)}
+.ltab.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber);font-weight:600}
+.learn-section{display:none}.learn-section.active{display:block}
+/* Introduction */
+.intro-steps{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+@media(max-width:500px){.intro-steps{grid-template-columns:1fr}}
+.intro-step{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:14px}
+.is-num{font-family:var(--fM);font-size:18px;color:var(--amber);font-weight:500;margin-bottom:5px}
+.is-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.is-desc{font-size:12px;color:var(--tx-m);line-height:1.5}
+.intro-example{background:rgba(240,160,64,.06);border:1px solid rgba(240,160,64,.2);border-radius:12px;padding:16px;margin-bottom:14px}
+.intro-example p{font-size:13px;line-height:1.8;color:var(--tx-s)}
+.intro-example strong{color:var(--amber)}
+.intro-tip{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:8px;font-size:12px;color:var(--tx-s);margin-bottom:8px}
+.intro-tip .tip-icon{flex-shrink:0;font-size:14px}
+.time-guide{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--tx-s);margin-top:14px}
+/* Behaviour frameworks */
+.fw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:580px){.fw-cards{grid-template-columns:1fr}}
+.fw-card{background:var(--bg-s);border:2px solid var(--bdr);border-radius:14px;padding:16px;cursor:pointer;transition:all .25s;text-align:center}
+.fw-card:hover{border-color:var(--amber-d);transform:translateY(-2px)}
+.fw-card.selected{border-color:var(--amber);background:var(--amber-g)}
+.fw-card-name{font-family:var(--fD);font-size:1.1rem;margin-bottom:4px}
+.fw-card-desc{font-size:11px;color:var(--tx-m)}
+.fw-card-letters{font-family:var(--fM);font-size:20px;color:var(--amber);letter-spacing:.1em;margin-bottom:6px}
+.fw-detail{background:var(--bg-s);border:1px solid var(--bdr);border-radius:14px;padding:20px;margin-bottom:16px;animation:fIn .3s ease}
+@keyframes fIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fw-detail h4{font-family:var(--fD);font-size:1.05rem;margin-bottom:12px}
+.fw-why{background:rgba(240,160,64,.07);border:1px solid rgba(240,160,64,.15);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.fw-why-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:5px}
+.fw-why-txt{font-size:13px;color:var(--tx-s);line-height:1.6}
+.fw-steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+@media(max-width:500px){.fw-steps-grid{grid-template-columns:1fr 1fr}}
+.fw-step{background:var(--bg-r);border:1px solid var(--bdr);border-radius:10px;padding:12px;text-align:center}
+.fw-letter{font-family:var(--fD);font-size:1.6rem;color:var(--amber);line-height:1}
+.fw-word{font-size:11px;font-weight:600;margin:3px 0}
+.fw-exp{font-size:10px;color:var(--tx-m);line-height:1.4}
+.fw-example{background:var(--bg-r);border:1px solid var(--bdr);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.fw-example-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:6px}
+.fw-example-txt{font-size:13px;color:var(--tx-s);line-height:1.65}
+/* Technical */
+.tech-notice{border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+.tn-knowledge{background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.2)}
+.tn-style{background:var(--amber-g);border:1px solid rgba(240,160,64,.2)}
+.tn-icon{font-size:18px;flex-shrink:0}
+.tn-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.tn-desc{font-size:12px;color:var(--tx-m);line-height:1.5}
+.level-btns{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.lvl-btn{padding:8px 20px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:13px;cursor:pointer;transition:all .2s}
+.lvl-btn:hover{border-color:var(--amber-d);color:var(--amber)}
+.lvl-btn.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber);font-weight:600}
+/* Practice question display */
+.prac-q-box{font-family:var(--fD);font-size:1.1rem;line-height:1.6;padding:18px;background:var(--bg-s);border:1px solid var(--amber-d);border-radius:14px;border-left:3px solid var(--amber);margin-bottom:16px}
+.fw-hint{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.fw-hint-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:7px}
+.fw-hint-steps{display:flex;gap:7px;flex-wrap:wrap}
+.fw-hint-step{background:var(--bg-r);border:1px solid var(--bdr);border-radius:7px;padding:6px 11px;font-size:12px}
+.fw-hint-step strong{color:var(--amber);font-family:var(--fM)}
+.ans-ta{width:100%;background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:14px;outline:none;resize:vertical;min-height:110px;transition:border-color .2s;line-height:1.7}
+.ans-ta:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-g)}
+.ans-ta::placeholder{color:var(--tx-m)}
+/* Buddy feedback */
+.buddy-card{background:var(--bg-s);border:1px solid var(--bdr);border-radius:16px;padding:20px;margin-top:14px;animation:fIn .35s ease both}
+.buddy-hdr{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.buddy-av{width:36px;height:36px;background:var(--amber-g);border:1px solid var(--amber-d);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .buddy-name{font-size:13px;font-weight:600}
 .buddy-sub{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
-.fb-reaction{font-size:14px;line-height:1.7;margin-bottom:14px;padding:12px 14px;background:rgba(76,175,118,.06);border:1px solid rgba(76,175,118,.15);border-radius:10px;color:var(--tx-s)}
-.fb-section{margin-bottom:12px}
-.fb-section-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:5px}
-.fb-section-txt{font-size:13px;line-height:1.65;color:var(--tx-s)}
-.try-this-box{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;font-style:italic;color:var(--tx-s)}
-.reflection-q{background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--green)}
-.encouragement-line{font-size:13px;color:var(--amber);font-family:var(--fM);text-align:center;padding:8px}
-.practice-score{display:inline-flex;align-items:center;gap:8px;font-family:var(--fM);font-size:12px;margin-bottom:12px}
-.ps-bar{height:6px;border-radius:3px;background:var(--bdr);flex:1;min-width:80px}
-.ps-fill{height:100%;border-radius:3px;background:var(--amber);transition:width .6s ease}
+.fb-reaction{font-size:14px;line-height:1.7;margin-bottom:13px;padding:11px 14px;background:rgba(76,175,118,.06);border:1px solid rgba(76,175,118,.15);border-radius:9px;color:var(--tx-s)}
+.fb-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:500px){.fb-row{grid-template-columns:1fr}}
+.fb-item{background:var(--bg-r);border:1px solid var(--bdr);border-radius:10px;padding:12px}
+.fb-item-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:5px}
+.fb-item-txt{font-size:13px;line-height:1.6;color:var(--tx-s)}
+.try-box{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:9px;padding:11px 14px;margin-bottom:10px;font-size:13px;font-style:italic;color:var(--tx-s)}
+.ref-box{background:rgba(76,175,118,.07);border:1px solid rgba(76,175,118,.2);border-radius:9px;padding:11px 14px;margin-bottom:12px;font-size:13px;color:var(--green)}
+.enc-line{font-size:13px;color:var(--amber);font-family:var(--fM);text-align:center;padding:6px}
+.score-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sb-fill{height:6px;border-radius:3px;background:var(--amber);transition:width .5s}
+.sb-track{flex:1;height:6px;background:var(--bdr);border-radius:3px}
 
-/* ══ Body language checklist ══ */
-.checklist-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-@media(max-width:580px){.checklist-grid{grid-template-columns:1fr}}
-.check-item{display:flex;align-items:flex-start;gap:10px;padding:12px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;cursor:pointer;transition:all .2s}
-.check-item:hover{border-color:var(--amber-d)}
-.check-item.checked{border-color:var(--green);background:rgba(76,175,118,.06)}
-.check-box{width:20px;height:20px;border:2px solid var(--bdr);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;margin-top:1px}
-.check-item.checked .check-box{border-color:var(--green);background:var(--green);color:#0c0d0f}
-.check-label{font-size:13px;line-height:1.4}
-.check-tip{font-size:11px;color:var(--tx-m);margin-top:2px}
-.self-reflection{width:100%;background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;color:var(--tx);font-family:var(--fB);font-size:13px;padding:12px;outline:none;resize:none;min-height:80px;margin-top:10px;transition:border-color .2s}
-.self-reflection:focus{border-color:var(--amber)}
-.self-reflection::placeholder{color:var(--tx-m)}
+/* ══ Screen 3 — Practise ══ */
+.prac-type-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ptype-btn{padding:8px 16px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;cursor:pointer;transition:all .2s}
+.ptype-btn:hover{border-color:var(--amber-d);color:var(--amber)}
+.ptype-btn.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+.prac-fw-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pfw-tab{padding:7px 15px;border-radius:100px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:12px;font-family:var(--fM);cursor:pointer;transition:all .2s}
+.pfw-tab:hover{border-color:var(--amber-d);color:var(--amber)}
+.pfw-tab.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+.attempt-lbl{font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-bottom:8px}
 
-/* ══ Screen 4 — Simulation ══ */
-.sim-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--bg-s);border-bottom:1px solid var(--bdr)}
-.sim-tags{display:flex;gap:8px;flex-wrap:wrap}
-.sim-tag{font-family:var(--fM);font-size:10px;padding:3px 10px;border-radius:100px}
-.tag-amber{background:var(--amber-g);border:1px solid rgba(240,160,64,.2);color:var(--amber)}
-.tag-green{background:rgba(76,175,118,.1);border:1px solid rgba(76,175,118,.2);color:var(--green)}
-.tag-muted{background:var(--bg-r);border:1px solid var(--bdr);color:var(--tx-s)}
-.timer-box{font-family:var(--fM);font-size:20px;font-weight:500;transition:color .3s}
-.timer-warn{color:var(--amber)}.timer-danger{color:var(--red)}
-.prog-bar{height:3px;background:var(--bdr)}.prog-fill{height:100%;background:var(--amber);border-radius:2px;transition:width .5s}
-.sim-q-area{padding:28px}
-.sim-interviewer{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.sim-av{width:40px;height:40px;background:linear-gradient(135deg,var(--amber-g),var(--bg-r));border:1px solid var(--amber-d);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.sim-q-text{font-family:var(--fD);font-size:1.15rem;line-height:1.6;padding:18px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:14px;border-left:3px solid var(--amber);margin-bottom:20px}
-.sim-fb{padding:0 28px 28px;animation:fadeUp .35s ease both}
-.sim-score-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-.sim-score-circle{width:60px;height:60px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid;flex-shrink:0}
-.ssc-num{font-family:var(--fM);font-size:15px;font-weight:500;line-height:1}
-.ssc-lbl{font-size:9px;color:var(--tx-m);font-family:var(--fM)}
-.sim-fb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-@media(max-width:580px){.sim-fb-grid{grid-template-columns:1fr}}
-.sim-fb-item{background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px}
-.sfi-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:5px}
-.sfi-txt{font-size:13px;line-height:1.6;color:var(--tx-s)}
-.better-box{background:rgba(76,175,118,.07);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:14px;margin-bottom:14px}
-.better-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
-.better-txt{font-size:13px;line-height:1.7;color:var(--tx-s);font-style:italic}
-/* Final results */
-.final-score{text-align:center;padding:28px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:18px;margin-bottom:20px}
-.final-num{font-family:var(--fM);font-size:4rem;font-weight:500;line-height:1;color:var(--amber)}
-.final-grade{font-family:var(--fD);font-size:1.6rem;margin-top:4px}
-.final-summary{font-size:14px;color:var(--tx-s);line-height:1.7;margin-top:10px;max-width:480px;margin-left:auto;margin-right:auto}
-.q-accordion{border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:10px}
-.qa-hdr{padding:13px 18px;background:var(--bg-s);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .2s}
-.qa-hdr:hover{background:var(--bg-r)}
-.qa-title{font-size:13px;font-weight:600}
-.qa-score{font-family:var(--fM);font-size:12px}
-.qa-body{padding:16px;display:none}
-.qa-body.open{display:block}
-.qa-sec{margin-bottom:10px}
-.qa-sec-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:4px}
-.qa-sec-txt{font-size:13px;line-height:1.6;color:var(--tx-s)}
-/* History */
-.hist-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:6px}
-.hist-row:last-child{border-bottom:none}
-.hist-role{font-size:14px;font-weight:600}.hist-meta{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
-.hist-score{font-family:var(--fM);font-size:15px;font-weight:500}
-.grade-A{color:#4caf76}.grade-B{color:#f0a040}.grade-C{color:#ffcc44}.grade-D{color:#e07040}.grade-F{color:#e05a5a}
+/* ══ Screen 4 — Mock Interview ══ */
+/* Setup */
+.mock-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:500px){.mock-info-grid{grid-template-columns:1fr}}
+.mock-info-card{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}
+.mic-icon{font-size:22px;margin-bottom:6px}
+.mic-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.mic-desc{font-size:11px;color:var(--tx-m)}
+.diff-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.diff-btn{padding:9px 20px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg-s);color:var(--tx-s);font-size:13px;cursor:pointer;transition:all .2s;font-weight:500}
+.diff-btn:hover{border-color:var(--amber-d);color:var(--amber)}
+.diff-btn.active{border-color:var(--amber);background:var(--amber-g);color:var(--amber)}
+.mock-rules{background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px;margin-bottom:20px}
+.mock-rules p{font-size:13px;color:var(--tx-s);line-height:1.7;margin-bottom:6px}
+.mock-rules p:last-child{margin-bottom:0;color:var(--amber);font-family:var(--fM);font-size:12px}
+/* Round banner */
+.round-banner{padding:14px 20px;background:var(--bg-s);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.round-info{display:flex;align-items:center;gap:10px}
+.round-badge{font-family:var(--fM);font-size:11px;padding:4px 12px;border-radius:100px;background:var(--amber-g);border:1px solid rgba(240,160,64,.2);color:var(--amber)}
+.round-name{font-size:14px;font-weight:600}
+.round-progress{font-family:var(--fM);font-size:11px;color:var(--tx-m)}
+.overall-progress{display:flex;align-items:center;gap:8px}
+.op-step{width:28px;height:6px;border-radius:3px;background:var(--bdr);transition:background .3s}
+.op-step.done{background:var(--green)}
+.op-step.active{background:var(--amber)}
+/* Interview room */
+.mock-room{background:var(--bg-c);border:1px solid var(--bdr);border-radius:20px;overflow:hidden;margin-bottom:12px}
+.prog-bar{height:3px;background:var(--bdr)}
+.prog-fill{height:100%;background:var(--amber);border-radius:2px;transition:width .5s}
+.mock-q-area{padding:28px}
+.mock-interviewer{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.mock-av{width:42px;height:42px;background:linear-gradient(135deg,var(--amber-g),var(--bg-r));border:1px solid var(--amber-d);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.mock-av-name{font-size:13px;font-weight:600}
+.mock-av-sub{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
+.mock-q-counter{margin-left:auto;font-family:var(--fM);font-size:12px;color:var(--tx-m)}
+.mock-q-text{font-family:var(--fD);font-size:1.15rem;line-height:1.6;padding:18px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:14px;border-left:3px solid var(--amber);margin-bottom:20px}
+/* Round change announcement */
+.round-change-card{background:var(--bg-s);border:2px solid var(--amber);border-radius:16px;padding:24px;text-align:center;margin-bottom:14px;animation:fIn .4s ease}
+.rcc-icon{font-size:36px;margin-bottom:10px}
+.rcc-title{font-family:var(--fD);font-size:1.3rem;margin-bottom:6px}
+.rcc-desc{font-size:13px;color:var(--tx-m)}
+/* VERDICT — most important section */
+.verdict-wrap{background:var(--bg-c);border:1px solid var(--bdr);border-radius:24px;overflow:hidden;margin-bottom:16px}
+.verdict-top{padding:32px;text-align:center;position:relative}
+.verdict-top::before{content:'';position:absolute;inset:0;pointer-events:none}
+.verdict-top.pass::before{background:radial-gradient(circle at 50% 0%,rgba(76,175,118,.12) 0%,transparent 65%)}
+.verdict-top.fail::before{background:radial-gradient(circle at 50% 0%,rgba(224,90,90,.10) 0%,transparent 65%)}
+.verdict-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 28px;border-radius:100px;font-family:var(--fM);font-size:13px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+.badge-pass{background:rgba(76,175,118,.15);border:2px solid var(--green);color:var(--green)}
+.badge-fail{background:rgba(224,90,90,.12);border:2px solid #e05a5a;color:#e05a5a}
+.verdict-score-big{font-family:var(--fM);font-size:5rem;font-weight:500;line-height:1}
+.verdict-score-big.pass{color:var(--green)}
+.verdict-score-big.fail{color:#e05a5a}
+.verdict-grade{font-family:var(--fD);font-size:1.6rem;margin-top:4px}
+.verdict-reason{font-size:14px;color:var(--tx-s);line-height:1.75;max-width:540px;margin:14px auto 0}
+/* Round breakdown */
+.round-breakdown{padding:24px;border-top:1px solid var(--bdr)}
+.round-breakdown h4{font-family:var(--fD);font-size:1.05rem;margin-bottom:16px}
+.rb-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bdr)}
+.rb-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.rb-label{font-size:13px;font-weight:600;min-width:110px}
+.rb-bar-wrap{flex:1}
+.rb-bar{height:8px;background:var(--bdr);border-radius:4px;overflow:hidden;margin-bottom:5px}
+.rb-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.rb-summary{font-size:12px;color:var(--tx-m);line-height:1.5}
+.rb-score{font-family:var(--fM);font-size:14px;font-weight:500;min-width:45px;text-align:right}
+/* Strengths and improvements */
+.si-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 24px 24px}
+@media(max-width:560px){.si-grid{grid-template-columns:1fr}}
+.si-card{border-radius:14px;padding:18px}
+.si-card.strengths{background:rgba(76,175,118,.07);border:1px solid rgba(76,175,118,.2)}
+.si-card.improve{background:rgba(240,160,64,.07);border:1px solid rgba(240,160,64,.2)}
+.si-lbl{font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.si-card.strengths .si-lbl{color:var(--green)}
+.si-card.improve .si-lbl{color:var(--amber)}
+.si-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--tx-s);line-height:1.5;margin-bottom:8px}
+.si-item:last-child{margin-bottom:0}
+.si-item::before{flex-shrink:0;margin-top:2px}
+.si-card.strengths .si-item::before{content:'✓';color:var(--green);font-family:var(--fM)}
+.si-card.improve .si-item::before{content:'→';color:var(--amber);font-family:var(--fM)}
+/* Final message */
+.final-msg{padding:20px 24px;border-top:1px solid var(--bdr);background:var(--bg-s)}
+.final-msg p{font-size:14px;color:var(--tx-s);line-height:1.7;font-style:italic;text-align:center}
+.final-msg .interviewer-sig{font-family:var(--fM);font-size:11px;color:var(--tx-m);text-align:center;margin-top:8px}
+/* Mock history */
+.mock-hist-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:6px}
+.mock-hist-row:last-child{border-bottom:none}
+.mhr-role{font-size:13px;font-weight:600}
+.mhr-meta{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
+.mhr-verdict{font-family:var(--fM);font-size:12px;padding:3px 10px;border-radius:100px}
+.mhr-pass{background:rgba(76,175,118,.1);border:1px solid rgba(76,175,118,.2);color:var(--green)}
+.mhr-fail{background:rgba(224,90,90,.1);border:1px solid rgba(224,90,90,.2);color:#e05a5a}
 /* Loading */
-.ai-load{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px;gap:12px}
+.ai-load{display:flex;flex-direction:column;align-items:center;padding:36px;gap:12px}
 .ai-load p{font-size:13px;color:var(--tx-m);font-family:var(--fM)}
-.dots span{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin:0 3px;animation:db .9s ease-in-out infinite}
+.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);margin:0 3px;animation:db .9s ease-in-out infinite}
 .dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
-@keyframes db{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+@keyframes db{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+.grade-A{color:#4caf76}.grade-B{color:#f0a040}.grade-C{color:#ffcc44}.grade-D{color:#e07040}.grade-F{color:#e05a5a}
 </style>
 </head>
 <body>
@@ -187,35 +256,31 @@
 
 <div class="iv-page">
 
-  <!-- Header -->
-  <div style="margin-bottom:24px">
-    <div class="section-tag">Interview Preparation Academy</div>
-    <h2 style="font-size:1.6rem;margin-bottom:4px">🎯 Get Interview Ready</h2>
-    <p style="color:var(--tx-m);font-size:13px">Learn how to answer, practise with your study buddy, then simulate the real thing.</p>
+  <div style="margin-bottom:22px">
+    <div class="stag">Interview Preparation Academy</div>
+    <h2 style="font-size:1.55rem;margin-bottom:4px">🎯 Get Interview Ready</h2>
+    <p style="color:var(--tx-m);font-size:13px">Four steps to transform you from nervous to confident.</p>
   </div>
 
-  <!-- Step navigation -->
-  <div class="steps-nav">
-    <div class="step-tab active" id="tab-1" onclick="goTab(1)"><span class="step-num">①</span>YOUR GOAL</div>
-    <div class="step-tab" id="tab-2" onclick="goTab(2)"><span class="step-num">②</span>LEARN</div>
-    <div class="step-tab" id="tab-3" onclick="goTab(3)"><span class="step-num">③</span>PRACTISE</div>
-    <div class="step-tab" id="tab-4" onclick="goTab(4)"><span class="step-num">④</span>SIMULATE</div>
+  <!-- Page navigation tabs -->
+  <div class="page-tabs">
+    <div class="ptab active" id="ptab-1" onclick="goPage(1)"><span class="pnum">①</span>YOUR GOAL</div>
+    <div class="ptab"        id="ptab-2" onclick="goPage(2)"><span class="pnum">②</span>LEARN</div>
+    <div class="ptab"        id="ptab-3" onclick="goPage(3)"><span class="pnum">③</span>PRACTISE</div>
+    <div class="ptab"        id="ptab-4" onclick="goPage(4)"><span class="pnum">④</span>MOCK INTERVIEW</div>
   </div>
 
-  <!-- ══════════════════════════════════
-       SCREEN 1 — SETUP & ROADMAP
-  ══════════════════════════════════ -->
-  <div class="screen active" id="screen-1">
 
-    <!-- Past stats if any -->
-    <div id="stats-banner" style="display:none" class="card" style="margin-bottom:14px">
-      <div class="section-tag">Your Progress</div>
-      <div id="stats-content"></div>
-    </div>
+  <!-- ════════════════════════════════════════
+       PAGE 1 — YOUR GOAL
+  ════════════════════════════════════════ -->
+  <div class="screen active" id="page-1">
+
+    <div id="resume-banner-wrap"></div>
 
     <div class="card">
-      <div class="section-tag">Step 1 — Tell us about yourself</div>
-      <h3 style="font-family:var(--fD);font-size:1.15rem;margin-bottom:18px">What are you preparing for?</h3>
+      <div class="stag">Step 1 — Set Your Goal</div>
+      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:18px">What are you preparing for?</h3>
 
       <div class="setup-grid">
         <div>
@@ -224,149 +289,267 @@
         </div>
         <div>
           <label>Your Experience Level</label>
-          <select id="sel-exp"><option value="">Select experience…</option></select>
+          <select id="sel-exp"><option value="">Select…</option></select>
         </div>
       </div>
 
       <div style="margin-bottom:14px">
-        <label class="form-label">What are you most nervous about? (Select all that apply)</label>
-        <div class="nervousness-grid" id="nerv-chips"></div>
+        <div class="fl2" style="margin-bottom:8px">What are you most nervous about?</div>
+        <div class="chips" id="nerv-chips"></div>
       </div>
 
       <div style="margin-bottom:20px">
-        <label class="form-label">Your personal goal (optional)</label>
-        <input type="text" id="inp-goal" placeholder="e.g. Land a job at a tech startup, pass my first ever interview…" style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:var(--fB);font-size:14px;padding:11px 13px;outline:none;width:100%;transition:border-color .2s" onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--bdr)'"/>
+        <div class="fl2" style="margin-bottom:6px">Your personal goal (optional)</div>
+        <input type="text" id="inp-goal" class="inp-dark" placeholder="e.g. Land my first tech job, pass my NHS interview…"/>
       </div>
 
-      <div id="setup-err" class="alert alert-err hidden"></div>
+      <div id="goal-err" class="alert alert-err hidden"></div>
       <button class="btn btn-primary btn-lg" id="roadmap-btn" onclick="generateRoadmap()" style="width:100%">
         🗺 Build My Preparation Roadmap
       </button>
     </div>
 
     <!-- Roadmap result -->
-    <div id="roadmap-result" style="display:none;margin-top:14px">
+    <div id="roadmap-result" style="display:none">
       <div class="card">
-        <div class="section-tag">Your Personalised Roadmap</div>
-        <div class="roadmap-greeting" id="rm-greeting"></div>
+        <div class="stag">Your Personalised Roadmap</div>
+        <div class="rm-greeting" id="rm-greeting"></div>
         <div style="margin-bottom:14px">
-          <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px">Your Strengths</div>
+          <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:7px">Your Strengths</div>
           <div id="rm-strengths" style="font-size:13px;color:var(--tx-s);line-height:1.6"></div>
         </div>
-        <div style="margin-bottom:16px">
-          <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px">Focus Areas</div>
-          <ul class="focus-list" id="rm-focus"></ul>
+        <div style="margin-bottom:14px">
+          <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:7px">Focus Areas</div>
+          <ul class="rm-focus" id="rm-focus"></ul>
         </div>
         <div style="margin-bottom:16px">
           <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:8px">Your 5-Day Plan</div>
-          <div class="day-plan" id="rm-plan"></div>
+          <div class="day-grid" id="rm-plan"></div>
         </div>
-        <div class="encouragement-box" id="rm-encourage"></div>
+        <div class="enc-box" id="rm-enc"></div>
+        <div id="planner-note" style="margin-top:12px;display:none" class="alert alert-ok"></div>
         <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="goTab(2)">Next: Learn How to Answer →</button>
-          <button class="btn btn-outline btn-sm" onclick="goTab(3)">Skip to Practice</button>
+          <button class="btn btn-primary" onclick="goPage(2)">Next: Learn How to Answer →</button>
+          <button class="btn btn-outline btn-sm" onclick="goPage(3)">Skip to Practice</button>
         </div>
       </div>
     </div>
 
-  </div>
+  </div><!-- end page 1 -->
 
 
-  <!-- ══════════════════════════════════
-       SCREEN 2 — LEARN
-  ══════════════════════════════════ -->
-  <div class="screen" id="screen-2">
+  <!-- ════════════════════════════════════════
+       PAGE 2 — LEARN
+  ════════════════════════════════════════ -->
+  <div class="screen" id="page-2">
 
-    <!-- Framework selector -->
-    <div class="card" style="margin-bottom:14px">
-      <div class="section-tag">Step 2 — Learn the Frameworks</div>
-      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:12px">Choose an answer framework</h3>
-      <div class="framework-tabs" id="fw-tabs"></div>
-      <div id="fw-steps-display"></div>
+    <!-- Sub-section tabs -->
+    <div class="learn-tabs">
+      <button class="ltab active" id="ltab-intro"     onclick="goLearn('intro')">📝 Introduction</button>
+      <button class="ltab"        id="ltab-behaviour" onclick="goLearn('behaviour')">💬 Behavioural</button>
+      <button class="ltab"        id="ltab-technical" onclick="goLearn('technical')">⚙️ Technical</button>
     </div>
 
-    <!-- Body language checklist -->
-    <div class="card" style="margin-bottom:14px">
-      <div class="section-tag">Presentation Skills</div>
-      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">Body Language & Appearance Checklist</h3>
-      <p style="font-size:13px;color:var(--tx-m);margin-bottom:14px">Rate yourself honestly. Tick each area you feel confident about.</p>
-      <div class="checklist-grid" id="bl-checklist"></div>
-      <div style="margin-top:4px">
-        <label class="form-label" style="margin-bottom:6px">Self-reflection: What do you need to work on most?</label>
-        <textarea class="self-reflection" placeholder="e.g. I tend to look down when nervous. I need to practise maintaining eye contact…"></textarea>
+    <!-- ── Introduction ── -->
+    <div class="learn-section active" id="ls-intro">
+      <div class="card">
+        <div class="stag">Introduction Round</div>
+        <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">How to introduce yourself professionally</h3>
+        <p style="font-size:13px;color:var(--tx-m);margin-bottom:18px">Your introduction is the first 60-90 seconds of every interview. Make it count.</p>
+
+        <div class="intro-steps">
+          <div class="intro-step">
+            <div class="is-num">01</div>
+            <div class="is-title">Who You Are</div>
+            <div class="is-desc">State your name, current role or course of study. Keep it brief — one sentence maximum.</div>
+          </div>
+          <div class="intro-step">
+            <div class="is-num">02</div>
+            <div class="is-title">Relevant Experience</div>
+            <div class="is-desc">Mention your most relevant experience or skills. Focus on what is relevant to the role you are applying for.</div>
+          </div>
+          <div class="intro-step">
+            <div class="is-num">03</div>
+            <div class="is-title">Why This Role</div>
+            <div class="is-desc">Explain why you are interested in this specific role and company. Be genuine — not generic.</div>
+          </div>
+          <div class="intro-step">
+            <div class="is-num">04</div>
+            <div class="is-title">Your Key Strength</div>
+            <div class="is-desc">End with one specific strength you bring that is directly relevant to the job. This makes you memorable.</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div class="fl2" style="margin-bottom:8px">Example Introduction Structure</div>
+          <div class="intro-example">
+            <p><strong>Who I am:</strong> "My name is [Name] and I am a final year Computer Science student at [University]."</p>
+            <p><strong>Relevant experience:</strong> "I have built several web applications using Python and JavaScript, and recently completed an internship where I worked on backend APIs."</p>
+            <p><strong>Why this role:</strong> "I am applying because your company's focus on AI-driven products aligns perfectly with the projects I have been working on."</p>
+            <p><strong>Key strength:</strong> "My strongest quality is the ability to learn quickly — I taught myself three new frameworks in the last six months."</p>
+          </div>
+        </div>
+
+        <div class="fl2" style="margin-bottom:10px">Key Tips</div>
+        <div class="intro-tip"><div class="tip-icon">✅</div>Practise your introduction out loud until it sounds natural, not memorised.</div>
+        <div class="intro-tip"><div class="tip-icon">✅</div>Keep it focused on the role — do not list your entire life story.</div>
+        <div class="intro-tip"><div class="tip-icon">✅</div>Show enthusiasm — your energy in the first 60 seconds sets the tone for the whole interview.</div>
+        <div class="intro-tip"><div class="tip-icon">❌</div>Do not read from notes. Do not start with "Umm" or "So basically…"</div>
+        <div class="intro-tip"><div class="tip-icon">❌</div>Do not repeat everything on your CV. They have already read it.</div>
+
+        <div class="time-guide">
+          ⏱ <strong>Target time:</strong> 60 to 90 seconds. Under 45 seconds seems unprepared. Over 2 minutes loses the interviewer's attention.
+        </div>
+
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="goLearn('behaviour')">Next: Behavioural Questions →</button>
+          <button class="btn btn-outline btn-sm" onclick="goPage(3);setPracType('Behavioural')">Skip to Practice</button>
+        </div>
       </div>
     </div>
 
-    <!-- Answer examples -->
+    <!-- ── Behavioural ── -->
+    <div class="learn-section" id="ls-behaviour">
+      <div class="card">
+        <div class="stag">Behavioural Questions</div>
+        <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">What are behavioural questions?</h3>
+        <p style="font-size:13px;color:var(--tx-m);margin-bottom:14px">Behavioural questions ask about things you have actually done in the past. Examples: <em>"Tell me about a time when..."</em> or <em>"Describe a situation where..."</em> — interviewers use these to predict how you will behave in future situations.</p>
+
+        <div style="background:rgba(240,160,64,.06);border:1px solid rgba(240,160,64,.15);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:13px;color:var(--tx-s);line-height:1.6">
+          💡 The key rule: Always answer with a <strong style="color:var(--amber)">real, specific example</strong> from your experience. Never answer hypothetically ("I would..."). Say what you actually did.
+        </div>
+
+        <div class="fl2" style="margin-bottom:12px">Choose a framework to learn</div>
+        <div class="fw-cards" id="fw-cards">
+          <div class="fw-card" id="fwc-STAR" onclick="selectFw('STAR')">
+            <div class="fw-card-letters">S·T·A·R</div>
+            <div class="fw-card-name">STAR</div>
+            <div class="fw-card-desc">Best for behavioural &amp; situational questions</div>
+          </div>
+          <div class="fw-card" id="fwc-CAR" onclick="selectFw('CAR')">
+            <div class="fw-card-letters">C·A·R</div>
+            <div class="fw-card-name">CAR</div>
+            <div class="fw-card-desc">Best for experience &amp; achievement questions</div>
+          </div>
+          <div class="fw-card" id="fwc-PREP" onclick="selectFw('PREP')">
+            <div class="fw-card-letters">P·R·E·P</div>
+            <div class="fw-card-name">PREP</div>
+            <div class="fw-card-desc">Best for opinion &amp; open-ended questions</div>
+          </div>
+        </div>
+
+        <!-- Framework detail — shown when selected -->
+        <div id="fw-detail" style="display:none"></div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="goLearn('technical')">Next: Technical Questions →</button>
+          <button class="btn btn-outline btn-sm" onclick="goPage(3);setPracType('Behavioural')">Practice Behavioural Questions</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Technical ── -->
+    <div class="learn-section" id="ls-technical">
+      <div class="card">
+        <div class="stag">Technical Questions</div>
+        <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:14px">What you need to know</h3>
+
+        <div class="tech-notice tn-knowledge">
+          <div class="tn-icon">⚠️</div>
+          <div>
+            <div class="tn-title">Knowledge comes first</div>
+            <div class="tn-desc">To pass a technical interview you must have actual knowledge for the role you are applying for. No framework or technique will replace genuine understanding. Practise your craft, not just your answers.</div>
+          </div>
+        </div>
+
+        <div class="tech-notice tn-style">
+          <div class="tn-icon">💡</div>
+          <div>
+            <div class="tn-title">Answer short first, explain only if needed</div>
+            <div class="tn-desc">State your answer directly and concisely in 1-2 sentences. Only elaborate if the interviewer asks for more detail or if the context clearly requires it. Rambling suggests you are not confident.</div>
+          </div>
+        </div>
+
+        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:12px;padding:16px;margin-bottom:18px">
+          <div class="fl2" style="margin-bottom:10px">How to approach technical questions</div>
+          <div style="font-size:13px;color:var(--tx-s);line-height:1.8">
+            <div style="margin-bottom:6px">1. <strong>Listen carefully</strong> — make sure you understand the question before answering.</div>
+            <div style="margin-bottom:6px">2. <strong>Think briefly before speaking</strong> — 5-10 seconds of silence is professional, not weak.</div>
+            <div style="margin-bottom:6px">3. <strong>Answer directly</strong> — give your answer first, then support it.</div>
+            <div style="margin-bottom:6px">4. <strong>Be honest about gaps</strong> — "I haven't used that specific tool but I have experience with X which is similar" is far better than guessing.</div>
+            <div>5. <strong>Show your thinking</strong> — interviewers often care more about how you think than the exact answer.</div>
+          </div>
+        </div>
+
+        <div class="fl2" style="margin-bottom:8px">Practice Technical Questions with AI</div>
+        <p style="font-size:13px;color:var(--tx-m);margin-bottom:12px">Select a difficulty level and get a technical question generated for your role.</p>
+
+        <div class="level-btns">
+          <button class="lvl-btn active" id="lvl-Beginner"     onclick="selectTechLevel('Beginner')">🌱 Beginner</button>
+          <button class="lvl-btn"        id="lvl-Intermediate" onclick="selectTechLevel('Intermediate')">🔥 Intermediate</button>
+          <button class="lvl-btn"        id="lvl-Advanced"     onclick="selectTechLevel('Advanced')">⚡ Advanced</button>
+        </div>
+
+        <button class="btn btn-outline" id="tech-q-btn" onclick="getTechQuestion()" style="width:100%;margin-bottom:14px">
+          ⚙️ Get a Technical Question
+        </button>
+
+        <div id="tech-q-loading" style="display:none">
+          <div class="ai-load"><div class="dots"><span></span><span></span><span></span></div><p>Generating a technical question for your role…</p></div>
+        </div>
+
+        <div id="tech-q-area" style="display:none">
+          <div class="prac-q-box" id="tech-question"></div>
+          <div class="fl2" style="margin-bottom:6px">Your Answer</div>
+          <textarea class="ans-ta" id="tech-answer" placeholder="Answer short first, then explain if needed…"></textarea>
+          <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="tech-submit-btn" onclick="submitTechAnswer()">Get Feedback →</button>
+            <button class="btn btn-outline btn-sm" onclick="getTechQuestion()">New Question</button>
+          </div>
+        </div>
+
+        <div id="tech-feedback" style="display:none"></div>
+
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="goPage(3)">Next: Free Practice →</button>
+          <button class="btn btn-outline btn-sm" onclick="goPage(4)">Skip to Mock Interview</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end page 2 -->
+
+
+  <!-- ════════════════════════════════════════
+       PAGE 3 — PRACTISE
+  ════════════════════════════════════════ -->
+  <div class="screen" id="page-3">
     <div class="card">
-      <div class="section-tag">See the Difference</div>
-      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">Poor vs Average vs Excellent Answers</h3>
-      <p style="font-size:13px;color:var(--tx-m);margin-bottom:14px">See exactly what separates a weak answer from a great one.</p>
-
-      <div style="margin-bottom:14px">
-        <label class="form-label">Question Type</label>
-        <div class="q-type-row" id="qt-btns"></div>
-      </div>
-
-      <button class="btn btn-outline" id="load-examples-btn" onclick="loadExamples()" style="margin-bottom:18px;width:100%">
-        Generate Example Questions & Answers
-      </button>
-
-      <div id="examples-loading" style="display:none">
-        <div class="ai-load"><div class="dots"><span></span><span></span><span></span></div><p>Generating examples for your role…</p></div>
-      </div>
-
-      <div id="examples-result" style="display:none">
-        <div class="example-q" id="ex-question"></div>
-        <div class="answer-level level-poor">
-          <div class="level-badge"><span style="color:#e05a5a">✗</span><span style="color:#e05a5a;font-family:var(--fM);font-size:10px">POOR ANSWER</span></div>
-          <div class="level-text" id="ex-poor"></div>
-          <div class="level-why" style="color:#e08080" id="ex-poor-why"></div>
-        </div>
-        <div class="answer-level level-avg">
-          <div class="level-badge"><span style="color:var(--amber)">◐</span><span style="color:var(--amber);font-family:var(--fM);font-size:10px">AVERAGE ANSWER</span></div>
-          <div class="level-text" id="ex-avg"></div>
-          <div class="level-why" style="color:#c8883a" id="ex-avg-why"></div>
-        </div>
-        <div class="answer-level level-excel">
-          <div class="level-badge"><span style="color:var(--green)">✓</span><span style="color:var(--green);font-family:var(--fM);font-size:10px">EXCELLENT ANSWER</span></div>
-          <div class="level-text" id="ex-excel"></div>
-          <div class="level-why" style="color:#6abf8a" id="ex-excel-why"></div>
-        </div>
-        <div class="key-tip" id="ex-tip"></div>
-      </div>
-
-      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="goTab(3)">Next: Start Practising →</button>
-        <button class="btn btn-outline btn-sm" id="reload-examples-btn" onclick="loadExamples()" style="display:none">New Example</button>
-      </div>
-    </div>
-
-  </div>
-
-
-  <!-- ══════════════════════════════════
-       SCREEN 3 — GUIDED PRACTICE
-  ══════════════════════════════════ -->
-  <div class="screen" id="screen-3">
-
-    <div class="card" style="margin-bottom:14px">
-      <div class="section-tag">Step 3 — Guided Practice</div>
+      <div class="stag">Step 3 — Free Practice</div>
       <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:6px">Practice with your study buddy</h3>
-      <p style="font-size:13px;color:var(--tx-m);margin-bottom:14px">No judgment here. Answer, get coaching feedback, retry as many times as you want.</p>
+      <p style="font-size:13px;color:var(--tx-m);margin-bottom:18px">No pressure. No timer. Answer, get coaching feedback, retry as many times as you want.</p>
 
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-        <div style="flex:1;min-width:160px">
-          <label class="form-label">Question Type</label>
-          <div class="q-type-row" id="prac-qt-btns"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div>
+          <div class="fl2" style="margin-bottom:7px">Question Type</div>
+          <div class="prac-type-row" id="prac-type-row"></div>
         </div>
-        <div style="flex:1;min-width:160px">
-          <label class="form-label">Framework to use</label>
-          <div class="framework-tabs" id="prac-fw-tabs"></div>
+        <div>
+          <div class="fl2" style="margin-bottom:7px">Framework to Use</div>
+          <div class="prac-fw-tabs" id="prac-fw-row"></div>
         </div>
       </div>
 
-      <button class="btn btn-outline" id="new-prac-q-btn" onclick="loadPracticeQuestion()" style="width:100%;margin-bottom:18px">
+      <div style="margin-bottom:16px">
+        <div class="fl2" style="margin-bottom:7px">Difficulty</div>
+        <div class="level-btns" id="prac-level-btns">
+          <button class="lvl-btn active" id="plvl-Beginner"     onclick="selectPracLevel('Beginner')">🌱 Beginner</button>
+          <button class="lvl-btn"        id="plvl-Intermediate" onclick="selectPracLevel('Intermediate')">🔥 Intermediate</button>
+          <button class="lvl-btn"        id="plvl-Advanced"     onclick="selectPracLevel('Advanced')">⚡ Advanced</button>
+        </div>
+      </div>
+
+      <button class="btn btn-outline" id="new-q-btn" onclick="loadPracQuestion()" style="width:100%;margin-bottom:16px">
         🎲 Get a Practice Question
       </button>
 
@@ -375,217 +558,271 @@
       </div>
 
       <div id="prac-q-area" style="display:none">
-        <div class="practice-q-box" id="prac-question"></div>
-
-        <div class="framework-hint" id="prac-fw-hint">
-          <div class="fh-label" id="prac-fw-name"></div>
-          <div class="fh-steps" id="prac-fw-hint-steps"></div>
+        <div class="prac-q-box" id="prac-question"></div>
+        <div class="fw-hint" id="prac-fw-hint">
+          <div class="fw-hint-lbl" id="prac-fw-hint-lbl"></div>
+          <div class="fw-hint-steps" id="prac-fw-hint-steps"></div>
         </div>
-
-        <div class="attempt-badge" id="prac-attempt-lbl">Attempt 1 — take your time!</div>
-        <textarea class="ans-textarea" id="prac-answer" placeholder="Use the framework above as your guide. Write your answer here…"></textarea>
+        <div class="attempt-lbl" id="prac-attempt-lbl">Attempt 1 — take your time!</div>
+        <textarea class="ans-ta" id="prac-answer" placeholder="Use the framework above as your guide. Write your answer here…"></textarea>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;margin-bottom:14px">
           <span style="font-size:11px;color:var(--tx-m);font-family:var(--fM)" id="prac-char">0 characters</span>
-          <span style="font-size:12px;color:var(--tx-m)">💡 Speak your answer out loud as you type — builds real confidence</span>
+          <span style="font-size:12px;color:var(--tx-m)">💡 Say your answer out loud as you type</span>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" id="submit-prac-btn" onclick="submitPractice()">Get Feedback from Study Buddy →</button>
-          <button class="btn btn-outline btn-sm" onclick="loadPracticeQuestion()">Different Question</button>
+          <button class="btn btn-primary" id="prac-submit-btn" onclick="submitPrac()">Get Feedback →</button>
+          <button class="btn btn-outline btn-sm" onclick="loadPracQuestion()">Different Question</button>
         </div>
       </div>
 
       <!-- Buddy feedback -->
       <div id="prac-feedback" style="display:none">
-        <div class="buddy-bubble">
-          <div class="buddy-av">
-            <div class="buddy-icon">🤝</div>
+        <div class="buddy-card">
+          <div class="buddy-hdr">
+            <div class="buddy-av">🤝</div>
             <div>
               <div class="buddy-name">Nexus Study Buddy</div>
-              <div class="buddy-sub" id="prac-attempt-sub">Attempt 1 feedback</div>
+              <div class="buddy-sub" id="prac-fb-sub">Feedback</div>
             </div>
           </div>
-          <div class="practice-score">
-            <span style="color:var(--amber);font-family:var(--fM)" id="prac-score-txt">Building up…</span>
-            <div class="ps-bar"><div class="ps-fill" id="prac-score-bar" style="width:0%"></div></div>
+          <div class="score-bar-row">
+            <span style="font-family:var(--fM);font-size:12px;color:var(--amber)" id="prac-score-txt"></span>
+            <div class="sb-track"><div class="sb-fill" id="prac-score-bar" style="width:0%"></div></div>
           </div>
           <div class="fb-reaction" id="prac-reaction"></div>
-          <div class="fb-section">
-            <div class="fb-section-lbl">⭐ What Worked</div>
-            <div class="fb-section-txt" id="prac-worked"></div>
+          <div class="fb-row">
+            <div class="fb-item"><div class="fb-item-lbl">⭐ What Worked</div><div class="fb-item-txt" id="prac-worked"></div></div>
+            <div class="fb-item"><div class="fb-item-lbl">📈 Make It Stronger</div><div class="fb-item-txt" id="prac-stronger"></div></div>
           </div>
-          <div class="fb-section">
-            <div class="fb-section-lbl">📈 Make It Stronger</div>
-            <div class="fb-section-txt" id="prac-stronger"></div>
-          </div>
-          <div class="fb-section">
-            <div class="fb-section-lbl">🎯 The One Missing Piece</div>
-            <div class="fb-section-txt" id="prac-missing"></div>
-          </div>
-          <div class="try-this-box" id="prac-try-this" style="display:none">
-            <strong style="font-family:var(--fM);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber)">Try opening with:</strong><br/>
-            <span id="prac-try-text"></span>
-          </div>
-          <div class="reflection-q" id="prac-reflection">
-            <strong>💭 Think about this:</strong> <span id="prac-ref-text"></span>
-          </div>
-          <div class="encouragement-line" id="prac-encourage"></div>
+          <div class="fb-item" style="margin-bottom:10px"><div class="fb-item-lbl">🎯 The Missing Piece</div><div class="fb-item-txt" id="prac-missing"></div></div>
+          <div class="try-box" id="prac-try" style="display:none"></div>
+          <div class="ref-box">💭 Think: <span id="prac-ref"></span></div>
+          <div class="enc-line" id="prac-enc"></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-            <button class="btn btn-primary" onclick="retryPractice()">🔄 Try Again</button>
-            <button class="btn btn-outline btn-sm" onclick="loadPracticeQuestion()">New Question</button>
-            <button class="btn btn-outline btn-sm" onclick="goTab(4)">Ready for Simulation →</button>
+            <button class="btn btn-primary" onclick="retryPrac()">🔄 Try Again</button>
+            <button class="btn btn-outline btn-sm" onclick="loadPracQuestion()">New Question</button>
+            <button class="btn btn-outline btn-sm" onclick="goPage(4)">Ready for Mock Interview →</button>
           </div>
         </div>
       </div>
-
     </div>
-
-    <!-- Body language reminder -->
-    <div class="card">
-      <div class="section-tag">Before You Simulate</div>
-      <h3 style="font-family:var(--fD);font-size:1.05rem;margin-bottom:12px">📹 Record Yourself Practice</h3>
-      <p style="font-size:13px;color:var(--tx-s);line-height:1.7;margin-bottom:12px">Use your phone camera to record yourself answering the question above. Then play it back and check:</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">👁 Am I making eye contact with the camera?</div>
-        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">🪑 Is my posture straight and open?</div>
-        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">🗣 Do I sound clear and confident?</div>
-        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">⏱ Am I speaking at a good pace?</div>
-        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">😐 Is my expression engaged and natural?</div>
-        <div style="background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:12px;color:var(--tx-s)">👔 Am I dressed appropriately?</div>
-      </div>
-      <div>
-        <label class="form-label">After watching your recording — what will you improve?</label>
-        <textarea class="self-reflection" placeholder="e.g. I said 'um' too many times. I need to pause instead of filling silence…" id="rec-reflection"></textarea>
-      </div>
-    </div>
-
-  </div>
+  </div><!-- end page 3 -->
 
 
-  <!-- ══════════════════════════════════
-       SCREEN 4 — SIMULATION
-  ══════════════════════════════════ -->
-  <div class="screen" id="screen-4">
+  <!-- ════════════════════════════════════════
+       PAGE 4 — MOCK INTERVIEW
+  ════════════════════════════════════════ -->
+  <div class="screen" id="page-4">
 
-    <!-- Pre-simulation setup -->
-    <div id="sim-setup" class="card">
-      <div class="section-tag">Step 4 — Real Interview Simulation</div>
-      <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:8px">You've prepared — now test yourself</h3>
-      <p style="font-size:13px;color:var(--tx-m);margin-bottom:18px">This time: no hints, no framework guide. Just you and the interview. Your answers are scored and saved.</p>
-
-      <div style="background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:12px;padding:14px 16px;margin-bottom:18px">
-        <div style="font-family:var(--fM);font-size:11px;color:var(--amber);margin-bottom:6px">ROLE DETECTED</div>
-        <div style="font-size:15px;font-weight:600" id="sim-role-display">General / Any Role</div>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-        <div style="flex:1;min-width:140px">
-          <label class="form-label">Interview Type</label>
-          <div class="q-type-row" id="sim-qt-btns"></div>
-        </div>
-        <div style="flex:1;min-width:120px">
-          <label class="form-label">Questions</label>
-          <input type="range" id="sim-q-count" min="3" max="8" value="5" style="accent-color:var(--amber);width:100%" oninput="document.getElementById('sim-q-display').textContent=this.value"/>
-          <div style="font-family:var(--fM);font-size:12px;color:var(--amber);margin-top:4px"><span id="sim-q-display">5</span> questions</div>
-        </div>
-      </div>
-
-      <!-- Past results if any -->
-      <div id="sim-history" style="margin-bottom:16px"></div>
-
-      <button class="btn btn-primary btn-lg" id="start-sim-btn" onclick="startSimulation()" style="width:100%">
-        🎯 Start Simulation
-      </button>
-    </div>
-
-    <!-- Active simulation -->
-    <div id="sim-room" style="display:none">
-      <div style="background:var(--bg-c);border:1px solid var(--bdr);border-radius:20px;overflow:hidden;margin-bottom:12px">
-        <div class="sim-hdr">
-          <div class="sim-tags">
-            <span class="sim-tag tag-amber" id="sim-role-tag"></span>
-            <span class="sim-tag tag-green" id="sim-type-tag"></span>
-          </div>
-          <div class="timer-box" id="sim-timer">02:00</div>
-        </div>
-        <div class="prog-bar"><div class="prog-fill" id="sim-prog" style="width:0%"></div></div>
-        <div class="sim-q-area" id="sim-q-area">
-          <div id="sim-q-loading" class="ai-load"><div class="dots"><span></span><span></span><span></span></div><p>Interviewer is ready…</p></div>
-          <div id="sim-q-content" style="display:none">
-            <div class="sim-interviewer">
-              <div class="sim-av">🎓</div>
-              <div>
-                <div style="font-size:13px;font-weight:600">Nexus Interviewer</div>
-                <div style="font-size:11px;color:var(--tx-m);font-family:var(--fM)" id="sim-role-sub"></div>
-              </div>
-              <div style="margin-left:auto;font-family:var(--fM);font-size:12px;color:var(--tx-m)" id="sim-q-counter"></div>
-            </div>
-            <div class="sim-q-text" id="sim-q-text"></div>
-            <textarea class="ans-textarea" id="sim-answer" placeholder="Answer as you would in a real interview. Take a breath first."></textarea>
-            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-              <button class="btn btn-primary" id="sim-submit-btn" onclick="submitSimulation()">Submit Answer →</button>
-              <button class="btn btn-ghost btn-sm" onclick="if(confirm('Skip this question?')){document.getElementById('sim-answer').value='[Skipped]';submitSimulation()}">Skip</button>
-            </div>
-          </div>
-          <div id="sim-feedback-area" style="display:none" class="sim-fb"></div>
-        </div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="if(confirm('End early?')){endSimEarly()}">✕ End Simulation</button>
-    </div>
-
-    <!-- Final results -->
-    <div id="sim-results" style="display:none">
+    <!-- Setup -->
+    <div id="mock-setup">
       <div class="card">
-        <div class="section-tag">Simulation Complete</div>
-        <h3 style="font-family:var(--fD);font-size:1.2rem;margin-bottom:16px">🏆 Your Results</h3>
-        <div class="final-score">
-          <div class="final-num" id="fin-score"></div>
-          <div class="final-grade" id="fin-grade"></div>
-          <div class="final-summary" id="fin-summary"></div>
+        <div class="stag">Step 4 — Mock Interview</div>
+        <h3 style="font-family:var(--fD);font-size:1.1rem;margin-bottom:8px">You have prepared — now test yourself</h3>
+        <p style="font-size:13px;color:var(--tx-m);margin-bottom:18px">This is a full professional mock interview. No hints. No framework guides. Just you and the interviewer.</p>
+
+        <div class="mock-info-grid">
+          <div class="mock-info-card">
+            <div class="mic-icon">📝</div>
+            <div class="mic-title">Round 1</div>
+            <div class="mic-desc">Introduction<br/>2 questions</div>
+          </div>
+          <div class="mock-info-card">
+            <div class="mic-icon">💬</div>
+            <div class="mic-title">Round 2</div>
+            <div class="mic-desc">Behavioural<br/>3 questions</div>
+          </div>
+          <div class="mock-info-card">
+            <div class="mic-icon">⚙️</div>
+            <div class="mic-title">Round 3</div>
+            <div class="mic-desc">Technical<br/>3 questions</div>
+          </div>
         </div>
-        <div id="fin-reviews"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-          <button class="btn btn-primary" onclick="resetSim()">🔄 New Simulation</button>
-          <button class="btn btn-outline btn-sm" onclick="goTab(3)">← Back to Practice</button>
-          <button class="btn btn-outline btn-sm" onclick="location.href='/dashboard'">Dashboard</button>
+
+        <div style="background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+          <div class="fl2" style="margin-bottom:4px">Preparing for</div>
+          <div style="font-size:15px;font-weight:600" id="mock-role-display">—</div>
         </div>
+
+        <div style="margin-bottom:14px">
+          <div class="fl2" style="margin-bottom:8px">Difficulty</div>
+          <div class="diff-btns" id="mock-diff-btns">
+            <button class="diff-btn" id="mdiff-Beginner"     onclick="selectMockDiff('Beginner')">🌱 Beginner</button>
+            <button class="diff-btn active" id="mdiff-Intermediate" onclick="selectMockDiff('Intermediate')">🔥 Intermediate</button>
+            <button class="diff-btn" id="mdiff-Advanced"     onclick="selectMockDiff('Advanced')">⚡ Advanced</button>
+          </div>
+        </div>
+
+        <div class="mock-rules">
+          <p>⏱ Take your time to think before answering each question — this is realistic.</p>
+          <p>📋 You will receive a detailed PASS or FAIL verdict with a breakdown of all three rounds.</p>
+          <p>📸 Your result will be saved to your profile and can be used as evidence of practice.</p>
+          <p>⚠️ Once started, answer all questions honestly — the AI evaluates based on your actual responses.</p>
+        </div>
+
+        <!-- Past mock results -->
+        <div id="mock-history-section" style="margin-bottom:16px"></div>
+
+        <button class="btn btn-primary btn-lg" id="start-mock-btn" onclick="startMock()" style="width:100%">
+          🎯 Begin Mock Interview
+        </button>
       </div>
     </div>
 
-  </div>
+    <!-- Active mock interview room -->
+    <div id="mock-room" style="display:none">
+
+      <!-- Round change announcement -->
+      <div id="round-change-card" style="display:none">
+        <div class="round-change-card">
+          <div class="rcc-icon" id="rcc-icon"></div>
+          <div class="rcc-title" id="rcc-title"></div>
+          <div class="rcc-desc" id="rcc-desc"></div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="dismissRoundChange()">Begin This Round →</button>
+        </div>
+      </div>
+
+      <div id="mock-interview-area">
+        <div class="mock-room">
+          <!-- Round banner -->
+          <div class="round-banner">
+            <div class="round-info">
+              <span class="round-badge" id="round-badge">Round 1 of 3</span>
+              <div>
+                <div class="round-name" id="round-name">Introduction Round</div>
+                <div class="round-progress" id="round-progress">Question 1 of 2</div>
+              </div>
+            </div>
+            <div class="overall-progress">
+              <div class="op-step active" id="ops-intro" title="Intro"></div>
+              <div class="op-step" id="ops-behaviour" title="Behaviour"></div>
+              <div class="op-step" id="ops-technical" title="Technical"></div>
+            </div>
+          </div>
+          <!-- Progress bar -->
+          <div class="prog-bar"><div class="prog-fill" id="mock-prog" style="width:0%"></div></div>
+          <!-- Question area -->
+          <div class="mock-q-area" id="mock-q-area">
+            <div id="mock-q-loading" class="ai-load" style="display:none">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <p>Interviewer is thinking…</p>
+            </div>
+            <div id="mock-q-content">
+              <div class="mock-interviewer">
+                <div class="mock-av">🎓</div>
+                <div>
+                  <div class="mock-av-name">Nexus Interviewer</div>
+                  <div class="mock-av-sub" id="mock-av-sub">Introduction Round</div>
+                </div>
+                <div class="mock-q-counter" id="mock-q-counter">Q 1 / 8</div>
+              </div>
+              <div class="mock-q-text" id="mock-q-text"></div>
+              <div class="fl2" style="margin-bottom:7px">Your Answer</div>
+              <textarea class="ans-ta" id="mock-answer" placeholder="Take a moment to think, then answer clearly and concisely…"></textarea>
+              <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+                <button class="btn btn-primary" id="mock-submit-btn" onclick="submitMockAnswer()">Submit Answer →</button>
+                <button class="btn btn-ghost btn-sm" onclick="if(confirm('Skip this question? It will be marked as unanswered.')){document.getElementById('mock-answer').value='[Skipped]';submitMockAnswer()}">Skip</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:6px;color:var(--red)" onclick="if(confirm('End interview early? Your progress will not be saved.')){resetMock()}">✕ End Interview</button>
+      </div>
+
+    </div><!-- end mock-room -->
+
+    <!-- Verdict -->
+    <div id="mock-verdict" style="display:none">
+      <div class="verdict-wrap" id="verdict-wrap">
+        <!-- Top section: PASS/FAIL + score -->
+        <div class="verdict-top" id="verdict-top">
+          <div id="verdict-badge-wrap"></div>
+          <div class="verdict-score-big" id="verdict-score-big"></div>
+          <div class="verdict-grade" id="verdict-grade-line"></div>
+          <div class="verdict-reason" id="verdict-reason"></div>
+        </div>
+        <!-- Round breakdown -->
+        <div class="round-breakdown">
+          <h4>Round-by-Round Performance</h4>
+          <div class="rb-row">
+            <div class="rb-label">📝 Introduction</div>
+            <div class="rb-bar-wrap">
+              <div class="rb-bar"><div class="rb-fill" id="rb-intro-fill" style="width:0%"></div></div>
+              <div class="rb-summary" id="rb-intro-summary"></div>
+            </div>
+            <div class="rb-score" id="rb-intro-score"></div>
+          </div>
+          <div class="rb-row">
+            <div class="rb-label">💬 Behavioural</div>
+            <div class="rb-bar-wrap">
+              <div class="rb-bar"><div class="rb-fill" id="rb-beh-fill" style="width:0%"></div></div>
+              <div class="rb-summary" id="rb-beh-summary"></div>
+            </div>
+            <div class="rb-score" id="rb-beh-score"></div>
+          </div>
+          <div class="rb-row">
+            <div class="rb-label">⚙️ Technical</div>
+            <div class="rb-bar-wrap">
+              <div class="rb-bar"><div class="rb-fill" id="rb-tech-fill" style="width:0%"></div></div>
+              <div class="rb-summary" id="rb-tech-summary"></div>
+            </div>
+            <div class="rb-score" id="rb-tech-score"></div>
+          </div>
+        </div>
+        <!-- Strengths and improvements -->
+        <div class="si-grid">
+          <div class="si-card strengths">
+            <div class="si-lbl">✓ Strengths Shown</div>
+            <div id="si-strengths"></div>
+          </div>
+          <div class="si-card improve">
+            <div class="si-lbl">→ Must Work On</div>
+            <div id="si-improve"></div>
+          </div>
+        </div>
+        <!-- Final message -->
+        <div class="final-msg">
+          <p id="final-message"></p>
+          <div class="interviewer-sig">— Nexus Interviewer · <span id="verdict-role"></span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+        <button class="btn btn-primary" onclick="resetMock()">🔄 Try Again</button>
+        <button class="btn btn-outline btn-sm" onclick="goPage(3)">← Back to Practice</button>
+        <button class="btn btn-outline btn-sm" onclick="location.href='/dashboard'">Dashboard</button>
+      </div>
+    </div><!-- end verdict -->
+
+  </div><!-- end page 4 -->
 
 </div><!-- end iv-page -->
 
 <script>
 /* ══════════════════════════════════════
-   GLOBAL STATE
+   STATE
 ══════════════════════════════════════ */
-let cfg           = {};
-let userRole      = "General / Any Role";
-let selectedFw    = "STAR";
-let learnQType    = "Behavioural";
-let pracQType     = "Mixed";
-let pracFw        = "STAR";
-let simQType      = "Mixed";
-let pracQuestion  = "";
-let pracAttempt   = 1;
-let prevPracQs    = [];
-let simSessionId  = null;
-let simCurrentQ   = 0;
-let simTotal      = 5;
-let simAnswers    = [];
-let timerInt      = null;
-let timerSec      = 120;
-
-const BL_CHECKLIST = [
-  {label:"Eye Contact",          tip:"Look at the interviewer / camera naturally, not constantly"},
-  {label:"Upright Posture",      tip:"Sit straight, shoulders back — projects confidence"},
-  {label:"Clear Voice",          tip:"Speak clearly and at a moderate pace"},
-  {label:"Confident Smile",      tip:"A natural smile shows you are comfortable"},
-  {label:"No Filler Words",      tip:"Avoid 'um', 'uh', 'like' — pause instead"},
-  {label:"Professional Dress",   tip:"Dress one level above what you think the role requires"},
-  {label:"Open Body Language",   tip:"Avoid crossing arms or looking down"},
-  {label:"Enthusiastic Energy",  tip:"Show genuine interest — interviewers remember enthusiasm"},
-];
+let cfg          = {};
+let userRole     = "General / Any Role";
+let selectedFw   = "STAR";
+let learnFw      = "STAR";
+let pracQType    = "Behavioural";
+let pracFw       = "STAR";
+let pracLevel    = "Beginner";
+let pracQ        = "";
+let pracAttempt  = 1;
+let prevPracQs   = [];
+let techLevel    = "Beginner";
+let techQ        = "";
+let techAttempt  = 1;
+let mockDiff     = "Intermediate";
+let mockSessionId = null;
+let mockCurrentRound = "intro";
+let mockRoundNum = 1;
+let mockQInRound = 1;
+let mockTotalQs  = 8; // 2+3+3
+let mockQsDone   = 0;
+let pendingNextQ = null;
 
 /* ══════════════════════════════════════
    INIT
@@ -595,233 +832,150 @@ async function init(){
     const r = await fetch('/api/interview/config');
     if(r.status===401){location.href='/login';return;}
     cfg = await r.json();
-    buildSelects();
-    buildChecklists();
-    buildFrameworkTabs();
-    buildQTypeBtns();
-    loadStats();
-    loadSimHistory();
 
-    // Load saved profile AND roadmap
+    buildRoleSelect();
+    buildExpSelect();
+    buildNervChips();
+    buildPracButtons();
+
+    // Load saved profile + roadmap
     const pr = await fetch('/api/interview/roadmap');
     const pd = await pr.json();
-
     if(pd.profile){
-      document.getElementById('sel-role').value = pd.profile.role || '';
-      document.getElementById('sel-exp').value  = pd.profile.experience || '';
-      userRole = pd.profile.role || "General / Any Role";
-      document.getElementById('sim-role-display').textContent = userRole;
+      document.getElementById('sel-role').value = pd.profile.role||'';
+      document.getElementById('sel-exp').value  = pd.profile.experience||'';
+      userRole = pd.profile.role||'General / Any Role';
+      document.getElementById('mock-role-display').textContent = userRole;
       if(pd.profile.nervousness){
         pd.profile.nervousness.forEach(n=>{
-          document.querySelectorAll('.nerv-chip').forEach(c=>{
-            if(c.dataset.val===n) c.classList.add('selected');
-          });
+          document.querySelectorAll('.chip').forEach(c=>{ if(c.dataset.val===n) c.classList.add('on'); });
         });
-        if(pd.profile.goals) document.getElementById('inp-goal').value = pd.profile.goals;
       }
+      if(pd.profile.goals) document.getElementById('inp-goal').value = pd.profile.goals;
     }
-
-    // If saved roadmap exists — show it automatically
     if(pd.roadmap){
       renderRoadmap(pd.roadmap);
       document.getElementById('roadmap-result').style.display='';
-      document.getElementById('tab-1').classList.add('done');
-      // Show resume banner
+      document.getElementById('ptab-1').classList.add('done');
       showResumeBanner(pd.roadmap);
     }
+
+    loadMockHistory();
+
+    // Char counter
+    ['prac-answer','mock-answer','tech-answer'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el && id==='prac-answer'){
+        el.addEventListener('input',()=>{ document.getElementById('prac-char').textContent=el.value.length+' characters'; });
+      }
+    });
   }catch(e){ console.error('Init error:',e); }
 }
 
-function showResumeBanner(roadmap){
-  const existing = document.getElementById('resume-banner');
-  if(existing) existing.remove();
-  const banner = document.createElement('div');
-  banner.id = 'resume-banner';
-  banner.style.cssText = 'background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px';
-  banner.innerHTML=`
-    <div style="display:flex;align-items:center;gap:12px">
-      <span style="font-size:20px">🔄</span>
-      <div>
-        <div style="font-size:13px;font-weight:600;color:var(--green)">Welcome back! Your roadmap is saved.</div>
-        <div style="font-size:12px;color:var(--tx-m)">Preparing for: <strong>${escH(roadmap.role||'')}</strong> — continue where you left off</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-outline btn-sm" style="color:var(--green);border-color:rgba(76,175,118,.3)" onclick="goTab(3)">Continue Practising →</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('resume-banner').remove()">✕</button>
-    </div>`;
-  const setupCard = document.querySelector('.screen.active .card');
-  if(setupCard) setupCard.before(banner);
+/* ══════════════════════════════════════
+   BUILD UI
+══════════════════════════════════════ */
+function buildRoleSelect(){
+  const sel = document.getElementById('sel-role');
+  (cfg.roles||[]).forEach(r=>{ const o=document.createElement('option');o.value=r;o.textContent=r;sel.appendChild(o); });
+  sel.addEventListener('change',()=>{
+    userRole=sel.value||'General / Any Role';
+    document.getElementById('mock-role-display').textContent=userRole;
+  });
 }
-
-function buildSelects(){
-  const roleS = document.getElementById('sel-role');
-  cfg.roles.forEach(r=>{ const o=document.createElement('option');o.value=r;o.textContent=r;roleS.appendChild(o); });
-  roleS.addEventListener('change',()=>{ userRole=roleS.value; document.getElementById('sim-role-display').textContent=userRole||'General / Any Role'; });
-
-  const expS = document.getElementById('sel-exp');
-  cfg.experience.forEach(e=>{ const o=document.createElement('option');o.value=e;o.textContent=e;expS.appendChild(o); });
-
-  const nervDiv = document.getElementById('nerv-chips');
-  cfg.nervousness.forEach(n=>{
+function buildExpSelect(){
+  const sel = document.getElementById('sel-exp');
+  (cfg.experience||[]).forEach(e=>{ const o=document.createElement('option');o.value=e;o.textContent=e;sel.appendChild(o); });
+}
+function buildNervChips(){
+  const div = document.getElementById('nerv-chips');
+  (cfg.nervousness||[]).forEach(n=>{
     const c=document.createElement('div');
-    c.className='nerv-chip'; c.textContent=n; c.dataset.val=n;
-    c.onclick=()=>c.classList.toggle('selected');
-    nervDiv.appendChild(c);
+    c.className='chip'; c.textContent=n; c.dataset.val=n;
+    c.onclick=()=>c.classList.toggle('on');
+    div.appendChild(c);
   });
 }
-
-function buildChecklists(){
-  const grid = document.getElementById('bl-checklist');
-  BL_CHECKLIST.forEach(item=>{
-    const d=document.createElement('div');
-    d.className='check-item';
-    d.innerHTML=`<div class="check-box"></div><div><div class="check-label">${escH(item.label)}</div><div class="check-tip">${escH(item.tip)}</div></div>`;
-    d.onclick=()=>{ d.classList.toggle('checked'); d.querySelector('.check-box').textContent=d.classList.contains('checked')?'✓':''; };
-    grid.appendChild(d);
+function buildPracButtons(){
+  // Practice type buttons
+  const types = ["Behavioural","Technical","Mixed"];
+  const typeDiv = document.getElementById('prac-type-row');
+  types.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='ptype-btn'+(t===pracQType?' active':'');
+    b.textContent=t; b.dataset.type=t;
+    b.onclick=()=>{ document.querySelectorAll('.ptype-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); pracQType=t; };
+    typeDiv.appendChild(b);
   });
-}
-
-function buildFrameworkTabs(){
-  // Learn screen
-  const div = document.getElementById('fw-tabs');
+  // Framework tabs
+  const fwDiv = document.getElementById('prac-fw-row');
   Object.keys(cfg.frameworks||{}).forEach((k,i)=>{
     const b=document.createElement('button');
-    b.className='fw-tab'+(i===0?' active':'');
-    b.textContent=cfg.frameworks[k].name;
-    b.onclick=()=>{ document.querySelectorAll('#fw-tabs .fw-tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selectedFw=k; renderFwSteps(k); };
-    div.appendChild(b);
+    b.className='pfw-tab'+(i===0?' active':'');
+    b.textContent=cfg.frameworks[k].name; b.dataset.fw=k;
+    b.onclick=()=>{ document.querySelectorAll('.pfw-tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); pracFw=k; renderPracFwHint(k); };
+    fwDiv.appendChild(b);
   });
-  // Practice screen
-  const pdiv = document.getElementById('prac-fw-tabs');
-  Object.keys(cfg.frameworks||{}).forEach((k,i)=>{
-    const b=document.createElement('button');
-    b.className='fw-tab'+(i===0?' active':'');
-    b.textContent=cfg.frameworks[k].name;
-    b.onclick=()=>{ document.querySelectorAll('#prac-fw-tabs .fw-tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); pracFw=k; renderPracFwHint(k); };
-    pdiv.appendChild(b);
-  });
-  if(Object.keys(cfg.frameworks||{}).length>0){
-    renderFwSteps(Object.keys(cfg.frameworks)[0]);
-  }
-}
-
-function renderFwSteps(key){
-  const fw  = cfg.frameworks[key];
-  const div = document.getElementById('fw-steps-display');
-  if(!fw){div.innerHTML='';return;}
-  const cols = fw.steps.length<=3?fw.steps.length:4;
-  div.innerHTML=`
-    <div style="font-size:12px;color:var(--tx-m);margin-bottom:10px">${escH(fw.desc)}</div>
-    <div class="fw-steps" style="grid-template-columns:repeat(${cols},1fr)">
-      ${fw.steps.map(s=>`
-        <div class="fw-step">
-          <div class="fw-letter">${s.letter}</div>
-          <div class="fw-word">${escH(s.word)}</div>
-          <div class="fw-explain">${escH(s.explain)}</div>
-        </div>`).join('')}
-    </div>`;
-}
-
-function renderPracFwHint(key){
-  const fw = cfg.frameworks[key];
-  if(!fw) return;
-  document.getElementById('prac-fw-name').textContent = fw.name + ' — ' + fw.desc;
-  const div = document.getElementById('prac-fw-hint-steps');
-  div.innerHTML = fw.steps.map(s=>`
-    <div class="fh-step"><strong>${s.letter}</strong> ${escH(s.word)}: ${escH(s.explain)}</div>`).join('');
-}
-
-function buildQTypeBtns(){
-  const types = ["Behavioural","Technical","HR / Culture","Mixed"];
-  // Learn
-  const ld = document.getElementById('qt-btns');
-  types.forEach((t,i)=>{
-    const b=document.createElement('button');
-    b.className='qt-btn'+(i===0?' active':'');
-    b.textContent=t;
-    b.onclick=()=>{ document.querySelectorAll('#qt-btns .qt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); learnQType=t; };
-    ld.appendChild(b);
-  });
-  // Practice
-  const pd = document.getElementById('prac-qt-btns');
-  types.forEach((t,i)=>{
-    const b=document.createElement('button');
-    b.className='qt-btn'+(i===3?' active':'');
-    b.textContent=t;
-    b.onclick=()=>{ document.querySelectorAll('#prac-qt-btns .qt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); pracQType=t; };
-    pd.appendChild(b);
-  });
-  pracQType="Mixed";
-  // Simulation
-  const sd = document.getElementById('sim-qt-btns');
-  types.forEach((t,i)=>{
-    const b=document.createElement('button');
-    b.className='qt-btn'+(i===3?' active':'');
-    b.textContent=t;
-    b.onclick=()=>{ document.querySelectorAll('#sim-qt-btns .qt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); simQType=t; };
-    sd.appendChild(b);
-  });
-  simQType="Mixed";
 }
 
 /* ══════════════════════════════════════
-   STEP NAVIGATION
+   PAGE / TAB NAVIGATION
 ══════════════════════════════════════ */
-function goTab(n){
+function goPage(n){
   [1,2,3,4].forEach(i=>{
-    document.getElementById(`screen-${i}`).classList.toggle('active',i===n);
-    document.getElementById(`tab-${i}`).classList.toggle('active',i===n);
+    document.getElementById('page-'+i).classList.toggle('active',i===n);
+    document.getElementById('ptab-'+i).classList.toggle('active',i===n);
   });
-  if(n===2 && Object.keys(cfg.frameworks||{}).length>0){
-    renderPracFwHint(pracFw||Object.keys(cfg.frameworks)[0]);
-  }
-  if(n===4){
-    document.getElementById('sim-role-display').textContent = userRole||'General / Any Role';
-  }
+  if(n===4) document.getElementById('mock-role-display').textContent=userRole||'General / Any Role';
   window.scrollTo(0,0);
 }
+function goLearn(tab){
+  ['intro','behaviour','technical'].forEach(t=>{
+    document.getElementById('ls-'+t).classList.toggle('active',t===tab);
+    document.getElementById('ltab-'+t).classList.toggle('active',t===tab);
+  });
+}
+function setPracType(type){
+  document.querySelectorAll('.ptype-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.type===type);
+  });
+  pracQType = type;
+}
 
 /* ══════════════════════════════════════
-   ROADMAP
+   PAGE 1 — ROADMAP
 ══════════════════════════════════════ */
 async function generateRoadmap(){
-  const role = document.getElementById('sel-role').value;
-  const exp  = document.getElementById('sel-exp').value;
+  const role=document.getElementById('sel-role').value;
+  const exp =document.getElementById('sel-exp').value;
   if(!role||!exp){
-    const err=document.getElementById('setup-err');
-    err.textContent='Please select your target role and experience level.';
-    err.classList.remove('hidden');
-    return;
+    const e=document.getElementById('goal-err');
+    e.textContent='Please select your target role and experience level.';
+    e.classList.remove('hidden'); return;
   }
-  document.getElementById('setup-err').classList.add('hidden');
-  userRole = role;
+  document.getElementById('goal-err').classList.add('hidden');
+  userRole=role; document.getElementById('mock-role-display').textContent=userRole;
+  const nerv=[...document.querySelectorAll('.chip.on')].map(c=>c.dataset.val);
+  const goals=document.getElementById('inp-goal').value.trim();
 
-  const nerv = [...document.querySelectorAll('.nerv-chip.selected')].map(c=>c.dataset.val);
-  const goals = document.getElementById('inp-goal').value.trim();
-
-  // Save profile
   await fetch('/api/interview/profile',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({role,experience:exp,nervousness:nerv,goals})});
 
-  const btn = document.getElementById('roadmap-btn');
+  const btn=document.getElementById('roadmap-btn');
   btn.disabled=true; btn.innerHTML='<span class="spin"></span> Building your roadmap…';
-
   try{
-    const r = await fetch('/api/interview/roadmap',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({role,experience:exp,nervousness:nerv,goals})});
-    const d = await r.json();
+    const r=await fetch('/api/interview/roadmap',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role,experience:exp,nervousness:nerv,goals,save_to_planner:true})});
+    const d=await r.json();
     if(r.ok){
       renderRoadmap(d.roadmap||d);
       document.getElementById('roadmap-result').style.display='';
       document.getElementById('roadmap-result').scrollIntoView({behavior:'smooth'});
-      document.getElementById('tab-1').classList.add('done');
-      // Show planner confirmation
-      if(d.planner_saved > 0){
-        const note = document.createElement('div');
-        note.style.cssText='background:rgba(76,175,118,.08);border:1px solid rgba(76,175,118,.2);border-radius:10px;padding:10px 14px;margin-top:10px;font-size:13px;color:var(--green)';
+      document.getElementById('ptab-1').classList.add('done');
+      if(d.planner_saved>0){
+        const note=document.getElementById('planner-note');
         note.innerHTML=`✅ <strong>${d.planner_saved} tasks</strong> added to your <a href="/planner" style="color:var(--green);text-decoration:underline">Weekly Planner</a> under "Interview Preparation"`;
-        document.getElementById('roadmap-result').appendChild(note);
+        note.style.display='';
       }
     } else { alert(d.error||'Failed to generate roadmap.'); }
   }catch(e){ alert('Network error.'); }
@@ -829,70 +983,205 @@ async function generateRoadmap(){
 }
 
 function renderRoadmap(d){
-  document.getElementById('rm-greeting').textContent   = d.greeting;
-  document.getElementById('rm-strengths').textContent  = d.strengths;
-  document.getElementById('rm-encourage').textContent  = d.encouragement;
-  const fl = document.getElementById('rm-focus');
-  fl.innerHTML = (d.focus_areas||[]).map(f=>`<li>${escH(f)}</li>`).join('');
-  const pl = document.getElementById('rm-plan');
-  pl.innerHTML = Object.entries(d.daily_plan||{}).map(([day,task])=>`
-    <div class="day-card">
-      <div class="day-label">${escH(day)}</div>
-      <div class="day-task">${escH(task)}</div>
+  document.getElementById('rm-greeting').textContent  = d.greeting||'';
+  document.getElementById('rm-strengths').textContent = d.strengths||'';
+  document.getElementById('rm-enc').textContent       = d.encouragement||'';
+  const fl=document.getElementById('rm-focus');
+  fl.innerHTML=(d.focus_areas||[]).map(f=>`<li>${escH(f)}</li>`).join('');
+  const pl=document.getElementById('rm-plan');
+  pl.innerHTML=Object.entries(d.daily_plan||{}).map(([day,task])=>`
+    <div class="day-box"><div class="dl">${escH(day)}</div><div class="dt">${escH(task)}</div></div>`).join('');
+}
+
+function showResumeBanner(roadmap){
+  const wrap=document.getElementById('resume-banner-wrap');
+  wrap.innerHTML=`
+    <div class="resume-banner">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">🔄</span>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--green)">Welcome back! Your roadmap is saved.</div>
+          <div style="font-size:12px;color:var(--tx-m)">Preparing for: <strong>${escH(roadmap.role||userRole)}</strong></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" style="color:var(--green);border-color:rgba(76,175,118,.3)" onclick="goPage(3)">Continue Practising →</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('resume-banner-wrap').innerHTML=''">✕</button>
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════
+   PAGE 2 — BEHAVIOURAL FRAMEWORKS
+══════════════════════════════════════ */
+const FW_WHY = {
+  STAR: {
+    why:  "STAR is the most widely used interview framework. Interviewers love it because it forces you to tell a complete, structured story. It stops you from rambling and ensures you always include the outcome of your actions.",
+    when: "Use STAR for any question that starts with 'Tell me about a time…' or 'Describe a situation where…'",
+    example: "Situation: Our team had a critical bug 2 hours before a product launch. Task: I was the only developer available to fix it. Action: I systematically debugged the code, identified a database query issue, and deployed a fix. Result: We launched on time with zero data loss."
+  },
+  CAR: {
+    why:  "CAR is a simplified version of STAR. It works well when you want to highlight a specific achievement or problem you solved. It is particularly effective for showing impact quickly.",
+    when: "Use CAR for achievement questions like 'What is your biggest accomplishment?' or 'Describe a problem you solved.'",
+    example: "Challenge: Our customer support tickets were taking 3 days to resolve. Action: I created an automated triage system that categorised and assigned tickets instantly. Result: Resolution time dropped to 4 hours, improving customer satisfaction by 40%."
+  },
+  PREP: {
+    why:  "PREP is ideal for questions where you need to share your opinion or tell your story. It keeps you focused and ensures you end strongly by returning to your main point.",
+    when: "Use PREP for questions like 'Tell me about yourself', 'Why should we hire you?', 'What are your strengths?'",
+    example: "Point: I am a detail-oriented problem solver. Reason: I have spent 3 years debugging complex systems, which trained me to find patterns others miss. Example: Last year I identified a performance bottleneck that reduced server costs by 30%. Point: This attention to detail is exactly what this role requires."
+  }
+};
+
+function selectFw(key){
+  document.querySelectorAll('.fw-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('fwc-'+key).classList.add('selected');
+  learnFw=key;
+  const fw  = (cfg.frameworks||{})[key];
+  const why = FW_WHY[key]||{why:'',when:'',example:''};
+  if(!fw) return;
+  const stepsHtml = fw.steps.map(s=>`
+    <div class="fw-step">
+      <div class="fw-letter">${s.letter}</div>
+      <div class="fw-word">${escH(s.word)}</div>
+      <div class="fw-exp">${escH(s.explain)}</div>
     </div>`).join('');
+  const colCount = fw.steps.length<=3?fw.steps.length:4;
+  document.getElementById('fw-detail').innerHTML=`
+    <div class="fw-detail">
+      <h4>${escH(fw.name)}</h4>
+      <div class="fw-why">
+        <div class="fw-why-lbl">Why use this framework?</div>
+        <div class="fw-why-txt">${escH(why.why)}</div>
+      </div>
+      <div class="fw-why" style="background:rgba(76,175,118,.06);border-color:rgba(76,175,118,.15)">
+        <div class="fw-why-lbl" style="color:var(--green)">When to use it</div>
+        <div class="fw-why-txt">${escH(why.when)}</div>
+      </div>
+      <div style="font-family:var(--fM);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-m);margin-bottom:10px">The Steps</div>
+      <div class="fw-steps-grid" style="grid-template-columns:repeat(${colCount},1fr)">${stepsHtml}</div>
+      <div class="fw-example">
+        <div class="fw-example-lbl">Example Answer Structure</div>
+        <div class="fw-example-txt">${escH(why.example)}</div>
+      </div>
+      <div style="background:var(--bg-r);border:1px solid var(--bdr);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--tx-m)">
+        💡 Now practice using this framework — go to the <strong>Practise</strong> tab and select ${escH(fw.name)}.
+      </div>
+    </div>`;
+  document.getElementById('fw-detail').style.display='';
 }
 
 /* ══════════════════════════════════════
-   LEARN — EXAMPLES
+   PAGE 2 — TECHNICAL QUESTIONS
 ══════════════════════════════════════ */
-async function loadExamples(){
-  document.getElementById('examples-loading').style.display='';
-  document.getElementById('examples-result').style.display='none';
-  document.getElementById('load-examples-btn').style.display='none';
-  document.getElementById('reload-examples-btn').style.display='none';
+function selectTechLevel(level){
+  document.querySelectorAll('[id^=lvl-]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('lvl-'+level).classList.add('active');
+  techLevel=level;
+}
 
+async function getTechQuestion(){
+  techAttempt=1;
+  document.getElementById('tech-q-loading').style.display='';
+  document.getElementById('tech-q-area').style.display='none';
+  document.getElementById('tech-feedback').style.display='none';
+  document.getElementById('tech-q-btn').style.display='none';
   try{
-    const r = await fetch('/api/interview/learn',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({role:userRole||'General / Any Role',question_type:learnQType,framework:selectedFw})});
-    const d = await r.json();
+    const r=await fetch('/api/interview/practice/question',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole,question_type:'Technical',level:techLevel,previous_questions:[]})});
+    const d=await r.json();
     if(r.ok){
-      document.getElementById('ex-question').textContent  = d.question;
-      document.getElementById('ex-poor').textContent      = d.poor_answer;
-      document.getElementById('ex-poor-why').textContent  = '❌ ' + d.poor_why;
-      document.getElementById('ex-avg').textContent       = d.average_answer;
-      document.getElementById('ex-avg-why').textContent   = '◐ ' + d.average_why;
-      document.getElementById('ex-excel').textContent     = d.excellent_answer;
-      document.getElementById('ex-excel-why').textContent = '✓ ' + d.excellent_why;
-      document.getElementById('ex-tip').innerHTML         = `<strong>💡 Key Tip:</strong> ${escH(d.key_tip)}`;
-      document.getElementById('examples-result').style.display='';
-      document.getElementById('reload-examples-btn').style.display='';
-      document.getElementById('tab-2').classList.add('done');
-    } else { alert(d.error||'Failed.'); document.getElementById('load-examples-btn').style.display=''; }
-  }catch(e){ alert('Network error.'); document.getElementById('load-examples-btn').style.display=''; }
-  finally{ document.getElementById('examples-loading').style.display='none'; }
+      techQ=d.question;
+      document.getElementById('tech-question').textContent=d.question;
+      document.getElementById('tech-answer').value='';
+      document.getElementById('tech-q-area').style.display='';
+      document.getElementById('tech-answer').focus();
+    } else { alert(d.error||'Failed.'); }
+  }catch(e){ alert('Network error.'); }
+  finally{
+    document.getElementById('tech-q-loading').style.display='none';
+    document.getElementById('tech-q-btn').style.display='';
+  }
+}
+
+async function submitTechAnswer(){
+  const ans=document.getElementById('tech-answer').value.trim();
+  if(!ans){alert('Please write your answer first.');return;}
+  const btn=document.getElementById('tech-submit-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Getting feedback…';
+  try{
+    const r=await fetch('/api/interview/practice/feedback',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole,question:techQ,answer:ans,attempt:techAttempt,framework:'Direct',question_type:'Technical'})});
+    const d=await r.json();
+    if(r.ok) renderTechFeedback(d);
+    else alert(d.error||'Failed.');
+  }catch(e){ alert('Network error.'); }
+  finally{ btn.disabled=false; btn.textContent='Get Feedback →'; }
+}
+
+function renderTechFeedback(d){
+  document.getElementById('tech-feedback').innerHTML=`
+    <div class="buddy-card">
+      <div class="buddy-hdr">
+        <div class="buddy-av">🤝</div>
+        <div>
+          <div class="buddy-name">Nexus Study Buddy</div>
+          <div class="buddy-sub">Technical feedback · Attempt ${d.attempt}</div>
+        </div>
+      </div>
+      <div class="fb-reaction">${escH(d.buddy_reaction)}</div>
+      <div class="fb-row">
+        <div class="fb-item"><div class="fb-item-lbl">⭐ What Worked</div><div class="fb-item-txt">${escH(d.what_worked)}</div></div>
+        <div class="fb-item"><div class="fb-item-lbl">📈 Improve</div><div class="fb-item-txt">${escH(d.make_it_stronger)}</div></div>
+      </div>
+      <div class="fb-item" style="margin-bottom:10px"><div class="fb-item-lbl">🎯 Key Gap</div><div class="fb-item-txt">${escH(d.missing_piece)}</div></div>
+      ${d.try_this?`<div class="try-box"><strong style="font-family:var(--fM);font-size:10px;color:var(--amber)">Try opening with:</strong><br/>${escH(d.try_this)}</div>`:''}
+      <div class="enc-line">${escH(d.encouragement)}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-primary btn-sm" onclick="techAttempt++;document.getElementById('tech-answer').value='';document.getElementById('tech-feedback').style.display='none'">🔄 Try Again</button>
+        <button class="btn btn-outline btn-sm" onclick="getTechQuestion()">New Question</button>
+      </div>
+    </div>`;
+  document.getElementById('tech-feedback').style.display='';
+  document.getElementById('tech-feedback').scrollIntoView({behavior:'smooth'});
 }
 
 /* ══════════════════════════════════════
-   GUIDED PRACTICE
+   PAGE 3 — PRACTICE
 ══════════════════════════════════════ */
-async function loadPracticeQuestion(){
-  pracAttempt = 1;
+function selectPracLevel(level){
+  document.querySelectorAll('[id^=plvl-]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('plvl-'+level).classList.add('active');
+  pracLevel=level;
+}
+
+function renderPracFwHint(key){
+  const fw=(cfg.frameworks||{})[key];
+  if(!fw) return;
+  document.getElementById('prac-fw-hint-lbl').textContent=fw.name+' — '+fw.desc;
+  document.getElementById('prac-fw-hint-steps').innerHTML=fw.steps.map(s=>`
+    <div class="fw-hint-step"><strong>${s.letter}</strong> ${escH(s.word)}: ${escH(s.explain)}</div>`).join('');
+}
+
+async function loadPracQuestion(){
+  pracAttempt=1;
   document.getElementById('prac-feedback').style.display='none';
   document.getElementById('prac-q-area').style.display='none';
   document.getElementById('prac-q-loading').style.display='';
-
   try{
-    const r = await fetch('/api/interview/practice/question',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({role:userRole||'General / Any Role',question_type:pracQType,previous_questions:prevPracQs})});
-    const d = await r.json();
+    const r=await fetch('/api/interview/practice/question',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole,question_type:pracQType,level:pracLevel,previous_questions:prevPracQs})});
+    const d=await r.json();
     if(r.ok){
-      pracQuestion = d.question;
+      pracQ=d.question;
       prevPracQs.push(d.question);
-      document.getElementById('prac-question').textContent = d.question;
-      renderPracFwHint(pracFw||'STAR');
-      document.getElementById('prac-answer').value = '';
-      document.getElementById('prac-char').textContent = '0 characters';
-      document.getElementById('prac-attempt-lbl').textContent = 'Attempt 1 — take your time!';
+      document.getElementById('prac-question').textContent=d.question;
+      renderPracFwHint(pracFw);
+      document.getElementById('prac-answer').value='';
+      document.getElementById('prac-char').textContent='0 characters';
+      document.getElementById('prac-attempt-lbl').textContent='Attempt 1 — take your time!';
       document.getElementById('prac-q-area').style.display='';
       document.getElementById('prac-answer').focus();
     } else { alert(d.error||'Failed to load question.'); }
@@ -900,265 +1189,257 @@ async function loadPracticeQuestion(){
   finally{ document.getElementById('prac-q-loading').style.display='none'; }
 }
 
-async function submitPractice(){
-  const ans = document.getElementById('prac-answer').value.trim();
-  if(!ans){alert('Please type your answer first.');return;}
-  const btn = document.getElementById('submit-prac-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Study buddy is reviewing…';
-
+async function submitPrac(){
+  const ans=document.getElementById('prac-answer').value.trim();
+  if(!ans){alert('Please write your answer first.');return;}
+  const btn=document.getElementById('prac-submit-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Study buddy reviewing…';
   try{
-    const r = await fetch('/api/interview/practice/feedback',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({role:userRole||'General / Any Role',question:pracQuestion,answer:ans,attempt:pracAttempt,framework:pracFw||'STAR'})});
-    const d = await r.json();
+    const r=await fetch('/api/interview/practice/feedback',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:userRole,question:pracQ,answer:ans,attempt:pracAttempt,framework:pracFw,question_type:pracQType})});
+    const d=await r.json();
     if(r.ok){
-      renderPracFeedback(d);
-      document.getElementById('tab-3').classList.add('done');
-    } else { alert(d.error||'Failed to get feedback.'); }
+      document.getElementById('prac-fb-sub').textContent=`Attempt ${d.attempt} · ${pracFw} Method`;
+      document.getElementById('prac-score-txt').textContent=`${d.score}% — ${d.attempt===1?'First try!':d.attempt===2?'Getting better!':'Keep improving!'}`;
+      document.getElementById('prac-score-bar').style.width=d.score+'%';
+      document.getElementById('prac-reaction').textContent=d.buddy_reaction;
+      document.getElementById('prac-worked').textContent=d.what_worked;
+      document.getElementById('prac-stronger').textContent=d.make_it_stronger;
+      document.getElementById('prac-missing').textContent=d.missing_piece;
+      document.getElementById('prac-ref').textContent=d.reflection_q;
+      document.getElementById('prac-enc').textContent=d.encouragement;
+      if(d.try_this){
+        document.getElementById('prac-try').innerHTML=`<strong style="font-family:var(--fM);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber)">Try opening with:</strong><br/>${escH(d.try_this)}`;
+        document.getElementById('prac-try').style.display='';
+      } else { document.getElementById('prac-try').style.display='none'; }
+      document.getElementById('prac-feedback').style.display='';
+      document.getElementById('prac-feedback').scrollIntoView({behavior:'smooth'});
+      document.getElementById('ptab-3').classList.add('done');
+    } else { alert(d.error||'Failed.'); }
   }catch(e){ alert('Network error.'); }
-  finally{ btn.disabled=false; btn.textContent='Get Feedback from Study Buddy →'; }
+  finally{ btn.disabled=false; btn.textContent='Get Feedback →'; }
 }
 
-function renderPracFeedback(d){
-  document.getElementById('prac-attempt-sub').textContent = `Attempt ${d.attempt} feedback`;
-  document.getElementById('prac-score-txt').textContent   = `${d.score}% — ${d.attempt===1?'First try!':d.attempt===2?'Getting better!':'Improving!'}`;
-  document.getElementById('prac-score-bar').style.width   = d.score+'%';
-  document.getElementById('prac-reaction').textContent    = d.buddy_reaction;
-  document.getElementById('prac-worked').textContent      = d.what_worked;
-  document.getElementById('prac-stronger').textContent    = d.make_it_stronger;
-  document.getElementById('prac-missing').textContent     = d.missing_piece;
-  document.getElementById('prac-ref-text').textContent    = d.reflection_q;
-  document.getElementById('prac-encourage').textContent   = d.encouragement;
-  if(d.try_this){
-    document.getElementById('prac-try-text').textContent  = d.try_this;
-    document.getElementById('prac-try-this').style.display='';
-  } else {
-    document.getElementById('prac-try-this').style.display='none';
-  }
-  document.getElementById('prac-feedback').style.display='';
-  document.getElementById('prac-feedback').scrollIntoView({behavior:'smooth'});
-}
-
-function retryPractice(){
+function retryPrac(){
   pracAttempt++;
-  document.getElementById('prac-attempt-lbl').textContent = `Attempt ${pracAttempt} — you got this!`;
+  document.getElementById('prac-attempt-lbl').textContent=`Attempt ${pracAttempt} — you got this!`;
   document.getElementById('prac-answer').value='';
   document.getElementById('prac-feedback').style.display='none';
   document.getElementById('prac-answer').focus();
   document.getElementById('prac-q-area').scrollIntoView({behavior:'smooth'});
 }
 
-// Char counter
-document.addEventListener('DOMContentLoaded',()=>{
-  const ta = document.getElementById('prac-answer');
-  if(ta) ta.addEventListener('input',()=>{ document.getElementById('prac-char').textContent=ta.value.length+' characters'; });
-  const sa = document.getElementById('sim-answer');
-  if(sa) sa.addEventListener('input',()=>{}); // silence errors
-});
-
 /* ══════════════════════════════════════
-   SIMULATION
+   PAGE 4 — MOCK INTERVIEW
 ══════════════════════════════════════ */
-async function startSimulation(){
-  const btn = document.getElementById('start-sim-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Setting up…';
-  simTotal   = parseInt(document.getElementById('sim-q-count').value);
-  simAnswers = [];
+function selectMockDiff(diff){
+  document.querySelectorAll('[id^=mdiff-]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mdiff-'+diff).classList.add('active');
+  mockDiff=diff;
+}
 
+async function startMock(){
+  const btn=document.getElementById('start-mock-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Preparing your interview…';
+  mockQsDone=0;
   try{
-    const r = await fetch('/api/interview/simulation/start',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({role:userRole||'General / Any Role',question_type:simQType,total_questions:simTotal})});
-    const d = await r.json();
-    if(r.ok){
-      simSessionId = d.session._id;
-      simCurrentQ  = 1;
-      document.getElementById('sim-setup').style.display='none';
-      document.getElementById('sim-room').style.display='';
-      document.getElementById('sim-results').style.display='none';
-      document.getElementById('sim-role-tag').textContent = d.session.role;
-      document.getElementById('sim-type-tag').textContent = d.session.question_type;
-      document.getElementById('sim-role-sub').textContent = d.session.role;
-      showSimQ(d.session.current_question, 1, simTotal);
-    } else { alert(d.error||'Failed to start.'); }
-  }catch(e){ alert('Network error.'); }
-  finally{ btn.disabled=false; btn.innerHTML='🎯 Start Simulation'; }
-}
-
-function showSimQ(question, qNum, total){
-  simCurrentQ = qNum;
-  document.getElementById('sim-prog').style.width = (((qNum-1)/total)*100)+'%';
-  document.getElementById('sim-q-counter').textContent = `${qNum} / ${total}`;
-  document.getElementById('sim-q-text').textContent    = question;
-  document.getElementById('sim-answer').value = '';
-  document.getElementById('sim-q-loading').style.display='none';
-  document.getElementById('sim-q-content').style.display='';
-  document.getElementById('sim-feedback-area').style.display='none';
-  startSimTimer();
-  document.getElementById('sim-answer').focus();
-}
-
-function startSimTimer(){
-  if(timerInt) clearInterval(timerInt);
-  timerSec = 120;
-  updateSimTimer();
-  timerInt = setInterval(()=>{ timerSec--; updateSimTimer(); if(timerSec<=0){clearInterval(timerInt);autoSimSubmit();} },1000);
-}
-
-function updateSimTimer(){
-  const m=Math.floor(timerSec/60); const s=timerSec%60;
-  const el=document.getElementById('sim-timer');
-  el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  el.className='timer-box'+(timerSec<=30?' timer-warn':'')+(timerSec<=10?' timer-danger':'');
-}
-
-function autoSimSubmit(){
-  if(!document.getElementById('sim-answer').value.trim()){
-    document.getElementById('sim-answer').value='[No answer given in time]';
-  }
-  submitSimulation();
-}
-
-async function submitSimulation(){
-  const ans = document.getElementById('sim-answer').value.trim();
-  if(!ans){alert('Please type your answer.');return;}
-  if(timerInt){clearInterval(timerInt);timerInt=null;}
-  const btn = document.getElementById('sim-submit-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Getting feedback…';
-  document.getElementById('sim-q-content').style.display='none';
-  document.getElementById('sim-q-loading').style.display='';
-  document.getElementById('sim-q-loading').querySelector('p').textContent='Analysing your answer…';
-
-  try{
-    const r = await fetch(`/api/interview/simulation/${simSessionId}/answer`,{method:'POST',
+    const r=await fetch('/api/interview/mock/start',{method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({answer:ans,question_number:simCurrentQ})});
-    const d = await r.json();
+      body:JSON.stringify({role:userRole,difficulty:mockDiff})});
+    const d=await r.json();
     if(r.ok){
-      document.getElementById('sim-q-loading').style.display='none';
-      simAnswers.push({question:document.getElementById('sim-q-text').textContent,answer:ans,feedback:d.feedback});
-      renderSimFeedback(d.feedback, d.is_last, d);
-    } else { alert(d.error||'Failed.'); showSimContent(); }
-  }catch(e){ alert('Network error.'); showSimContent(); }
+      mockSessionId=d.session_id;
+      mockCurrentRound=d.round;
+      mockRoundNum=1;
+      mockQInRound=1;
+      document.getElementById('mock-setup').style.display='none';
+      document.getElementById('mock-room').style.display='';
+      document.getElementById('mock-verdict').style.display='none';
+      document.getElementById('round-change-card').style.display='none';
+      document.getElementById('mock-interview-area').style.display='';
+      showMockQuestion(d);
+    } else { alert(d.error||'Failed to start mock interview.'); }
+  }catch(e){ alert('Network error.'); }
+  finally{ btn.disabled=false; btn.innerHTML='🎯 Begin Mock Interview'; }
+}
+
+function showMockQuestion(data){
+  mockCurrentRound = data.round;
+  mockRoundNum     = data.round_number;
+  mockQInRound     = data.q_in_round;
+
+  const roundNames = {intro:'Introduction',behaviour:'Behavioural',technical:'Technical'};
+  const roundIcons = {intro:'📝',behaviour:'💬',technical:'⚙️'};
+
+  document.getElementById('round-badge').textContent    = `Round ${data.round_number} of ${data.total_rounds}`;
+  document.getElementById('round-name').textContent     = roundNames[data.round]+' Round';
+  document.getElementById('round-progress').textContent = `Question ${data.q_in_round} of ${data.total_in_round}`;
+  document.getElementById('mock-av-sub').textContent    = roundNames[data.round]+' Round';
+  document.getElementById('mock-q-counter').textContent = `Q ${mockQsDone+1} / ${mockTotalQs}`;
+  document.getElementById('mock-q-text').textContent    = data.question;
+  document.getElementById('mock-answer').value='';
+
+  // Overall progress steps
+  ['intro','behaviour','technical'].forEach((r,i)=>{
+    const el=document.getElementById('ops-'+r);
+    if(i < mockRoundNum-1)       el.className='op-step done';
+    else if(r===mockCurrentRound) el.className='op-step active';
+    else                          el.className='op-step';
+  });
+
+  // Progress bar (out of 8 total)
+  document.getElementById('mock-prog').style.width=(mockQsDone/mockTotalQs*100)+'%';
+
+  document.getElementById('mock-q-loading').style.display='none';
+  document.getElementById('mock-q-content').style.display='';
+  document.getElementById('mock-answer').focus();
+}
+
+async function submitMockAnswer(){
+  const ans=document.getElementById('mock-answer').value.trim();
+  if(!ans){alert('Please write your answer first.');return;}
+
+  const btn=document.getElementById('mock-submit-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Submitting…';
+  document.getElementById('mock-q-content').style.display='none';
+  document.getElementById('mock-q-loading').style.display='';
+  document.getElementById('mock-q-loading').querySelector('p').textContent='Processing your answer…';
+
+  mockQsDone++;
+
+  try{
+    const r=await fetch(`/api/interview/mock/${mockSessionId}/answer`,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({answer:ans})});
+    const d=await r.json();
+    document.getElementById('mock-q-loading').style.display='none';
+
+    if(d.complete){
+      showVerdict(d.verdict);
+    } else if(d.round_change){
+      pendingNextQ=d;
+      showRoundChange(d);
+    } else {
+      showMockQuestion(d);
+    }
+  }catch(e){
+    alert('Network error.');
+    document.getElementById('mock-q-content').style.display='';
+  }
   finally{ btn.disabled=false; btn.textContent='Submit Answer →'; }
 }
 
-function showSimContent(){
-  document.getElementById('sim-q-loading').style.display='none';
-  document.getElementById('sim-q-content').style.display='';
+function showRoundChange(data){
+  const icons={intro:'📝',behaviour:'💬',technical:'⚙️'};
+  const descs={
+    intro:     'Solid start! Now we move into behavioural questions. Use the STAR method to structure your answers.',
+    behaviour: 'Good work! Now for the technical round. Answer short first — explain only if asked.',
+    technical: 'Technical round coming up.',
+  };
+  document.getElementById('rcc-icon').textContent  = icons[data.round]||'🎯';
+  document.getElementById('rcc-title').textContent = data.round_name;
+  document.getElementById('rcc-desc').textContent  = descs[data.round]||'Next round beginning.';
+  document.getElementById('round-change-card').style.display='';
+  document.getElementById('mock-interview-area').style.display='none';
 }
 
-function renderSimFeedback(fb, isLast, fullData){
-  const gc = fb.grade==='A'?'#4caf76':fb.grade==='B'?'#f0a040':fb.grade==='C'?'#ffcc44':'#e05a5a';
-  const area = document.getElementById('sim-feedback-area');
-  area.innerHTML=`
-    <div class="sim-score-row">
-      <div class="sim-score-circle" style="border-color:${gc}">
-        <div class="ssc-num" style="color:${gc}">${fb.score}</div>
-        <div class="ssc-lbl">/100</div>
-      </div>
-      <div>
-        <div style="font-family:var(--fD);font-size:1.3rem;color:${gc}">Grade ${fb.grade}</div>
-        <div style="font-size:12px;color:var(--tx-m)">Question ${simCurrentQ} of ${simTotal}</div>
-      </div>
-    </div>
-    ${fb.strength?`<div style="background:var(--amber-g);border:1px solid rgba(240,160,64,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--tx-s)">⭐ <strong>Strength:</strong> ${escH(fb.strength)}</div>`:''}
-    <div class="sim-fb-grid">
-      <div class="sim-fb-item"><div class="sfi-lbl">💬 Clarity</div><div class="sfi-txt">${escH(fb.clarity)}</div></div>
-      <div class="sim-fb-item"><div class="sfi-lbl">🧠 Content</div><div class="sfi-txt">${escH(fb.content)}</div></div>
-    </div>
-    <div class="sim-fb-item" style="margin-bottom:12px"><div class="sfi-lbl">📈 Improvement</div><div class="sfi-txt">${escH(fb.improvement)}</div></div>
-    ${fb.better_answer?`<div class="better-box"><div class="better-lbl">✨ Stronger Answer</div><div class="better-txt">${escH(fb.better_answer)}</div></div>`:''}
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
-      ${isLast
-        ? `<button class="btn btn-primary" onclick="showFinalResults()">View Final Results 🏆</button>`
-        : `<button class="btn btn-primary" onclick="simNextQ(${JSON.stringify(fullData).replace(/"/g,'&quot;')})">Next Question →</button>`
-      }
+function dismissRoundChange(){
+  document.getElementById('round-change-card').style.display='none';
+  document.getElementById('mock-interview-area').style.display='';
+  if(pendingNextQ){
+    showMockQuestion(pendingNextQ);
+    pendingNextQ=null;
+  }
+}
+
+function showVerdict(v){
+  document.getElementById('mock-room').style.display='none';
+  document.getElementById('mock-verdict').style.display='';
+
+  const isPassed = v.verdict==='PASS';
+  const gc       = isPassed?'var(--green)':'#e05a5a';
+
+  // Top section
+  const topEl = document.getElementById('verdict-top');
+  topEl.className = 'verdict-top '+(isPassed?'pass':'fail');
+
+  document.getElementById('verdict-badge-wrap').innerHTML=`
+    <div class="verdict-badge ${isPassed?'badge-pass':'badge-fail'}">
+      <span style="font-size:18px">${isPassed?'✓':'✕'}</span>
+      <span>${isPassed?'INTERVIEW PASSED':'INTERVIEW FAILED'}</span>
     </div>`;
-  area.style.display='';
-  area.scrollIntoView({behavior:'smooth'});
-  document.getElementById('sim-prog').style.width=(((simCurrentQ)/simTotal)*100)+'%';
-  if(isLast && fullData.overall){ window._simOverall=fullData.overall; }
-}
 
-function simNextQ(data){
-  showSimQ(data.next_question, data.next_q_num, data.total_questions);
-  document.getElementById('sim-q-area').scrollIntoView({behavior:'smooth'});
-}
+  document.getElementById('verdict-score-big').textContent = v.overall_score+'%';
+  document.getElementById('verdict-score-big').className   = 'verdict-score-big '+(isPassed?'pass':'fail');
+  document.getElementById('verdict-grade-line').textContent = 'Grade '+v.grade;
+  document.getElementById('verdict-grade-line').style.color = gc;
+  document.getElementById('verdict-reason').textContent    = v.verdict_reason;
 
-function showFinalResults(){
-  document.getElementById('sim-room').style.display='none';
-  document.getElementById('sim-results').style.display='';
-  const ov = window._simOverall||{score:0,grade:'F',summary:''};
-  const gc = ov.grade==='A'?'#4caf76':ov.grade==='B'?'#f0a040':ov.grade==='C'?'#ffcc44':'#e05a5a';
-  document.getElementById('fin-score').textContent   = ov.score+'%';
-  document.getElementById('fin-score').style.color   = gc;
-  document.getElementById('fin-grade').textContent   = 'Grade '+ov.grade;
-  document.getElementById('fin-grade').style.color   = gc;
-  document.getElementById('fin-summary').textContent = ov.summary;
-  let html='';
-  simAnswers.forEach((a,i)=>{
-    const fb=a.feedback||{}; const gc2=fb.grade==='A'?'#4caf76':fb.grade==='B'?'#f0a040':fb.grade==='C'?'#ffcc44':'#e05a5a';
-    html+=`<div class="q-accordion">
-      <div class="qa-hdr" onclick="toggleQA(${i})">
-        <div class="qa-title">Q${i+1}: ${escH((a.question||'').substring(0,55))}…</div>
-        <div class="qa-score" style="color:${gc2}">${fb.score||0}% ${fb.grade||''}</div>
-      </div>
-      <div class="qa-body" id="qa-${i}">
-        <div class="qa-sec"><div class="qa-sec-lbl">Your Answer</div><div class="qa-sec-txt">${escH(a.answer)}</div></div>
-        <div class="qa-sec"><div class="qa-sec-lbl">Clarity</div><div class="qa-sec-txt">${escH(fb.clarity||'')}</div></div>
-        <div class="qa-sec"><div class="qa-sec-lbl">How to Improve</div><div class="qa-sec-txt">${escH(fb.improvement||'')}</div></div>
-        ${fb.better_answer?`<div class="qa-sec"><div class="qa-sec-lbl">Stronger Answer</div><div class="qa-sec-txt" style="font-style:italic">${escH(fb.better_answer)}</div></div>`:''}
-      </div></div>`;
+  // Round bars
+  [
+    ['intro',   v.intro_score,    v.intro_summary,    'rb-intro'],
+    ['beh',     v.behaviour_score, v.behaviour_summary,'rb-beh'],
+    ['tech',    v.technical_score, v.technical_summary,'rb-tech'],
+  ].forEach(([key, score, summary, prefix])=>{
+    const barColor = score>=75?'var(--green)':score>=50?'var(--amber)':'#e05a5a';
+    document.getElementById(prefix+'-fill').style.width  = score+'%';
+    document.getElementById(prefix+'-fill').style.background = barColor;
+    document.getElementById(prefix+'-summary').textContent  = summary||'';
+    document.getElementById(prefix+'-score').textContent    = score+'%';
+    document.getElementById(prefix+'-score').style.color    = barColor;
   });
-  document.getElementById('fin-reviews').innerHTML=html;
-  loadSimHistory();
+
+  // Animate bars after a delay
+  setTimeout(()=>{
+    ['rb-intro-fill','rb-beh-fill','rb-tech-fill'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.transition='width 1s ease';
+    });
+  }, 100);
+
+  // Strengths and improvements
+  document.getElementById('si-strengths').innerHTML=(v.top_strengths||[]).map(s=>`
+    <div class="si-item">${escH(s)}</div>`).join('');
+  document.getElementById('si-improve').innerHTML=(v.must_improve||[]).map(s=>`
+    <div class="si-item">${escH(s)}</div>`).join('');
+
+  // Final message
+  document.getElementById('final-message').textContent = v.final_message||'';
+  document.getElementById('verdict-role').textContent  = userRole;
+
+  document.getElementById('ptab-4').classList.add('done');
+  window.scrollTo(0,0);
+  loadMockHistory();
+}
+
+function resetMock(){
+  mockSessionId=null; mockQsDone=0; pendingNextQ=null;
+  document.getElementById('mock-setup').style.display='';
+  document.getElementById('mock-room').style.display='none';
+  document.getElementById('mock-verdict').style.display='none';
+  document.getElementById('round-change-card').style.display='none';
+  document.getElementById('mock-interview-area').style.display='';
+  loadMockHistory();
   window.scrollTo(0,0);
 }
 
-function toggleQA(i){ document.getElementById('qa-'+i).classList.toggle('open'); }
-function endSimEarly(){ if(timerInt){clearInterval(timerInt);timerInt=null;} resetSim(); }
-function resetSim(){
-  simSessionId=null; simCurrentQ=0; simAnswers=[];
-  document.getElementById('sim-setup').style.display='';
-  document.getElementById('sim-room').style.display='none';
-  document.getElementById('sim-results').style.display='none';
-  loadSimHistory();
-}
-
-/* ══════════════════════════════════════
-   STATS & HISTORY
-══════════════════════════════════════ */
-async function loadStats(){
+async function loadMockHistory(){
   try{
-    const r=await fetch('/api/interview/stats');
+    const r=await fetch('/api/interview/mock/history');
     const d=await r.json();
-    if(!d.total||d.total===0) return;
-    document.getElementById('stats-banner').style.display='';
-    document.getElementById('stats-content').innerHTML=`
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        ${[['Avg Score',d.avg_score+'%'],['Grade',d.grade],['Sessions',d.total],['Best',d.best_score+'%']].map(([lbl,val])=>`
-          <div style="flex:1;min-width:80px;background:var(--bg-s);border:1px solid var(--bdr);border-radius:10px;padding:12px;text-align:center">
-            <div style="font-family:var(--fM);font-size:1.3rem;color:var(--amber)">${escH(val)}</div>
-            <div style="font-size:11px;color:var(--tx-m)">${lbl}</div>
-          </div>`).join('')}
-      </div>`;
-  }catch(e){}
-}
-
-async function loadSimHistory(){
-  try{
-    const r=await fetch('/api/interview/history');
-    const d=await r.json();
-    const div=document.getElementById('sim-history');
+    const div=document.getElementById('mock-history-section');
     if(!d.history||d.history.length===0){div.innerHTML='';return;}
-    let html='<div style="margin-bottom:14px"><div class="section-tag" style="margin-bottom:8px">Past Simulations</div>';
-    d.history.slice(0,4).forEach(h=>{
-      const gc='grade-'+(h.overall_grade||'C');
-      html+=`<div class="hist-row">
-        <div class="hist-left">
-          <div class="hist-role">${escH(h.role)}</div>
-          <div class="hist-meta">${escH(h.question_type)} · ${h.total_questions}Q · ${fmtDate(h.created_at)}</div>
+    let html='<div style="margin-bottom:16px"><div class="stag" style="margin-bottom:8px">Past Mock Interviews</div>';
+    d.history.forEach(h=>{
+      const v=h.verdict||{};
+      const isPassed=v.verdict==='PASS';
+      html+=`<div class="mock-hist-row">
+        <div>
+          <div class="mhr-role">${escH(h.role)}</div>
+          <div class="mhr-meta">${escH(h.difficulty||'')} · ${fmtDate(h.created_at)} · Score: ${v.overall_score||0}%</div>
         </div>
-        <div class="hist-score ${gc}">${h.overall_score}% ${h.overall_grade}</div>
+        <span class="mhr-verdict ${isPassed?'mhr-pass':'mhr-fail'}">${isPassed?'✓ PASS':'✕ FAIL'}</span>
       </div>`;
     });
     html+='</div>';
@@ -1170,7 +1451,7 @@ async function loadSimHistory(){
    HELPERS
 ══════════════════════════════════════ */
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function fmtDate(iso){ if(!iso)return''; return new Date(iso).toLocaleDateString([],{month:'short',day:'numeric'}); }
+function fmtDate(iso){ if(!iso)return''; return new Date(iso).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}); }
 async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
 
 init();

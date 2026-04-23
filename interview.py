@@ -17,10 +17,11 @@ interview_bp = Blueprint("interview", __name__)
 
 
 # ── DB helpers ────────────────────────────────────────────────
-def _db():         return get_db()
-def _profiles():   return _db()["iv_profiles"]
-def _sessions():   return _db()["iv_sessions"]
-def _results():    return _db()["iv_results"]
+def _db():           return get_db()
+def _profiles():     return _db()["iv_profiles"]
+def _sessions():     return _db()["iv_sessions"]
+def _results():      return _db()["iv_results"]
+def _mock_sessions():return _db()["iv_mock_sessions"]
 
 def _require_auth():
     uid = session.get("user_id")
@@ -41,7 +42,6 @@ def _serial(doc):
     return out
 
 def _ex(raw, key):
-    """Extract a block between KEY: and the next KEY: or end of string."""
     m = re.search(rf"{key}:\s*(.+?)(?=\n[A-Z_]{{2,}}:|$)", raw, re.DOTALL)
     return m.group(1).strip() if m else ""
 
@@ -49,6 +49,7 @@ def _ensure_indexes():
     _profiles().create_index("user_id", unique=True)
     _sessions().create_index([("user_id", 1), ("created_at", -1)])
     _results().create_index([("user_id",  1), ("created_at", -1)])
+    _mock_sessions().create_index([("user_id", 1), ("created_at", -1)])
 
 try:
     _ensure_indexes()
@@ -106,15 +107,22 @@ FRAMEWORKS = {
     },
     "PREP": {
         "name": "PREP Method",
-        "desc": "Best for opinion and 'tell me about yourself' questions",
+        "desc": "Best for opinion and open-ended questions",
         "steps": [
             {"letter": "P", "word": "Point",       "explain": "State your main point directly."},
-            {"letter": "R", "word": "Reason",      "explain": "Give the reason or evidence."},
+            {"letter": "R", "word": "Reason",      "explain": "Give the reason or evidence behind it."},
             {"letter": "E", "word": "Example",     "explain": "Provide a specific real-world example."},
             {"letter": "P", "word": "Point again", "explain": "Restate your point to close strongly."},
         ]
     }
 }
+
+# Mock interview round config
+MOCK_ROUNDS = [
+    {"id": "intro",      "name": "Introduction",         "questions": 2, "weight": 0.20},
+    {"id": "behaviour",  "name": "Behavioural",          "questions": 3, "weight": 0.40},
+    {"id": "technical",  "name": "Technical",            "questions": 3, "weight": 0.40},
+]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -181,14 +189,12 @@ def api_roadmap():
     uid, err = _require_auth()
     if err: return err
 
-    # GET — return saved roadmap if exists
     if request.method == "GET":
         p = _profiles().find_one({"user_id": uid})
         if p and p.get("roadmap"):
             return jsonify({"roadmap": p["roadmap"], "profile": _serial(p)})
         return jsonify({"roadmap": None, "profile": _serial(p) if p else None})
 
-    # POST — generate new roadmap
     data        = request.get_json() or {}
     role        = data.get("role", "General / Any Role")
     experience  = data.get("experience", "")
@@ -237,14 +243,12 @@ ENCOURAGEMENT: [One powerful motivating closing sentence]"""
             "generated_at":  datetime.now(timezone.utc).isoformat(),
         }
 
-        # Save roadmap to profile so it persists
         _profiles().update_one(
             {"user_id": uid},
             {"$set": {"roadmap": roadmap, "roadmap_role": role, "updated_at": datetime.now(timezone.utc)}},
             upsert=True
         )
 
-        # Save 5-day plan to weekly planner
         planner_saved = 0
         if save_to_planner and plan:
             day_map = {
@@ -268,16 +272,13 @@ ENCOURAGEMENT: [One powerful motivating closing sentence]"""
                     except Exception:
                         pass
 
-        return jsonify({
-            "roadmap":        roadmap,
-            "planner_saved":  planner_saved,
-        })
+        return jsonify({"roadmap": roadmap, "planner_saved": planner_saved})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 # ══════════════════════════════════════════════════════════════
-#  LEARN — poor / average / excellent examples
+#  LEARN — generate example questions (poor/avg/excellent)
 # ══════════════════════════════════════════════════════════════
 
 @interview_bp.route("/api/interview/learn", methods=["POST"])
@@ -313,14 +314,13 @@ KEY_TIP: [One powerful tip for this question type]"""
             "excellent_answer": _ex(raw,"EXCELLENT_ANSWER"),
             "excellent_why":    _ex(raw,"EXCELLENT_WHY"),
             "key_tip":          _ex(raw,"KEY_TIP"),
-            "framework":        framework,
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 # ══════════════════════════════════════════════════════════════
-#  GUIDED PRACTICE
+#  PRACTICE — question + feedback
 # ══════════════════════════════════════════════════════════════
 
 @interview_bp.route("/api/interview/practice/question", methods=["POST"])
@@ -329,11 +329,12 @@ def api_practice_question():
     if err: return err
     data    = request.get_json() or {}
     role    = data.get("role", "General / Any Role")
-    q_type  = data.get("question_type", "Mixed")
+    q_type  = data.get("question_type", "Behavioural")
+    level   = data.get("level", "Beginner")
     prev_qs = data.get("previous_questions", [])
     prev    = ("Avoid repeating: " + " | ".join(prev_qs[-5:])) if prev_qs else ""
 
-    prompt = f"""Friendly interview coach. Generating a practice question for {role} ({q_type} type). {prev}
+    prompt = f"""Friendly interview coach. Generate ONE {level} level {q_type} practice question for {role} role. {prev}
 Output ONLY the question text. No numbering. No explanation."""
     try:
         q = ask_ollama([], prompt).strip()
@@ -354,39 +355,41 @@ def api_practice_feedback():
     answer    = data.get("answer", "").strip()
     attempt   = int(data.get("attempt", 1))
     framework = data.get("framework", "STAR")
+    q_type    = data.get("question_type", "Behavioural")
 
     if not answer:
         return jsonify({"error": "Answer cannot be empty"}), 400
 
-    prompt = f"""Warm, encouraging study buddy helping a student prepare for {role} interviews. Attempt {attempt}.
+    prompt = f"""Warm, encouraging study buddy helping a student prepare for {role} {q_type} interviews. Attempt {attempt}.
 
 Question: {question}
 Answer: {answer}
+Framework hint used: {framework}
 
 Give coaching feedback. Format EXACTLY:
 
 BUDDY_REACTION: [Warm genuine reaction — acknowledge something specific they did right. 1-2 sentences.]
 WHAT_WORKED: [1-2 specific things they did well]
-MAKE_IT_STRONGER: [2-3 specific practical suggestions — reference {framework} if relevant]
+MAKE_IT_STRONGER: [2-3 specific practical suggestions — reference {framework} method if relevant]
 MISSING_PIECE: [The ONE most important thing missing]
 TRY_THIS: [Rewrite their opening sentence to show a stronger start]
-REFLECTION_Q: [One question to help them think deeper — e.g. can you think of a specific example?]
+REFLECTION_Q: [One question to help them think deeper]
 ENCOURAGEMENT: [One short motivating sentence]
 
-Tone: warm, specific, constructive. Never harsh."""
+Tone: warm, specific, constructive. Never harsh. Never just "good job"."""
 
     try:
         raw = ask_ollama([], prompt).strip()
         base  = min(40 + len(answer.split()) * 0.5, 75)
         score = min(int(base + (attempt-1)*5), 95)
         return jsonify({
-            "buddy_reaction":    _ex(raw,"BUDDY_REACTION")   or "Good effort on this one!",
-            "what_worked":       _ex(raw,"WHAT_WORKED")      or "You attempted the question directly.",
-            "make_it_stronger":  _ex(raw,"MAKE_IT_STRONGER") or "Try to add a specific example.",
-            "missing_piece":     _ex(raw,"MISSING_PIECE")    or "A concrete result or outcome.",
-            "try_this":          _ex(raw,"TRY_THIS")         or "",
-            "reflection_q":      _ex(raw,"REFLECTION_Q")    or "Can you think of a specific example?",
-            "encouragement":     _ex(raw,"ENCOURAGEMENT")   or "Keep going — you are improving!",
+            "buddy_reaction":   _ex(raw,"BUDDY_REACTION")   or "Good effort on this one!",
+            "what_worked":      _ex(raw,"WHAT_WORKED")      or "You attempted the question directly.",
+            "make_it_stronger": _ex(raw,"MAKE_IT_STRONGER") or "Try to add a specific example.",
+            "missing_piece":    _ex(raw,"MISSING_PIECE")    or "A concrete result or outcome.",
+            "try_this":         _ex(raw,"TRY_THIS")         or "",
+            "reflection_q":     _ex(raw,"REFLECTION_Q")    or "Can you think of a specific example?",
+            "encouragement":    _ex(raw,"ENCOURAGEMENT")   or "Keep going — you are improving!",
             "attempt": attempt, "score": score,
         })
     except Exception as e:
@@ -394,77 +397,177 @@ Tone: warm, specific, constructive. Never harsh."""
 
 
 # ══════════════════════════════════════════════════════════════
-#  SIMULATION
+#  MOCK INTERVIEW — Start
 # ══════════════════════════════════════════════════════════════
 
-@interview_bp.route("/api/interview/simulation/start", methods=["POST"])
-def api_sim_start():
+@interview_bp.route("/api/interview/mock/start", methods=["POST"])
+def api_mock_start():
     uid, err = _require_auth()
     if err: return err
-    data   = request.get_json() or {}
-    role   = data.get("role", "General / Any Role")
-    q_type = data.get("question_type", "Mixed")
-    total  = max(3, min(8, int(data.get("total_questions", 5))))
-    now    = datetime.now(timezone.utc)
-    first_q = _sim_question(role, q_type, 1, total, [])
+    data       = request.get_json() or {}
+    role       = data.get("role", "General / Any Role")
+    difficulty = data.get("difficulty", "Intermediate")
+    now        = datetime.now(timezone.utc)
+
+    # Generate first question — intro round
+    first_q = _mock_gen_question(role, "intro", difficulty, [], 1, 2)
+
     doc = {
-        "user_id": uid, "role": role, "question_type": q_type,
-        "total_questions": total, "current_q": 1,
-        "current_question": first_q, "answers": [],
-        "status": "active", "created_at": now,
+        "user_id":     uid,
+        "user_name":   session.get("user_name", "Candidate"),
+        "role":        role,
+        "difficulty":  difficulty,
+        "current_round":    "intro",
+        "current_q_in_round": 1,
+        "current_question":   first_q,
+        "rounds": {
+            "intro":     {"answers": [], "complete": False, "total": 2},
+            "behaviour": {"answers": [], "complete": False, "total": 3},
+            "technical": {"answers": [], "complete": False, "total": 3},
+        },
+        "status":      "active",
+        "verdict":     None,
+        "created_at":  now,
     }
-    res = _sessions().insert_one(doc)
+    res = _mock_sessions().insert_one(doc)
     doc["_id"] = res.inserted_id
-    return jsonify({"session": _serial(doc)}), 201
+    return jsonify({
+        "session_id":       str(res.inserted_id),
+        "question":         first_q,
+        "round":            "intro",
+        "round_name":       "Introduction Round",
+        "q_in_round":       1,
+        "total_in_round":   2,
+        "round_number":     1,
+        "total_rounds":     3,
+    }), 201
 
 
-@interview_bp.route("/api/interview/simulation/<session_id>/answer", methods=["POST"])
-def api_sim_answer(session_id):
+# ══════════════════════════════════════════════════════════════
+#  MOCK INTERVIEW — Submit Answer
+# ══════════════════════════════════════════════════════════════
+
+@interview_bp.route("/api/interview/mock/<session_id>/answer", methods=["POST"])
+def api_mock_answer(session_id):
     uid, err = _require_auth()
     if err: return err
     data   = request.get_json() or {}
-    answer = data.get("answer","").strip()
+    answer = data.get("answer", "").strip()
     if not answer:
         return jsonify({"error": "Answer cannot be empty"}), 400
+
     try:
-        sess = _sessions().find_one({"_id": ObjectId(session_id), "user_id": uid})
+        sess = _mock_sessions().find_one({"_id": ObjectId(session_id), "user_id": uid})
     except Exception:
         return jsonify({"error": "Invalid session"}), 400
     if not sess or sess["status"] != "active":
-        return jsonify({"error": "Session not found or complete"}), 404
+        return jsonify({"error": "Session not found or already complete"}), 404
 
-    cq = sess["current_q"]; tq = sess["total_questions"]
-    q  = sess.get("current_question","")
-    fb = _sim_fb(sess["role"], q, answer)
-    rec = {"question_number": cq, "question": q, "answer": answer, "feedback": fb}
-    is_last = cq >= tq
-    upd = {"$push": {"answers": rec}, "$set": {"updated_at": datetime.now(timezone.utc)}}
-    if is_last:
+    current_round   = sess["current_round"]
+    q_in_round      = sess["current_q_in_round"]
+    total_in_round  = sess["rounds"][current_round]["total"]
+    question        = sess.get("current_question", "")
+    role            = sess["role"]
+    difficulty      = sess["difficulty"]
+
+    # Save answer to current round
+    answer_record = {
+        "q_num":    q_in_round,
+        "question": question,
+        "answer":   answer,
+    }
+    update_path = f"rounds.{current_round}.answers"
+
+    # Determine next state
+    round_order  = ["intro", "behaviour", "technical"]
+    round_idx    = round_order.index(current_round)
+    is_last_q_in_round = (q_in_round >= total_in_round)
+    is_last_round      = (round_idx == len(round_order) - 1)
+    is_complete        = is_last_q_in_round and is_last_round
+
+    upd = {
+        "$push": {update_path: answer_record},
+        "$set":  {"updated_at": datetime.now(timezone.utc)}
+    }
+
+    if is_last_q_in_round:
+        upd["$set"][f"rounds.{current_round}.complete"] = True
+
+    if is_complete:
+        # Mark done — verdict generated below
         upd["$set"]["status"] = "completed"
+    elif is_last_q_in_round:
+        # Move to next round
+        next_round = round_order[round_idx + 1]
+        next_total = sess["rounds"][next_round]["total"]
+        next_q     = _mock_gen_question(role, next_round, difficulty, [], 1, next_total)
+        upd["$set"]["current_round"]       = next_round
+        upd["$set"]["current_q_in_round"]  = 1
+        upd["$set"]["current_question"]    = next_q
     else:
-        nq = _sim_question(sess["role"], sess["question_type"], cq+1, tq,
-                           [a["question"] for a in sess.get("answers",[])+[rec]])
-        upd["$set"]["current_question"] = nq
-        upd["$set"]["current_q"] = cq+1
-    _sessions().update_one({"_id": ObjectId(session_id)}, upd)
-    overall = None
-    if is_last:
-        overall = _sim_overall(sess.get("answers",[])+[rec], sess["role"])
-        _results().insert_one({
-            "user_id": uid, "session_id": session_id,
-            "role": sess["role"], "question_type": sess["question_type"],
-            "total_questions": tq, "overall_score": overall["score"],
-            "overall_grade": overall["grade"], "overall_feedback": overall["summary"],
-            "created_at": datetime.now(timezone.utc),
-        })
-    resp = {"feedback": fb, "is_last": is_last, "overall": overall}
-    if not is_last:
-        updated = _sessions().find_one({"_id": ObjectId(session_id)})
-        resp["next_question"] = updated.get("current_question")
-        resp["next_q_num"]    = cq+1
-        resp["total_questions"] = tq
-    return jsonify(resp)
+        # Next question in same round
+        prev_qs = [a["question"] for a in sess["rounds"][current_round]["answers"]] + [question]
+        next_q  = _mock_gen_question(role, current_round, difficulty, prev_qs, q_in_round+1, total_in_round)
+        upd["$set"]["current_q_in_round"]  = q_in_round + 1
+        upd["$set"]["current_question"]    = next_q
 
+    _mock_sessions().update_one({"_id": ObjectId(session_id)}, upd)
+
+    # If complete, generate verdict
+    if is_complete:
+        updated = _mock_sessions().find_one({"_id": ObjectId(session_id)})
+        verdict = _mock_verdict(updated)
+        _mock_sessions().update_one(
+            {"_id": ObjectId(session_id)},
+            {"$set": {"verdict": verdict}}
+        )
+        return jsonify({"complete": True, "verdict": verdict})
+
+    # Return next question info
+    if is_last_q_in_round:
+        next_round_name = {"intro":"Introduction","behaviour":"Behavioural","technical":"Technical"}[round_order[round_idx+1]]
+        return jsonify({
+            "complete":       False,
+            "round_change":   True,
+            "question":       upd["$set"]["current_question"],
+            "round":          round_order[round_idx+1],
+            "round_name":     next_round_name + " Round",
+            "round_number":   round_idx + 2,
+            "total_rounds":   3,
+            "q_in_round":     1,
+            "total_in_round": sess["rounds"][round_order[round_idx+1]]["total"],
+        })
+    else:
+        return jsonify({
+            "complete":       False,
+            "round_change":   False,
+            "question":       upd["$set"]["current_question"],
+            "round":          current_round,
+            "round_name":     {"intro":"Introduction","behaviour":"Behavioural","technical":"Technical"}[current_round] + " Round",
+            "round_number":   round_idx + 1,
+            "total_rounds":   3,
+            "q_in_round":     q_in_round + 1,
+            "total_in_round": total_in_round,
+        })
+
+
+# ══════════════════════════════════════════════════════════════
+#  MOCK INTERVIEW — History
+# ══════════════════════════════════════════════════════════════
+
+@interview_bp.route("/api/interview/mock/history")
+def api_mock_history():
+    uid, err = _require_auth()
+    if err: return err
+    results = list(_mock_sessions().find(
+        {"user_id": uid, "status": "completed"}
+    ).sort("created_at", -1).limit(5))
+    return jsonify({"history": [_serial(r) for r in results]})
+
+
+# ══════════════════════════════════════════════════════════════
+#  EXISTING HISTORY / STATS
+# ══════════════════════════════════════════════════════════════
 
 @interview_bp.route("/api/interview/history")
 def api_history():
@@ -479,52 +582,176 @@ def api_stats():
     uid, err = _require_auth()
     if err: return err
     all_r = list(_results().find({"user_id": uid}))
-    if not all_r:
+    mocks = list(_mock_sessions().find({"user_id": uid, "status": "completed"}))
+    mock_scores = [m["verdict"]["overall_score"] for m in mocks if m.get("verdict")]
+    if not all_r and not mock_scores:
         return jsonify({"total":0,"avg_score":0,"best_score":0,"grade":"N/A","roles":[]})
-    scores = [r.get("overall_score",0) for r in all_r]
-    avg    = round(sum(scores)/len(scores))
+    all_scores = [r.get("overall_score",0) for r in all_r] + mock_scores
+    avg    = round(sum(all_scores)/len(all_scores))
     grade  = "A" if avg>=90 else "B" if avg>=75 else "C" if avg>=60 else "D" if avg>=40 else "F"
-    return jsonify({"total":len(all_r),"avg_score":avg,"best_score":max(scores),
-                    "grade":grade,"roles":list(set(r.get("role","") for r in all_r))})
+    return jsonify({
+        "total":len(all_r)+len(mocks),"avg_score":avg,
+        "best_score":max(all_scores),"grade":grade,
+        "roles":list(set(r.get("role","") for r in all_r)),
+        "mock_sessions": len(mocks),
+    })
 
 
-def _sim_question(role, q_type, q_num, total, prev):
-    p = ("Avoid: "+" | ".join(prev[-3:])) if prev else ""
+# ══════════════════════════════════════════════════════════════
+#  MOCK INTERVIEW — Internal helpers
+# ══════════════════════════════════════════════════════════════
+
+ROUND_PROMPTS = {
+    "intro": "a warm professional introduction / get to know you",
+    "behaviour": "a behavioural / situational (use STAR method)",
+    "technical": "a technical / knowledge-based",
+}
+
+def _mock_gen_question(role, round_id, difficulty, prev_qs, q_num, total_in_round):
+    round_type = ROUND_PROMPTS.get(round_id, "general")
+    prev = ("Do NOT repeat: " + " | ".join(prev_qs[-3:])) if prev_qs else ""
+
+    prompt = f"""You are a professional interviewer conducting a {difficulty} level interview for {role}.
+This is the {round_id.upper()} ROUND. Generate question {q_num} of {total_in_round}.
+Question type: {round_type} question.
+{prev}
+
+Rules:
+- Output ONLY the question text
+- Make it realistic and appropriate for {role}
+- Match difficulty: {difficulty}
+- No numbering, no preamble
+
+Question:"""
+
     try:
-        q = ask_ollama([],
-            f"Professional interviewer. {role}. {q_type}. Q{q_num}/{total}. {p} Output ONLY the question.").strip()
-        return q or f"Tell me about yourself and your interest in {role}."
-    except:
-        return f"Describe a challenge relevant to the {role} role."
+        q = ask_ollama([], prompt).strip()
+        for p in ["Question:","Q:","Q1:","1.","1)"]:
+            if q.startswith(p): q = q[len(p):].strip()
+        return q or _fallback_question(role, round_id, q_num)
+    except Exception:
+        return _fallback_question(role, round_id, q_num)
 
-def _sim_fb(role, question, answer):
-    prompt = f"""Evaluator. Role:{role}. Q:{question} A:{answer}
-Format:
-SCORE:[0-100]
-GRADE:[A/B/C/D/F]
-CLARITY:[1 sentence]
-CONTENT:[1 sentence]
-IMPROVEMENT:[1-2 suggestions]
-BETTER_ANSWER:[2-3 sentence stronger version]
-STRENGTH:[one strength]"""
+def _fallback_question(role, round_id, q_num):
+    fallbacks = {
+        "intro":     ["Tell me about yourself and your background.", "Why are you interested in this role?"],
+        "behaviour": ["Tell me about a time you faced a challenge at work.", "Describe a situation where you showed leadership.", "Tell me about a time you had to work under pressure."],
+        "technical": [f"What key skills do you bring to the {role} role?", "Explain your approach to problem solving.", "What are your strongest technical competencies?"],
+    }
+    opts = fallbacks.get(round_id, ["Tell me more about yourself."])
+    return opts[min(q_num-1, len(opts)-1)]
+
+
+def _mock_verdict(sess):
+    """Generate PASS/FAIL verdict from all round answers."""
+    role       = sess.get("role", "General")
+    difficulty = sess.get("difficulty", "Intermediate")
+    rounds     = sess.get("rounds", {})
+
+    # Build Q&A text for each round
+    def qa_text(round_id):
+        answers = rounds.get(round_id, {}).get("answers", [])
+        if not answers:
+            return "No answers provided."
+        lines = []
+        for a in answers:
+            lines.append(f"Q: {a.get('question','')}")
+            lines.append(f"A: {a.get('answer','[No answer]')}")
+            lines.append("")
+        return "\n".join(lines)
+
+    intro_text     = qa_text("intro")
+    behaviour_text = qa_text("behaviour")
+    technical_text = qa_text("technical")
+
+    prompt = f"""You are a senior hiring manager who just completed a full mock interview for the role of {role} at {difficulty} level.
+
+Review the candidate's complete interview below and provide your official verdict.
+
+═══ ROUND 1 — INTRODUCTION ═══
+{intro_text}
+
+═══ ROUND 2 — BEHAVIOURAL ═══
+{behaviour_text}
+
+═══ ROUND 3 — TECHNICAL ═══
+{technical_text}
+
+Based on realistic {difficulty} level hiring standards for {role}, provide your verdict in EXACTLY this format:
+
+INTRO_SCORE: [number 0-100]
+INTRO_SUMMARY: [2 honest sentences on their introduction performance]
+BEHAVIOUR_SCORE: [number 0-100]
+BEHAVIOUR_SUMMARY: [2 honest sentences on their behavioural answers]
+TECHNICAL_SCORE: [number 0-100]
+TECHNICAL_SUMMARY: [2 honest sentences on their technical answers]
+OVERALL_SCORE: [number 0-100, calculated: intro x0.20 + behaviour x0.40 + technical x0.40]
+VERDICT: [write exactly the word PASS or the word FAIL — nothing else]
+VERDICT_REASON: [2-3 honest sentences clearly explaining why they passed or failed]
+TOP_STRENGTHS: [exactly 3 specific strengths shown, separated by the | character]
+MUST_IMPROVE: [exactly 3 specific things they must work on, separated by the | character]
+FINAL_MESSAGE: [One professional, respectful closing statement to the candidate]
+
+Scoring rules you MUST follow:
+- PASS = overall score 65 or above AND no single round below 45
+- FAIL = overall score below 65 OR any single round below 45
+- Be honest — do not inflate scores to be kind
+- A real interview would assess these answers the same way"""
+
     try:
         raw = ask_ollama([], prompt).strip()
-        s_str = _ex(raw,"SCORE")
-        try:    score = max(0,min(100,int("".join(filter(str.isdigit,s_str)))))
-        except: score = 60
-        grade = _ex(raw,"GRADE").upper()
-        if grade not in ["A","B","C","D","F"]:
-            grade = "A" if score>=90 else "B" if score>=75 else "C" if score>=60 else "D" if score>=40 else "F"
-        return {"score":score,"grade":grade,"clarity":_ex(raw,"CLARITY"),
-                "content":_ex(raw,"CONTENT"),"improvement":_ex(raw,"IMPROVEMENT"),
-                "better_answer":_ex(raw,"BETTER_ANSWER"),"strength":_ex(raw,"STRENGTH")}
-    except:
-        return {"score":60,"grade":"C","clarity":"","content":"","improvement":"","better_answer":"","strength":""}
 
-def _sim_overall(answers, role):
-    scores = [a.get("feedback",{}).get("score",0) for a in answers]
-    avg    = round(sum(scores)/len(scores)) if scores else 0
-    grade  = "A" if avg>=90 else "B" if avg>=75 else "C" if avg>=60 else "D" if avg>=40 else "F"
-    try:    summary = ask_ollama([], f"2-sentence encouraging summary. {role} interview. Score:{avg}/100. Mention strongest area and one thing to improve. Output summary only.").strip()
-    except: summary = f"You scored {avg}/100. Keep practising to build confidence."
-    return {"score":avg,"grade":grade,"summary":summary}
+        def score_int(key):
+            val = _ex(raw, key)
+            try:    return max(0, min(100, int("".join(filter(str.isdigit, val)))))
+            except: return 50
+
+        intro_score    = score_int("INTRO_SCORE")
+        behaviour_score = score_int("BEHAVIOUR_SCORE")
+        technical_score = score_int("TECHNICAL_SCORE")
+        overall_score  = score_int("OVERALL_SCORE")
+
+        # Recalculate overall if model got it wrong
+        recalc = round(intro_score * 0.20 + behaviour_score * 0.40 + technical_score * 0.40)
+        if abs(recalc - overall_score) > 10:
+            overall_score = recalc
+
+        verdict_raw = _ex(raw, "VERDICT").upper().strip()
+        verdict     = "PASS" if "PASS" in verdict_raw else "FAIL"
+
+        # Enforce scoring rules
+        if overall_score < 65 or min(intro_score, behaviour_score, technical_score) < 45:
+            verdict = "FAIL"
+        elif overall_score >= 65 and min(intro_score, behaviour_score, technical_score) >= 45:
+            if verdict == "FAIL" and overall_score >= 75:
+                verdict = "PASS"
+
+        strengths = [s.strip() for s in _ex(raw,"TOP_STRENGTHS").split("|") if s.strip()][:3]
+        improvements = [s.strip() for s in _ex(raw,"MUST_IMPROVE").split("|") if s.strip()][:3]
+
+        return {
+            "intro_score":       intro_score,
+            "intro_summary":     _ex(raw,"INTRO_SUMMARY"),
+            "behaviour_score":   behaviour_score,
+            "behaviour_summary": _ex(raw,"BEHAVIOUR_SUMMARY"),
+            "technical_score":   technical_score,
+            "technical_summary": _ex(raw,"TECHNICAL_SUMMARY"),
+            "overall_score":     overall_score,
+            "verdict":           verdict,
+            "verdict_reason":    _ex(raw,"VERDICT_REASON"),
+            "top_strengths":     strengths or ["Attempted all questions","Showed willingness to engage","Provided relevant answers"],
+            "must_improve":      improvements or ["Add specific examples","Structure answers more clearly","Deepen technical knowledge"],
+            "final_message":     _ex(raw,"FINAL_MESSAGE") or "Thank you for your time. Keep practising and you will improve.",
+            "grade":             "A" if overall_score>=90 else "B" if overall_score>=75 else "C" if overall_score>=65 else "D" if overall_score>=50 else "F",
+        }
+
+    except Exception as e:
+        return {
+            "intro_score": 50, "intro_summary": "Could not evaluate.",
+            "behaviour_score": 50, "behaviour_summary": "Could not evaluate.",
+            "technical_score": 50, "technical_summary": "Could not evaluate.",
+            "overall_score": 50, "verdict": "FAIL",
+            "verdict_reason": "Unable to generate verdict. Please ensure Ollama is running.",
+            "top_strengths": [], "must_improve": [],
+            "final_message": "Please try again.", "grade": "D",
+        }
