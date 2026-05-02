@@ -1,0 +1,50 @@
+LEARNING_PACKAGE_START
+
+PLAN_START
+Monday: Introduction to Python and Basic Syntax
+Tuesday: Variables, Data Types, and Operators
+Wednesday: Control Statements (If-Else and For Loops)
+Thursday: Functions and Modules
+Friday: Exception Handling and Debugging
+Saturday: Practice Problems and Code Challenges
+Sunday: Mini Review and Quiz
+PLAN_END
+
+MCQ_START
+DAY:1
+Q: What is the purpose of indentation in Python?
+A) To make code look pretty
+B) To define a function
+C) To specify the scope of a variable
+D) To indicate block-level structure
+ANS: D) To indicate block-level structure
+Q: How do you assign a value to a variable in Python?
+A) Using the `=` operator
+B) Using the `+=` operator
+C) Using the `-=` operator
+D) Using the `**=` operator
+ANS: A) Using the `=` operator
+DAY:2
+...
+MCQ_END
+
+CODING_START
+DAY:1
+TASK: Print "Hello, World!" using Python
+HINT: Use the `print()` function
+DAY:2
+TASK: Ask the user for their name and print a greeting message
+HINT: Use the `input()` function
+DAY:3
+TASK: Write a program that prints numbers from 1 to 10
+HINT: Use a for loop
+...
+CODING_END
+
+MOTIVATION_START
+TOPIC: Python
+STORY: Meet Jane, who learned Python consistently and built a successful career in data science. She used Python to analyze large datasets, build predictive models, and visualize insights. Her skills landed her a job at a top tech company, where she contributed to several high-profile projects.
+DAILY_TIP: Consistency is key when learning Python. Set aside time each day to practice, and you'll see significant progress in just a few weeks.
+MOTIVATION_END
+
+LEARNING_PACKAGE_END

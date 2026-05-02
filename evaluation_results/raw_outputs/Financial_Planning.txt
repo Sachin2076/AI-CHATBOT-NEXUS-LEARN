@@ -1,0 +1,92 @@
+LEARNING_PACKAGE_START
+
+PLAN_START
+Monday: Introduction to Financial Planning and Setting Goals
+Tuesday: Understanding Your Current Financial Situation and Budgeting
+Wednesday: Creating a Plan for Saving and Investing
+Thursday: Managing Debt and Credit
+Friday: Retirement Planning and Estate Planning
+Saturday: Practice Problems and Review
+Sunday: Mini Review and Quiz, Reflecting on Progress
+
+PLAN_END
+
+MCQ_START
+DAY:1
+Q: What is the first step in financial planning?
+A) Creating a budget
+B) Setting goals
+C) Tracking expenses
+D) Investing
+ANS: B) Setting goals
+Q: What is the purpose of creating a budget in financial planning?
+A) To track expenses
+B) To save money
+C) To make smart financial decisions
+D) To pay off debt
+ANS: C) To make smart financial decisions
+Q: What is the importance of having an emergency fund in financial planning?
+A) It helps you avoid debt
+B) It helps you invest wisely
+C) It provides a safety net for unexpected expenses
+D) It helps you save money
+ANS: C) It provides a safety net for unexpected expenses
+
+DAY:2
+Q: What is the difference between needs and wants in financial planning?
+A) Needs are essential, while wants are discretionary
+B) Needs are discretionary, while wants are essential
+C) Needs are long-term, while wants are short-term
+D) Needs are short-term, while wants are long-term
+ANS: A) Needs are essential, while wants are discretionary
+
+DAY:3
+Q: What is the importance of diversification in investing?
+A) It helps you avoid risk
+B) It helps you increase returns
+C) It provides a hedge against market volatility
+D) It helps you save money
+ANS: C) It provides a hedge against market volatility
+
+MCQ_END
+
+CODING_START
+DAY:1
+TASK: Calculate the total cost of a financial plan based on user input
+HINT: Use variables and arithmetic operations
+
+DAY:2
+TASK: Create a simple budget calculator that takes in income, expenses, and savings goals
+HINT: Use conditional statements to determine whether the user is on track to meet their goals
+
+DAY:3
+TASK: Develop a debt repayment plan that takes into account interest rates, principal amounts, and payment schedules
+HINT: Use loops and conditional statements to calculate the total amount paid off each month
+
+DAY:4
+TASK: Create an investment portfolio simulator that allows users to input their risk tolerance and investment goals
+HINT: Use arrays and conditional statements to determine the optimal asset allocation
+
+DAY:5
+TASK: Develop a retirement planning calculator that takes into account user input on income, expenses, and savings goals
+HINT: Use arithmetic operations and conditional statements to calculate the total amount needed for retirement
+
+DAY:6
+TASK: Create a practice quiz that tests users' knowledge of financial concepts and terminology
+HINT: Use arrays and conditional statements to determine the correct answers
+
+DAY:7
+TASK: Develop a mini project that simulates a real-world scenario, such as creating a budget for a family or planning for retirement
+HINT: Use variables, arithmetic operations, and conditional statements to solve the problem
+
+CODING_END
+
+MOTIVATION_START
+TOPIC: Financial Planning
+STORY: Meet Sarah, who used financial planning to achieve her goal of buying a home. She created a budget, paid off debt, and started investing early on. With consistent effort, she was able to save enough for a down payment and purchase her dream home.
+
+DAILY_TIP: Consistency is key in financial planning. Set small goals and make a plan to achieve them, just like Sarah did.
+
+MOTIVATION_END
+
+LEARNING_PACKAGE_END

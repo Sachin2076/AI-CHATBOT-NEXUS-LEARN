@@ -1,0 +1,107 @@
+LEARNING_PACKAGE_START
+
+PLAN_START
+Monday: Introduction to JavaScript and Setup
+	* Install Node.js and set up a coding environment
+	* Understand the basic syntax of JavaScript
+Tuesday: Basic Syntax of JavaScript
+	* Learn about variables, data types, and operators
+	* Practice writing simple JavaScript code
+Wednesday: Control Statements in JavaScript
+	* Learn about if-else statements, switch statements, and loops
+	* Practice using control statements to make decisions and repeat actions
+Thursday: Functions in JavaScript
+	* Learn how to define and use functions in JavaScript
+	* Understand the difference between function declarations and function expressions
+Friday: Object-Oriented Programming (OOP) Concepts
+	* Learn about classes, objects, inheritance, and polymorphism
+	* Practice creating simple OOP concepts in JavaScript
+Saturday: Practice Problems and Exercises
+	* Work on exercises to reinforce understanding of JavaScript basics
+	* Practice solving problems using control statements and functions
+Sunday: Mini Review and Quiz
+	* Review the week's material and take a quiz to test understanding
+
+PLAN_END
+
+MCQ_START
+DAY:1
+Q: What is the basic syntax of JavaScript?
+A) Java Script
+B) JavaScript
+C) Js
+D) js
+ANS: B) JavaScript
+Q: What is the purpose of the `var` keyword in JavaScript?
+A) To declare a constant variable
+B) To declare a variable that can be reassigned
+C) To declare an array
+D) To declare an object
+ANS: B) To declare a variable that can be reassigned
+
+DAY:2
+Q: What is the difference between `let` and `var` in JavaScript?
+A) `let` is used for variables declared with a block scope, while `var` is used for variables declared with a function scope
+B) `let` is used for constants, while `var` is used for variables that can be reassigned
+C) `let` is used for arrays, while `var` is used for objects
+D) `let` is used for objects, while `var` is used for arrays
+ANS: A) `let` is used for variables declared with a block scope, while `var` is used for variables declared with a function scope
+
+DAY:3
+Q: What is the purpose of the `if-else` statement in JavaScript?
+A) To repeat a block of code multiple times
+B) To make decisions based on conditions and execute different blocks of code accordingly
+C) To declare a variable that can be reassigned
+D) To define a function
+ANS: B) To make decisions based on conditions and execute different blocks of code accordingly
+
+DAY:7
+Q: What is the purpose of using `this` in JavaScript?
+A) To refer to the current object or scope
+B) To refer to the global scope
+C) To refer to an external function
+D) To refer to a variable declared outside the current scope
+ANS: A) To refer to the current object or scope
+
+MCQ_END
+
+CODING_START
+DAY:1
+TASK: Write a simple JavaScript program that prints "Hello World" to the console.
+HINT: Use the `console.log()` function and string concatenation.
+
+DAY:2
+TASK: Write a JavaScript program that asks the user for their name and age, then prints out a greeting message with their name and age.
+HINT: Use the `prompt()` function to get user input and string concatenation to build the greeting message.
+
+DAY:3
+TASK: Write a JavaScript program that uses an if-else statement to check if a number is even or odd, then prints out the result.
+HINT: Use the modulus operator (`%`) to determine if a number is even or odd.
+
+DAY:4
+TASK: Write a JavaScript program that defines and calls a function that takes two numbers as input and returns their sum.
+HINT: Use the `function` keyword to define the function and the `return` statement to return the result.
+
+DAY:5
+TASK: Write a JavaScript program that uses an array to store and print out a list of names.
+HINT: Use the `array.push()` method to add elements to the array and the `console.log()` function to print out the array.
+
+DAY:6
+TASK: Write a JavaScript program that defines a class with a constructor, properties, and methods, then creates an instance of the class and calls its methods.
+HINT: Use the `class` keyword to define the class and the `new` keyword to create an instance of the class.
+
+DAY:7
+TASK: Write a JavaScript program that uses object-oriented programming (OOP) concepts to create a simple banking system with accounts, transactions, and balances.
+HINT: Use classes and objects to represent bank accounts and transactions, then use methods to perform operations on the accounts and transactions.
+
+CODING_END
+
+MOTIVATION_START
+TOPIC: JavaScript
+STORY: Meet Jane, who learned JavaScript consistently and built a successful career as a web developer. She started by building simple projects like calculators and games, then moved on to more complex applications like e-commerce sites and social media platforms. With her skills in high demand, she was able to land a job at a top tech company and has since become a leader in the industry.
+
+DAILY_TIP: Consistency is key when it comes to learning JavaScript. Set aside time each day to practice coding and you'll be amazed at how quickly your skills improve.
+
+MOTIVATION_END
+
+LEARNING_PACKAGE_END

@@ -1,0 +1,160 @@
+LEARNING_PACKAGE_START
+
+PLAN_START
+Monday: Introduction to Java and Setting Up the Environment
+Tuesday: Basic Syntax of Java Programming
+Wednesday: Control Statements in Java
+Thursday: Loops in Java
+Friday: Functions in Java
+Saturday: Practice Problems with Java Code
+Sunday: Mini Review and Quiz on Java Basics
+PLAN_END
+
+MCQ_START
+DAY:1
+Q: What is the main purpose of the `public static void main(String[] args)` method in Java?
+A) To declare a variable
+B) To define a function
+C) To start the program execution
+D) To handle exceptions
+ANS: C) To start the program execution
+
+Q: Which of the following data types is not primitive in Java?
+A) int
+B) boolean
+C) char
+D) String
+ANS: D) String
+
+Q: What is the purpose of the `import` statement in Java?
+A) To declare a variable
+B) To define a function
+C) To import a package or class
+D) To handle exceptions
+ANS: C) To import a package or class
+
+DAY:2
+Q: What is the difference between `==` and `.equals()` methods in Java?
+A) == checks for object identity, while .equals() checks for object content
+B) == checks for object content, while .equals() checks for object identity
+C) == checks for primitive types, while .equals() checks for objects
+D) == is used for strings, while .equals() is used for numbers
+ANS: A) == checks for object identity, while .equals() checks for object content
+
+Q: Which of the following Java keywords is used to declare a variable?
+A) class
+B) interface
+C) static
+D) var
+ANS: D) var
+
+DAY:3
+Q: What is the purpose of the `if-else` statement in Java?
+A) To handle exceptions
+B) To declare a variable
+C) To make decisions based on conditions
+D) To define a function
+ANS: C) To make decisions based on conditions
+
+Q: Which of the following Java statements is used to iterate through an array or collection?
+A) for loop
+B) while loop
+C) do-while loop
+D) foreach loop
+ANS: D) foreach loop
+
+DAY:4
+Q: What is the purpose of the `switch` statement in Java?
+A) To handle exceptions
+B) To declare a variable
+C) To make decisions based on conditions
+D) To iterate through an array or collection
+ANS: C) To make decisions based on conditions
+
+Q: Which of the following Java statements is used to jump to a specific location in the code?
+A) break statement
+B) continue statement
+C) return statement
+D) label statement
+ANS: A) break statement
+
+DAY:5
+Q: What is the purpose of the `try-catch` block in Java?
+A) To declare a variable
+B) To define a function
+C) To handle exceptions
+D) To make decisions based on conditions
+ANS: C) To handle exceptions
+
+Q: Which of the following Java statements is used to throw an exception?
+A) throw statement
+B) throws statement
+C) try statement
+D) catch statement
+ANS: A) throw statement
+
+DAY:6
+Q: What is the purpose of the `finally` block in Java?
+A) To declare a variable
+B) To define a function
+C) To handle exceptions
+D) To make decisions based on conditions
+ANS: C) To handle exceptions
+
+Q: Which of the following Java statements is used to iterate through an array or collection using indices?
+A) for loop
+B) while loop
+C) do-while loop
+D) foreach loop
+ANS: A) for loop
+
+DAY:7
+Q: What is the purpose of the `review` statement in Java?
+A) To declare a variable
+B) To define a function
+C) To review and practice coding concepts
+D) To make decisions based on conditions
+ANS: C) To review and practice coding concepts
+
+MCQ_END
+
+CODING_START
+DAY:1
+TASK: Write a simple "Hello, World!" program in Java.
+HINT: Use the `System.out.println()` method to print the message.
+
+DAY:2
+TASK: Declare and initialize a variable in Java.
+HINT: Use the `int` keyword to declare an integer variable.
+
+DAY:3
+TASK: Implement a basic calculator program that adds two numbers in Java.
+HINT: Use the `Scanner` class to read input from the user.
+
+DAY:4
+TASK: Write a program that prints the first 10 prime numbers in Java.
+HINT: Use a loop to generate prime numbers and print them.
+
+DAY:5
+TASK: Implement a simple game that asks the user to guess a number between 1 and 100 in Java.
+HINT: Use the `Math.random()` method to generate a random number for the user to guess.
+
+DAY:6
+TASK: Write a program that calculates the area of a rectangle given its length and width in Java.
+HINT: Use the `Scanner` class to read input from the user.
+
+DAY:7
+TASK: Implement a simple chatbot that responds to basic user queries like "hello" or "goodbye" in Java.
+HINT: Use the `if-else` statement to handle different user inputs and responses.
+
+CODING_END
+
+MOTIVATION_START
+TOPIC: Java Programming
+STORY: Meet John, who learned Java programming consistently for 6 months. He built a simple chatbot that helped him manage his daily tasks more efficiently. He also created a mobile app that tracked his exercise routine and provided personalized workout plans.
+
+DAILY_TIP: Consistency is key to learning any new skill, including programming. Set aside time each day to practice coding, and you'll see significant progress in just a few weeks.
+
+MOTIVATION_END
+
+LEARNING_PACKAGE_END

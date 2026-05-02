@@ -1,0 +1,153 @@
+LEARNING_PACKAGE_START
+
+PLAN_START
+Monday: Introduction to Psychology and its Branches
+Tuesday: Understanding Human Behavior and Mental Processes
+Wednesday: Learning about Cognitive Biases and Heuristics
+Thursday: Exploring Social Influences and Group Dynamics
+Friday: Understanding Emotional Intelligence and Empathy
+Saturday: Practice Problems on Psychological Concepts
+Sunday: Mini Review and Quiz on Week 1 Topics
+PLAN_END
+
+MCQ_START
+DAY:1
+Q: What is the primary goal of psychology?
+A) To understand human behavior
+B) To develop new treatments for mental health disorders
+C) To study the natural world
+D) To improve education systems
+ANS: A) To understand human behavior
+Q: Which psychological branch focuses on the study of abnormal behaviors and mental disorders?
+A) Cognitive Psychology
+B) Social Psychology
+C) Developmental Psychology
+D) Abnormal Psychology
+ANS: D) Abnormal Psychology
+Q: What is the term for the process by which we learn to associate certain stimuli with specific responses?
+A) Conditioning
+B) Learning
+C) Memory
+D) Perception
+ANS: A) Conditioning
+
+DAY:2
+Q: Which psychological concept refers to our tendency to perceive things in a way that confirms our existing beliefs and attitudes?
+A) Confirmation Bias
+B) Illusion of Control
+C) Self-Serving Bias
+D) Fundamental Attribution Error
+ANS: A) Confirmation Bias
+Q: What is the term for the study of how people think, feel, and behave in social situations?
+A) Social Psychology
+B) Cognitive Psychology
+C) Developmental Psychology
+D) Personality Psychology
+ANS: A) Social Psychology
+
+DAY:3
+Q: Which psychological concept refers to our tendency to overestimate our ability to control events that are outside of our control?
+A) Illusion of Control
+B) Self-Serving Bias
+C) Fundamental Attribution Error
+D) Confirmation Bias
+ANS: A) Illusion of Control
+Q: What is the term for the process by which we learn new information and skills through repetition and practice?
+A) Conditioning
+B) Learning
+C) Memory
+D) Perception
+ANS: B) Learning
+
+DAY:4
+Q: Which psychological concept refers to our tendency to attribute others' behavior to their character, rather than to situational factors?
+A) Fundamental Attribution Error
+B) Self-Serving Bias
+C) Illusion of Control
+D) Confirmation Bias
+ANS: A) Fundamental Attribution Error
+Q: What is the term for the study of how people develop and change over time?
+A) Developmental Psychology
+B) Cognitive Psychology
+C) Social Psychology
+D) Personality Psychology
+ANS: A) Developmental Psychology
+
+DAY:5
+Q: Which psychological concept refers to our tendency to take credit for our successes, but blame external factors for our failures?
+A) Self-Serving Bias
+B) Illusion of Control
+C) Fundamental Attribution Error
+D) Confirmation Bias
+ANS: A) Self-Serving Bias
+Q: What is the term for the process by which we learn new information and skills through observation and imitation?
+A) Conditioning
+B) Learning
+C) Memory
+D) Perception
+ANS: B) Learning
+
+DAY:6
+Q: Which psychological concept refers to our tendency to perceive things in a way that confirms our existing beliefs and attitudes?
+A) Confirmation Bias
+B) Illusion of Control
+C) Self-Serving Bias
+D) Fundamental Attribution Error
+ANS: A) Confirmation Bias
+Q: What is the term for the study of how people think, feel, and behave in social situations?
+A) Social Psychology
+B) Cognitive Psychology
+C) Developmental Psychology
+D) Personality Psychology
+ANS: A) Social Psychology
+
+DAY:7
+Q: How do cognitive biases affect our decision-making processes?
+A) They make us more rational
+B) They have no impact on our decisions
+C) They lead to irrational and impulsive choices
+D) They help us make more informed decisions
+ANS: C) They lead to irrational and impulsive choices
+
+MCQ_END
+
+CODING_START
+DAY:1
+TASK: None
+HINT: None
+
+DAY:2
+TASK: None
+HINT: None
+
+DAY:3
+TASK: None
+HINT: None
+
+DAY:4
+TASK: None
+HINT: None
+
+DAY:5
+TASK: None
+HINT: None
+
+DAY:6
+TASK: None
+HINT: None
+
+DAY:7
+TASK: None
+HINT: None
+
+CODING_END
+
+MOTIVATION_START
+TOPIC: Psychology
+STORY: Dr. Maria Hernandez, a renowned psychologist, developed an app that helps people manage their mental health through cognitive behavioral therapy. She has helped thousands of individuals overcome anxiety and depression.
+
+DAILY_TIP: Consistency is key to learning psychology concepts. Set aside time each day to review and practice what you've learned.
+
+MOTIVATION_END
+
+LEARNING_PACKAGE_END
