@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import re
 from db  import get_db
 from llm import ask_ollama
+from utils import serial as _serial, require_auth as _require_auth, extract_field as _ex  # Gap 4
 
 interview_bp = Blueprint("interview", __name__)
 
@@ -23,27 +24,46 @@ def _sessions():     return _db()["iv_sessions"]
 def _results():      return _db()["iv_results"]
 def _mock_sessions():return _db()["iv_mock_sessions"]
 
-def _require_auth():
-    uid = session.get("user_id")
-    if not uid:
-        return None, (jsonify({"error": "Not authenticated"}), 401)
-    return uid, None
 
-def _serial(doc):
-    out = {}
-    for k, v in doc.items():
-        if isinstance(v, ObjectId):    out[k] = str(v)
-        elif isinstance(v, datetime):  out[k] = v.isoformat()
-        elif isinstance(v, list):
-            out[k] = [_serial(i) if isinstance(i, dict)
-                      else str(i) if isinstance(i, ObjectId) else i for i in v]
-        elif isinstance(v, dict):      out[k] = _serial(v)
-        else:                          out[k] = v
-    return out
+# ── Scoring functions (extracted to module level for testability — Gap 5) ──
 
-def _ex(raw, key):
-    m = re.search(rf"{key}:\s*(.+?)(?=\n[A-Z_]{{2,}}:|$)", raw, re.DOTALL)
-    return m.group(1).strip() if m else ""
+def recalc_overall(intro: int, behaviour: int, technical: int) -> int:
+    """
+    Recalculate weighted overall score from round scores.
+    Weights: intro 20 %, behaviour 40 %, technical 40 %.
+    """
+    return round(intro * 0.20 + behaviour * 0.40 + technical * 0.40)
+
+
+def apply_verdict_rules(
+    overall: int,
+    intro: int,
+    behaviour: int,
+    technical: int,
+    raw_verdict: str,
+) -> str:
+    """
+    Apply pass/fail guardrail rules on top of the LLM's raw verdict.
+
+    Rules:
+    - FAIL if overall < 65 OR any round < 45  (hard floor)
+    - Override FAIL → PASS if overall >= 75 AND all rounds >= 45
+    """
+    verdict = raw_verdict.upper().strip()
+    if overall < 65 or min(intro, behaviour, technical) < 45:
+        return "FAIL"
+    if verdict == "FAIL" and overall >= 75 and min(intro, behaviour, technical) >= 45:
+        return "PASS"
+    return verdict if verdict in {"PASS", "FAIL"} else "FAIL"
+
+
+def calc_grade(score: int) -> str:
+    """Convert a numeric score to a letter grade."""
+    if score >= 90: return "A"
+    if score >= 75: return "B"
+    if score >= 65: return "C"
+    if score >= 50: return "D"
+    return "F"
 
 def _ensure_indexes():
     _profiles().create_index("user_id", unique=True)
@@ -706,25 +726,20 @@ Scoring rules you MUST follow:
             try:    return max(0, min(100, int("".join(filter(str.isdigit, val)))))
             except: return 50
 
-        intro_score    = score_int("INTRO_SCORE")
+        intro_score     = score_int("INTRO_SCORE")
         behaviour_score = score_int("BEHAVIOUR_SCORE")
         technical_score = score_int("TECHNICAL_SCORE")
-        overall_score  = score_int("OVERALL_SCORE")
+        overall_score   = score_int("OVERALL_SCORE")
 
-        # Recalculate overall if model got it wrong
-        recalc = round(intro_score * 0.20 + behaviour_score * 0.40 + technical_score * 0.40)
+        # Recalculate overall if model's arithmetic is off by more than 10 pts
+        recalc = recalc_overall(intro_score, behaviour_score, technical_score)
         if abs(recalc - overall_score) > 10:
             overall_score = recalc
 
-        verdict_raw = _ex(raw, "VERDICT").upper().strip()
-        verdict     = "PASS" if "PASS" in verdict_raw else "FAIL"
-
-        # Enforce scoring rules
-        if overall_score < 65 or min(intro_score, behaviour_score, technical_score) < 45:
-            verdict = "FAIL"
-        elif overall_score >= 65 and min(intro_score, behaviour_score, technical_score) >= 45:
-            if verdict == "FAIL" and overall_score >= 75:
-                verdict = "PASS"
+        verdict_raw = _ex(raw, "VERDICT")
+        verdict     = apply_verdict_rules(
+            overall_score, intro_score, behaviour_score, technical_score, verdict_raw
+        )
 
         strengths = [s.strip() for s in _ex(raw,"TOP_STRENGTHS").split("|") if s.strip()][:3]
         improvements = [s.strip() for s in _ex(raw,"MUST_IMPROVE").split("|") if s.strip()][:3]

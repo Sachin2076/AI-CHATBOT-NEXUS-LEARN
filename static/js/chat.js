@@ -500,40 +500,26 @@ function declinePackage(){
 }
 
 /* ══════════════════════════════════════
-   SEND MESSAGE
+   SEND MESSAGE — SSE STREAMING (Gap 2)
+   Tokens stream from /api/chat/stream via
+   fetch + ReadableStream, eliminating the
+   blank-screen wait. After the last token
+   processBotReply() handles plan detection
+   exactly as before — no other logic changes.
 ══════════════════════════════════════ */
 async function sendMsg(){
   const text = inputEl.value.trim();
   if(!text || sendBtn.disabled) return;
+
   appendBubble('user', text, new Date().toISOString());
-  inputEl.value='';
+  inputEl.value = '';
   resizeInput();
   inputEl.disabled = true;
   sendBtn.disabled = true;
   showTyping();
+
   try{
-    const body = {message: text};
-    if(currentSessionId) body.session_id = currentSessionId;
-    const r = await fetch('/api/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
-    hideTyping();
-    if(r.status===401){ location.href='/login'; return; }
-    const d = await r.json();
-    if(r.ok && d.reply){
-      if(!currentSessionId && d.session_id){
-        currentSessionId = d.session_id;
-        await loadSessions();
-        document.querySelectorAll('.session-item').forEach(el=>{
-          el.classList.toggle('active', el.dataset.id===currentSessionId);
-        });
-      }
-      processBotReply(d.reply);
-    } else {
-      appendBubble('bot','⚠️ '+(d.error||'Something went wrong.'),new Date().toISOString());
-    }
+    await sendMsgStream(text);
   } catch(e){
     hideTyping();
     appendBubble('bot','⚠️ Network error — please check your connection.',new Date().toISOString());
@@ -542,6 +528,112 @@ async function sendMsg(){
     sendBtn.disabled = false;
     inputEl.focus();
   }
+}
+
+async function sendMsgStream(text){
+  const body = {message: text};
+  if(currentSessionId) body.session_id = currentSessionId;
+
+  let resp;
+  try{
+    resp = await fetch('/api/chat/stream',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    });
+  } catch(e){
+    hideTyping();
+    appendBubble('bot','⚠️ Network error — please check your connection.',new Date().toISOString());
+    return;
+  }
+
+  if(resp.status === 401){ location.href='/login'; return; }
+
+  if(!resp.ok){
+    hideTyping();
+    let errMsg = 'Something went wrong.';
+    try{ const d = await resp.json(); errMsg = d.error || errMsg; } catch(_){}
+    appendBubble('bot','⚠️ '+errMsg, new Date().toISOString());
+    return;
+  }
+
+  // Switch typing dots → live streaming bubble
+  hideTyping();
+  const streamRow = _createStreamRow();
+
+  const reader  = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf       = '';
+  let fullReply = '';
+  let done      = false;
+
+  try{
+    while(!done){
+      const {done: rdDone, value} = await reader.read();
+      if(rdDone) break;
+
+      buf += decoder.decode(value, {stream: true});
+      const lines = buf.split('\n');
+      buf = lines.pop();          // keep incomplete last line
+
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        let evt;
+        try{ evt = JSON.parse(line.slice(6)); } catch(_){ continue; }
+
+        if(evt.token){
+          fullReply += evt.token;
+          _updateStreamRow(streamRow, fullReply);
+        }
+        if(evt.error){
+          _removeStreamRow(streamRow);
+          appendBubble('bot','⚠️ '+evt.error, new Date().toISOString());
+          return;
+        }
+        if(evt.done){
+          done = true;
+          if(evt.session_id && !currentSessionId){
+            currentSessionId = evt.session_id;
+            await loadSessions();
+            document.querySelectorAll('.session-item').forEach(el=>{
+              el.classList.toggle('active', el.dataset.id===currentSessionId);
+            });
+          }
+        }
+      }
+    }
+  } finally{
+    reader.cancel().catch(()=>{});
+  }
+
+  _removeStreamRow(streamRow);
+  if(fullReply) processBotReply(fullReply);
+}
+
+/* Streaming bubble helpers */
+function _createStreamRow(){
+  hideEmpty();
+  const row = document.createElement('div');
+  row.className = 'mrow bot';
+  row.innerHTML = `
+    <div class="mav bot">🤖</div>
+    <div class="mcontent">
+      <div class="mbubble" id="stream-bubble-content"></div>
+      <div class="mtime">${fmtTime()}</div>
+    </div>`;
+  msgsEl.appendChild(row);
+  scrollBot();
+  return row;
+}
+function _updateStreamRow(row, text){
+  const el = row.querySelector('#stream-bubble-content');
+  if(el){
+    el.innerHTML = fmtMD(text)+'<span style="opacity:.5;animation:blink 1s step-end infinite">▋</span>';
+    scrollBot();
+  }
+}
+function _removeStreamRow(row){
+  if(row && row.parentNode) row.parentNode.removeChild(row);
 }
 
 /* ══════════════════════════════════════

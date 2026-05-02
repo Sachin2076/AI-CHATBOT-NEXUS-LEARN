@@ -1,15 +1,18 @@
 """
 llm.py — Ollama LLM integration
+Additions vs original:
+  • stream_ollama()          — token-by-token generator for SSE streaming (Gap 2)
+  • build_adaptive_context() — injects quiz performance into prompt    (Gap 1)
+  • _build_prompt accepts optional performance_context parameter
 """
 
 import os
+import json
 import requests
 
-# ── Config ────────────────────────────────────────────────────
 OLLAMA_URL   = os.environ.get("OLLAMA_URL",   "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
 
-# ── System Instruction ────────────────────────────────────────
 SYSTEM_INSTRUCTION = """
 You are Nexus, a structured AI study assistant designed to help students learn effectively, stay consistent, and stay motivated.
 
@@ -38,194 +41,192 @@ Generate a full learning package in this EXACT format:
 LEARNING_PACKAGE_START
 
 PLAN_START
-Monday: [Day 1 task — Introduction and Setup]
-Tuesday: [Day 2 task — Basic Syntax]
-Wednesday: [Day 3 task — Control Statements]
-Thursday: [Day 4 task — Loops]
-Friday: [Day 5 task — Functions]
-Saturday: [Day 6 task — Practice Problems]
-Sunday: [Day 7 task — Mini Review and Quiz]
+Monday: [Day 1 task]
+Tuesday: [Day 2 task]
+Wednesday: [Day 3 task]
+Thursday: [Day 4 task]
+Friday: [Day 5 task]
+Saturday: [Day 6 task]
+Sunday: [Day 7 task]
 PLAN_END
 
 MCQ_START
 DAY:1
-Q: [question about Day 1 topic]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [second question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [third question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
+ANS: [letter]
 DAY:2
-Q: [question about Day 2 topic]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [second question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [third question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
+ANS: [letter]
 DAY:3
-Q: [question about Day 3 topic]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [second question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [third question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
+ANS: [letter]
 DAY:4
-Q: [question about Day 4 topic]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [second question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [third question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
+ANS: [letter]
 DAY:5
-Q: [question about Day 5 topic]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [second question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [third question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
+ANS: [letter]
 DAY:6
-Q: [question about Day 6 topic]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [second question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [third question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
+ANS: [letter]
 DAY:7
-Q: [review question covering all topics]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [second review question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
-Q: [third review question]
+ANS: [letter]
+Q: [question]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-ANS: [correct letter]
+ANS: [letter]
 MCQ_END
 
 CODING_START
 DAY:1
-TASK: [beginner coding task for day 1 topic]
-HINT: [helpful hint]
+TASK: [beginner task]
+HINT: [hint]
 DAY:2
-TASK: [beginner coding task for day 2 topic]
-HINT: [helpful hint]
+TASK: [task]
+HINT: [hint]
 DAY:3
-TASK: [beginner coding task for day 3 topic]
-HINT: [helpful hint]
+TASK: [task]
+HINT: [hint]
 DAY:4
-TASK: [beginner coding task for day 4 topic]
-HINT: [helpful hint]
+TASK: [task]
+HINT: [hint]
 DAY:5
-TASK: [beginner coding task for day 5 topic]
-HINT: [helpful hint]
+TASK: [task]
+HINT: [hint]
 DAY:6
-TASK: [harder practice task combining multiple concepts]
-HINT: [helpful hint]
+TASK: [harder task combining multiple concepts]
+HINT: [hint]
 DAY:7
-TASK: [mini project combining everything learned this week]
-HINT: [helpful hint]
+TASK: [mini project combining everything]
+HINT: [hint]
 CODING_END
 
 MOTIVATION_START
-TOPIC: [programming language name]
-STORY: [2-3 paragraph real-world success story about someone who learned this language consistently and achieved great things. Mention specific achievements like apps built, companies worked at, or projects completed.]
-DAILY_TIP: [one short powerful tip about consistency and learning]
+TOPIC: [language name]
+STORY: [2-3 paragraph real-world success story]
+DAILY_TIP: [one short powerful tip]
 MOTIVATION_END
 
 LEARNING_PACKAGE_END
 
 NON-PROGRAMMING TOPIC RULES:
-When user wants to learn a NON-programming topic (mathematics, biology, business, stock market, etc.):
-
+When user wants to learn a NON-programming topic:
 If user says "I want to learn [topic]" WITHOUT asking for a plan:
 - Give a 2-3 sentence overview only
 - Ask: "Would you like me to create a weekly study plan for this and add it to your planner?"
 - Wait for confirmation
 
 If user DIRECTLY asks for a plan:
-- Skip confirmation
-- Generate using WEEKLY_PLAN_START and WEEKLY_PLAN_END blocks exactly:
+- Generate using WEEKLY_PLAN_START and WEEKLY_PLAN_END blocks:
 
 WEEKLY_PLAN_START
 Monday: [task]
@@ -238,7 +239,6 @@ Sunday: [task]
 WEEKLY_PLAN_END
 
 CONCEPT EXPLANATION RULES:
-When user asks to explain a concept directly use this structure:
 **Quick Answer:** one or two sentences
 **Explanation:** simple with analogy
 **Step-by-Step:** numbered steps
@@ -246,13 +246,8 @@ When user asks to explain a concept directly use this structure:
 **Tips:** one or two suggestions
 
 BEHAVIOR RULES:
-When user asks for CODING help:
-- Explain the logic first then give the code
-- Add comments inside the code
-- Suggest improvements after
-
-When user asks something UNCLEAR:
-- Ask one clarifying question before answering
+When user asks for CODING help: explain logic first, then give code with comments, suggest improvements.
+When unclear: ask one clarifying question.
 
 STRICT RULES:
 - Only help with learning, studying, coding, academic topics
@@ -263,77 +258,171 @@ STRICT RULES:
 """
 
 
-def _build_prompt(history: list, user_message: str) -> str:
+# ── Adaptive context builder (Gap 1) ──────────────────────────
+
+def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
+    """
+    Build a prompt section describing the student's past quiz performance.
+    Injected after the system instruction so the LLM tailors difficulty
+    and focus areas to the individual learner.
+    """
+    if not weak_topics and not topic_avgs:
+        return ""
+
+    lines = ["\n[STUDENT PERFORMANCE CONTEXT]"]
+    lines.append(
+        "The student has completed practice quizzes. "
+        "Adjust responses to focus on weak areas and skip re-explaining mastered content."
+    )
+
+    if weak_topics:
+        lines.append(
+            "Topics needing more attention (score < 70%): " + ", ".join(weak_topics)
+        )
+        lines.append(
+            "For these topics: increase explanation depth, add extra examples, "
+            "and suggest targeted practice exercises."
+        )
+
+    if topic_avgs:
+        strong = [t for t, s in topic_avgs.items() if s >= 80]
+        if strong:
+            lines.append(
+                "Topics with strong understanding (>= 80%): "
+                + ", ".join(strong)
+                + ". Build on these without re-explaining basics."
+            )
+
+    lines.append("[END PERFORMANCE CONTEXT]\n")
+    return "\n".join(lines)
+
+
+# ── Prompt builder ────────────────────────────────────────────
+
+def _build_prompt(
+    history: list,
+    user_message: str,
+    performance_context: str = "",
+) -> str:
     parts = [f"[SYSTEM INSTRUCTION]\n{SYSTEM_INSTRUCTION.strip()}\n"]
+
+    if performance_context:
+        parts.append(performance_context)
+
     if history:
         parts.append("[CONVERSATION HISTORY]")
         for msg in history:
             role = "Student" if msg["role"] == "user" else "Nexus"
             parts.append(f"{role}: {msg['content']}")
         parts.append("")
+
     parts.append(f"[CURRENT QUESTION]\nStudent: {user_message}\nNexus:")
     prompt = "\n".join(parts)
 
     prompt += """
 
 REMINDER — BEFORE YOU REPLY CHECK THESE RULES:
-1. If user wants to learn a PROGRAMMING topic — generate the full LEARNING_PACKAGE_START block immediately
-2. If user says "I want to learn [non-programming topic]" — give 2-3 sentence overview then ask about weekly plan
-3. If user directly asks for a plan — generate WEEKLY_PLAN_START block immediately
-4. NEVER use HTML tags in your response
+1. Programming topic → generate full LEARNING_PACKAGE_START block immediately
+2. Non-programming "I want to learn X" → 2-3 sentence overview then ask about plan
+3. Direct plan request → generate WEEKLY_PLAN_START block immediately
+4. NEVER use HTML tags
 5. Always follow the exact format specified
 """
     return prompt
 
 
-def ask_ollama(history: list, user_message: str) -> str:
-    prompt = _build_prompt(history, user_message)
+# ── Non-streaming (kept for evaluate_llm.py compatibility) ────
 
+def ask_ollama(
+    history: list,
+    user_message: str,
+    performance_context: str = "",
+) -> str:
+    """Blocking call — returns the complete reply as a string."""
+    prompt = _build_prompt(history, user_message, performance_context)
     payload = {
         "model":  OLLAMA_MODEL,
         "prompt": prompt,
         "stream": False,
-        "options": {
-            "temperature": 0.5,
-            "top_p":       0.9,
-            "num_predict": 2048,
-        }
+        "options": {"temperature": 0.5, "top_p": 0.9, "num_predict": 2048},
     }
-
     try:
         resp = requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            json=payload,
-            timeout=500
+            f"{OLLAMA_URL}/api/generate", json=payload, timeout=500
         )
         resp.raise_for_status()
-        data = resp.json()
-        return data.get("response", "").strip()
-
+        return resp.json().get("response", "").strip()
     except requests.exceptions.ConnectionError:
         raise RuntimeError(
-            "Cannot connect to Ollama. "
-            "Make sure Ollama is running: ollama serve"
+            "Cannot connect to Ollama. Make sure Ollama is running: ollama serve"
         )
     except requests.exceptions.Timeout:
-        raise RuntimeError(
-            "Ollama timed out. Please try again."
-        )
+        raise RuntimeError("Ollama timed out. Please try again.")
     except requests.exceptions.HTTPError as e:
         raise RuntimeError(f"Ollama API error: {e}")
 
+
+# ── Streaming generator (Gap 2) ───────────────────────────────
+
+def stream_ollama(
+    history: list,
+    user_message: str,
+    performance_context: str = "",
+):
+    """
+    Generator that yields text tokens from Ollama's streaming API.
+    Each yield is a non-empty string token.
+    Raises RuntimeError on connection / timeout / HTTP failures.
+
+    Used by /api/chat/stream to push tokens to the client via SSE
+    as they are generated — eliminating the 195-second blank wait.
+    """
+    prompt = _build_prompt(history, user_message, performance_context)
+    payload = {
+        "model":  OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": True,
+        "options": {"temperature": 0.5, "top_p": 0.9, "num_predict": 2048},
+    }
+    try:
+        with requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            json=payload,
+            stream=True,
+            timeout=600,
+        ) as resp:
+            resp.raise_for_status()
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                try:
+                    chunk = json.loads(line)
+                    token = chunk.get("response", "")
+                    if token:
+                        yield token
+                    if chunk.get("done"):
+                        break
+                except json.JSONDecodeError:
+                    continue
+    except requests.exceptions.ConnectionError:
+        raise RuntimeError(
+            "Cannot connect to Ollama. Make sure Ollama is running: ollama serve"
+        )
+    except requests.exceptions.Timeout:
+        raise RuntimeError("Ollama timed out.")
+    except requests.exceptions.HTTPError as e:
+        raise RuntimeError(f"Ollama API error: {e}")
+
+
+# ── Health check ──────────────────────────────────────────────
 
 def check_ollama_status() -> dict:
     try:
         r = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
         r.raise_for_status()
-        models = [m["name"] for m in r.json().get("models", [])]
+        models       = [m["name"] for m in r.json().get("models", [])]
         model_loaded = any(OLLAMA_MODEL in m for m in models)
-        return {
-            "ok":           True,
-            "model":        OLLAMA_MODEL,
-            "model_loaded": model_loaded,
-            "available":    models,
-        }
+        return {"ok": True, "model": OLLAMA_MODEL,
+                "model_loaded": model_loaded, "available": models}
     except Exception as e:
         return {"ok": False, "error": str(e)}

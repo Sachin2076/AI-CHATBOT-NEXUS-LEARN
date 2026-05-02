@@ -458,16 +458,9 @@ async function openRoom(groupId){
   // Render members
   renderMembers(g.members_list||[]);
 
-  // Load messages
+  // Load messages then start SSE real-time stream
   await loadMessages(groupId);
-
-  // Start auto-refresh every 10 seconds
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(()=>{
-    loadMessages(groupId);
-    const hint = document.getElementById('refresh-hint');
-    if(hint) hint.textContent = 'Refreshed at ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  }, 10000);
+  startGroupSSE(groupId);
 
   // Scroll to room
   setTimeout(()=> document.getElementById('group-room').scrollIntoView({behavior:'smooth'}), 100);
@@ -476,7 +469,7 @@ async function openRoom(groupId){
 function closeRoom(){
   activeRoomId = null;
   document.getElementById('group-room').style.display='none';
-  if(refreshTimer){ clearInterval(refreshTimer); refreshTimer=null; }
+  stopGroupSSE();
 }
 
 function scrollToRoom(){
@@ -511,6 +504,79 @@ function renderMembers(members){
 /* ══════════════════════════════════════
    MESSAGES
 ══════════════════════════════════════ */
+/* ══════════════════════════════════════
+   SSE REAL-TIME MESSAGES (Gap 3)
+   Replaces setInterval(10s) with EventSource
+   connected to /api/groups/<id>/stream.
+   New messages are appended without full
+   re-render; server reconnects every 30s.
+══════════════════════════════════════ */
+let sseSource      = null;
+let lastMsgTime    = null;   // ISO string of most-recent message seen
+
+function startGroupSSE(groupId){
+  stopGroupSSE();
+  const url = `/api/groups/${groupId}/stream` +
+              (lastMsgTime ? `?since=${encodeURIComponent(lastMsgTime)}` : '');
+  sseSource = new EventSource(url);
+
+  sseSource.onmessage = (evt) => {
+    try{
+      const msg = JSON.parse(evt.data);
+      if(msg.timeout){
+        // Server closed after 30s — reconnect transparently
+        sseSource.close();
+        sseSource = null;
+        startGroupSSE(groupId);
+        return;
+      }
+      if(msg.posted_at){
+        lastMsgTime = msg.posted_at;
+        appendGroupMessage(msg);
+      }
+    } catch(_){}
+  };
+
+  sseSource.onerror = () => {
+    if(sseSource) sseSource.close();
+    sseSource = null;
+    setTimeout(() => {
+      if(activeRoomId === groupId) startGroupSSE(groupId);
+    }, 3000);
+  };
+}
+
+function stopGroupSSE(){
+  if(sseSource){ sseSource.close(); sseSource = null; }
+}
+
+/** Append a single new message without re-rendering the whole board. */
+function appendGroupMessage(msg){
+  const board = document.getElementById('msg-board');
+  if(!board) return;
+
+  // Remove "no messages" placeholder if present
+  const empty = board.querySelector('.board-empty');
+  if(empty) empty.remove();
+
+  const wasAtBottom = board.scrollHeight - board.clientHeight <= board.scrollTop + 50;
+  const isMe  = msg.user_id === currentUid;
+  const ini   = (msg.user_name || '?')[0].toUpperCase();
+  const item  = document.createElement('div');
+  item.className = 'msg-item' + (isMe ? ' me' : '');
+  item.innerHTML = `
+    <div class="msg-av ${isMe?'me':''}">${ini}</div>
+    <div>
+      ${!isMe ? `<div class="msg-sender">${escH(msg.user_name)}</div>` : ''}
+      <div class="msg-bubble">
+        <div class="msg-text">${escH(msg.text)}</div>
+        <div class="msg-time">${fmtTime(msg.posted_at)}</div>
+      </div>
+    </div>`;
+  board.appendChild(item);
+  if(wasAtBottom) board.scrollTop = board.scrollHeight;
+}
+
 let lastMsgCount = 0;
 
 async function loadMessages(groupId){
@@ -519,10 +585,10 @@ async function loadMessages(groupId){
     if(!r.ok) return;
     const d = await r.json();
     const msgs = d.messages || [];
-    if(msgs.length !== lastMsgCount){
-      lastMsgCount = msgs.length;
-      renderMessages(msgs);
-    }
+    lastMsgCount = msgs.length;
+    renderMessages(msgs);
+    // Seed SSE cursor so it only streams messages *newer* than initial load
+    if(msgs.length > 0) lastMsgTime = msgs[msgs.length - 1].posted_at;
     // Also refresh members
     const gr = await fetch(`/api/groups/${groupId}`);
     if(gr.ok){
@@ -584,8 +650,8 @@ async function postMessage(){
     if(r.ok){
       input.value='';
       input.style.height='auto';
-      lastMsgCount = 0; // Force re-render
-      await loadMessages(activeRoomId);
+      // Append our own message immediately (SSE will not echo it back to us)
+      if(d.message) appendGroupMessage(d.message);
       // Scroll to bottom
       const board = document.getElementById('msg-board');
       board.scrollTop = board.scrollHeight;

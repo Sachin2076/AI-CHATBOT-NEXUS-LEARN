@@ -1,32 +1,39 @@
 """
 app.py — Nexus Learn Flask Backend
+Changes vs original:
+  Gap 1 — get_performance_context() feeds quiz history into every LLM call
+  Gap 2 — /api/chat/stream SSE endpoint; tokens stream to client in real-time
+  Gap 4 — serial/require_auth imported from utils.py (no more local copies)
 """
 
 import os
+import json
+import traceback
 from dotenv import load_dotenv
 load_dotenv()
 
 from flask import (
     Flask, render_template, jsonify,
-    request, session, redirect, url_for
+    request, session, redirect, url_for,
+    Response, stream_with_context,
 )
 from bson import ObjectId
 from datetime import datetime, timezone, date
-import traceback
 import requests
 
-from db   import get_db, messages, planner, usage_logs, chat_sessions, practice_sets, quiz_results, motivations
-from groups import groups_bp
+from db      import get_db, messages, planner, usage_logs, chat_sessions, \
+                    practice_sets, quiz_results, motivations
+from utils   import serial, require_auth          # Gap 4 — shared helpers
+from groups  import groups_bp
 from interview import interview_bp
-from auth import register_user, login_user, get_user_by_id
-from llm  import ask_ollama, check_ollama_status
+from llm     import ask_ollama, stream_ollama, check_ollama_status, \
+                    build_adaptive_context        # Gap 1 + 2
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 app.register_blueprint(groups_bp)
 app.register_blueprint(interview_bp)
 
-# ── Startup: connect DB ───────────────────────────────────────
 try:
     get_db()
     print("✅  MongoDB connected")
@@ -41,25 +48,6 @@ except Exception as e:
 def current_user_id():
     return session.get("user_id")
 
-def require_auth():
-    uid = current_user_id()
-    if not uid:
-        return None, (jsonify({"error": "Not authenticated"}), 401)
-    return uid, None
-
-def serial(doc):
-    out = {}
-    for k, v in doc.items():
-        if isinstance(v, ObjectId):
-            out[k] = str(v)
-        elif isinstance(v, datetime):
-            out[k] = v.isoformat()
-        elif isinstance(v, bytes):
-            out[k] = v.decode("utf-8", errors="replace")
-        else:
-            out[k] = v
-    return out
-
 def today_str():
     return date.today().isoformat()
 
@@ -69,18 +57,52 @@ def log_activity(user_id):
         {"$inc":  {"message_count": 1},
          "$set":  {"active_day": True},
          "$setOnInsert": {"login_time": datetime.now(timezone.utc)}},
-        upsert=True
+        upsert=True,
     )
 
 def get_user_stats(user_id):
     total_msgs  = messages().count_documents({"user_id": user_id, "role": "user"})
     active_days = usage_logs().count_documents({"user_id": user_id, "active_day": True})
     task_count  = planner().count_documents({"user_id": user_id})
-    return {
-        "total_messages": total_msgs,
-        "active_days":    active_days,
-        "task_count":     task_count,
-    }
+    return {"total_messages": total_msgs, "active_days": active_days, "task_count": task_count}
+
+
+# ── Gap 1: Adaptive context from quiz history ─────────────────
+
+def get_performance_context(user_id: str) -> str:
+    """
+    Read the student's quiz_results and build an adaptive context string.
+    Topics where avg score < 70% are flagged as weak areas; topics >= 80%
+    are flagged as mastered. This string is injected into every LLM prompt
+    so responses are genuinely personalised to each user's performance.
+    """
+    try:
+        results = list(
+            quiz_results().find({"user_id": user_id})
+            .sort("submitted_at", -1)
+            .limit(30)
+        )
+        if not results:
+            return ""
+
+        topic_scores: dict[str, list[int]] = {}
+        for r in results:
+            topic = r.get("topic", "").strip()
+            score = r.get("score", 0)
+            if topic:
+                topic_scores.setdefault(topic, []).append(score)
+
+        weak_topics = []
+        topic_avgs  = {}
+        for topic, scores in topic_scores.items():
+            avg = round(sum(scores) / len(scores))
+            topic_avgs[topic] = avg
+            if avg < 70:
+                weak_topics.append(f"{topic} ({avg}%)")
+
+        return build_adaptive_context(weak_topics, topic_avgs)
+    except Exception:
+        return ""
 
 
 # ═════════════════════════════════════════════════════════════
@@ -123,7 +145,6 @@ def coding_page():
         return redirect(url_for("login_page"))
     return render_template("practice.html")
 
-
 @app.route("/motivation")
 def motivation_page():
     if not current_user_id():
@@ -134,6 +155,8 @@ def motivation_page():
 # ═════════════════════════════════════════════════════════════
 #  AUTH API
 # ═════════════════════════════════════════════════════════════
+
+from auth import register_user, login_user
 
 @app.route("/api/register", methods=["POST"])
 def api_register():
@@ -151,7 +174,7 @@ def api_register():
         user = register_user(name, email, password)
     except ValueError as e:
         return jsonify({"error": str(e)}), 409
-    except Exception as e:
+    except Exception:
         print(traceback.format_exc())
         return jsonify({"error": "Registration failed. Please try again."}), 500
 
@@ -182,7 +205,7 @@ def api_login():
         {"user_id": str(user["_id"]), "date": today_str()},
         {"$set": {"active_day": True, "login_time": datetime.now(timezone.utc)},
          "$setOnInsert": {"message_count": 0}},
-        upsert=True
+        upsert=True,
     )
     return jsonify({"success": True})
 
@@ -215,16 +238,41 @@ def api_me():
 
 HISTORY_WINDOW = 10
 
+
+def _get_or_create_session(uid: str, session_id: str, first_message: str) -> str:
+    """Return an existing session_id or create a new one."""
+    if not session_id:
+        now   = datetime.now(timezone.utc)
+        title = first_message[:40] + ("…" if len(first_message) > 40 else "")
+        doc   = {"user_id": uid, "title": title, "created_at": now, "updated_at": now}
+        result = chat_sessions().insert_one(doc)
+        return str(result.inserted_id)
+    else:
+        chat_sessions().update_one(
+            {"_id": ObjectId(session_id), "user_id": uid},
+            {"$set": {"updated_at": datetime.now(timezone.utc)}},
+        )
+        return session_id
+
+
+def _fetch_history(uid: str, session_id: str) -> list:
+    raw = list(
+        messages().find(
+            {"user_id": uid, "session_id": session_id},
+            {"role": 1, "content": 1, "_id": 0},
+        ).sort("timestamp", -1).limit(HISTORY_WINDOW)
+    )
+    return list(reversed(raw))
+
+
 @app.route("/api/chat/sessions")
 def api_chat_sessions():
     uid, err = require_auth()
     if err: return err
-    sessions = list(
-        chat_sessions().find({"user_id": uid})
-        .sort("created_at", -1)
-        .limit(30)
+    sess = list(
+        chat_sessions().find({"user_id": uid}).sort("created_at", -1).limit(30)
     )
-    return jsonify({"sessions": [serial(s) for s in sessions]})
+    return jsonify({"sessions": [serial(s) for s in sess]})
 
 
 @app.route("/api/chat/sessions", methods=["POST"])
@@ -234,12 +282,7 @@ def api_create_session():
     data  = request.get_json() or {}
     title = data.get("title", "New Chat")
     now   = datetime.now(timezone.utc)
-    doc   = {
-        "user_id":    uid,
-        "title":      title,
-        "created_at": now,
-        "updated_at": now,
-    }
+    doc   = {"user_id": uid, "title": title, "created_at": now, "updated_at": now}
     result = chat_sessions().insert_one(doc)
     doc["_id"] = result.inserted_id
     return jsonify({"session": serial(doc)}), 201
@@ -268,10 +311,78 @@ def api_rename_session(session_id):
         return jsonify({"error": "Title required."}), 400
     chat_sessions().update_one(
         {"_id": ObjectId(session_id), "user_id": uid},
-        {"$set": {"title": title}}
+        {"$set": {"title": title}},
     )
     return jsonify({"success": True})
 
+
+# ── Gap 2: SSE streaming endpoint ────────────────────────────
+
+@app.route("/api/chat/stream", methods=["POST"])
+def api_chat_stream():
+    """
+    Server-Sent Events endpoint.  The client uses fetch() + ReadableStream
+    to consume tokens as they arrive from Ollama, eliminating the blank wait.
+
+    SSE event format:
+      data: {"token": "..."}\n\n   — one or more characters from the LLM
+      data: {"error": "..."}\n\n   — on failure
+      data: {"done": true, "session_id": "..."}\n\n  — after last token
+    """
+    uid, err = require_auth()
+    if err: return err
+
+    data         = request.get_json() or {}
+    user_message = data.get("message", "").strip()
+    session_id   = data.get("session_id", "")
+
+    if not user_message:
+        return jsonify({"error": "Message cannot be empty."}), 400
+
+    # Resolve / create session before entering the generator
+    # (session must be created in the request context, not inside the generator)
+    session_id = _get_or_create_session(uid, session_id, user_message)
+    history    = _fetch_history(uid, session_id)
+    perf_ctx   = get_performance_context(uid)   # Gap 1: adaptive context
+
+    def generate():
+        full_reply = []
+        try:
+            for token in stream_ollama(history, user_message, perf_ctx):
+                full_reply.append(token)
+                yield f"data: {json.dumps({'token': token})}\n\n"
+        except RuntimeError as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            return
+        except Exception:
+            print(traceback.format_exc())
+            yield f"data: {json.dumps({'error': 'The AI model encountered an error.'})}\n\n"
+            return
+
+        # Persist both messages once streaming is complete
+        complete_reply = "".join(full_reply)
+        now = datetime.now(timezone.utc)
+        messages().insert_many([
+            {"user_id": uid, "session_id": session_id, "role": "user",
+             "content": user_message, "timestamp": now},
+            {"user_id": uid, "session_id": session_id, "role": "bot",
+             "content": complete_reply, "timestamp": now},
+        ])
+        log_activity(uid)
+
+        yield f"data: {json.dumps({'done': True, 'session_id': session_id})}\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control":    "no-cache",
+            "X-Accel-Buffering": "no",   # disables Nginx buffering on Replit
+        },
+    )
+
+
+# ── Non-streaming fallback (kept for compatibility) ───────────
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
@@ -285,33 +396,12 @@ def api_chat():
     if not user_message:
         return jsonify({"error": "Message cannot be empty."}), 400
 
-    if not session_id:
-        now   = datetime.now(timezone.utc)
-        title = user_message[:40] + ("…" if len(user_message) > 40 else "")
-        s_doc = {
-            "user_id":    uid,
-            "title":      title,
-            "created_at": now,
-            "updated_at": now,
-        }
-        s_result   = chat_sessions().insert_one(s_doc)
-        session_id = str(s_result.inserted_id)
-    else:
-        chat_sessions().update_one(
-            {"_id": ObjectId(session_id), "user_id": uid},
-            {"$set": {"updated_at": datetime.now(timezone.utc)}}
-        )
-
-    raw_history = list(
-        messages().find(
-            {"user_id": uid, "session_id": session_id},
-            {"role": 1, "content": 1, "_id": 0}
-        ).sort("timestamp", -1).limit(HISTORY_WINDOW)
-    )
-    history = list(reversed(raw_history))
+    session_id = _get_or_create_session(uid, session_id, user_message)
+    history    = _fetch_history(uid, session_id)
+    perf_ctx   = get_performance_context(uid)   # Gap 1
 
     try:
-        bot_reply = ask_ollama(history, user_message)
+        bot_reply = ask_ollama(history, user_message, perf_ctx)
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 503
     except Exception:
@@ -325,14 +415,9 @@ def api_chat():
         {"user_id": uid, "session_id": session_id, "role": "bot",
          "content": bot_reply, "timestamp": now},
     ])
-
     log_activity(uid)
-
-    return jsonify({
-        "reply":      bot_reply,
-        "timestamp":  now.isoformat(),
-        "session_id": session_id
-    })
+    return jsonify({"reply": bot_reply, "timestamp": now.isoformat(),
+                    "session_id": session_id})
 
 
 @app.route("/api/chat/history")
@@ -357,6 +442,40 @@ def api_clear_history():
         query["session_id"] = session_id
     messages().delete_many(query)
     return jsonify({"success": True})
+
+
+# ── Gap 1: Expose weak topics endpoint ───────────────────────
+
+@app.route("/api/practice/weak-topics")
+def api_weak_topics():
+    """
+    Returns the student's topic performance summary.
+    Used by the frontend to surface personalised improvement suggestions.
+    """
+    uid, err = require_auth()
+    if err: return err
+
+    results = list(
+        quiz_results().find({"user_id": uid}).sort("submitted_at", -1).limit(30)
+    )
+    topic_scores: dict[str, list[int]] = {}
+    for r in results:
+        topic = r.get("topic", "").strip()
+        if topic:
+            topic_scores.setdefault(topic, []).append(r.get("score", 0))
+
+    summary = []
+    for topic, scores in topic_scores.items():
+        avg = round(sum(scores) / len(scores))
+        summary.append({
+            "topic":      topic,
+            "avg_score":  avg,
+            "attempts":   len(scores),
+            "status":     "weak" if avg < 70 else "strong" if avg >= 80 else "improving",
+        })
+    summary.sort(key=lambda x: x["avg_score"])
+
+    return jsonify({"topics": summary})
 
 
 # ═════════════════════════════════════════════════════════════
@@ -384,12 +503,8 @@ def api_planner_add():
         return jsonify({"error": "Invalid day."}), 400
     if not task_text:
         return jsonify({"error": "Task text is required."}), 400
-    doc = {
-        "user_id":    uid,
-        "day":        day,
-        "task_text":  task_text,
-        "created_at": datetime.now(timezone.utc),
-    }
+    doc = {"user_id": uid, "day": day, "task_text": task_text,
+           "created_at": datetime.now(timezone.utc)}
     result = planner().insert_one(doc)
     doc["_id"] = result.inserted_id
     return jsonify({"task": serial(doc)}), 201
@@ -410,6 +525,7 @@ def api_planner_delete():
         return jsonify({"error": "Task not found."}), 404
     return jsonify({"success": True})
 
+
 # ═════════════════════════════════════════════════════════════
 #  PRACTICE API
 # ═════════════════════════════════════════════════════════════
@@ -426,16 +542,13 @@ def api_get_practice():
 def api_save_practice():
     uid, err = require_auth()
     if err: return err
-    data = request.get_json() or {}
-    topic   = data.get("topic", "")
-    mcq     = data.get("mcq", [])
-    coding  = data.get("coding", [])
-    now     = datetime.now(timezone.utc)
-    doc = {
+    data   = request.get_json() or {}
+    now    = datetime.now(timezone.utc)
+    doc    = {
         "user_id":    uid,
-        "topic":      topic,
-        "mcq":        mcq,
-        "coding":     coding,
+        "topic":      data.get("topic",  ""),
+        "mcq":        data.get("mcq",    []),
+        "coding":     data.get("coding", []),
         "created_at": now,
     }
     result = practice_sets().insert_one(doc)
@@ -451,7 +564,6 @@ def api_submit_quiz(set_id):
     day     = data.get("day", 1)
     answers = data.get("answers", {})
 
-    # Get the practice set
     try:
         pset = practice_sets().find_one({"_id": ObjectId(set_id), "user_id": uid})
     except Exception:
@@ -460,53 +572,45 @@ def api_submit_quiz(set_id):
     if not pset:
         return jsonify({"error": "Practice set not found"}), 404
 
-    # Find questions for this day
     day_mcq = [q for q in pset.get("mcq", []) if q.get("day") == day]
     if not day_mcq:
         return jsonify({"error": "No questions found for this day"}), 404
 
-    # Calculate score
     correct = 0
     total   = len(day_mcq)
     results = []
     for i, q in enumerate(day_mcq):
-        user_ans    = answers.get(str(i), "")
-        is_correct  = user_ans.upper() == q.get("answer", "").upper()
+        user_ans   = answers.get(str(i), "")
+        is_correct = user_ans.upper() == q.get("answer", "").upper()
         if is_correct:
             correct += 1
         results.append({
-            "question":   q.get("question"),
-            "user_answer": user_ans,
+            "question":      q.get("question"),
+            "user_answer":   user_ans,
             "correct_answer": q.get("answer"),
-            "is_correct": is_correct,
+            "is_correct":    is_correct,
         })
 
-    score      = round((correct / total) * 100) if total > 0 else 0
-    grade      = "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 60 else "D" if score >= 40 else "F"
+    score = round((correct / total) * 100) if total > 0 else 0
+    grade = "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 60 else "D" if score >= 40 else "F"
 
-    # Save result
     now = datetime.now(timezone.utc)
     result_doc = {
-        "user_id":         uid,
-        "practice_set_id": set_id,
-        "topic":           pset.get("topic", ""),
-        "day":             day,
-        "score":           score,
-        "grade":           grade,
-        "correct":         correct,
-        "total":           total,
-        "results":         results,
-        "submitted_at":    now,
+        "user_id":          uid,
+        "practice_set_id":  set_id,
+        "topic":            pset.get("topic", ""),
+        "day":              day,
+        "score":            score,
+        "grade":            grade,
+        "correct":          correct,
+        "total":            total,
+        "results":          results,
+        "submitted_at":     now,
     }
     quiz_results().insert_one(result_doc)
 
-    return jsonify({
-        "score":   score,
-        "grade":   grade,
-        "correct": correct,
-        "total":   total,
-        "results": results,
-    })
+    return jsonify({"score": score, "grade": grade,
+                    "correct": correct, "total": total, "results": results})
 
 
 @app.route("/api/practice/stats")
@@ -516,16 +620,12 @@ def api_practice_stats():
     all_results = list(quiz_results().find({"user_id": uid}))
     if not all_results:
         return jsonify({"avg_score": 0, "total_quizzes": 0, "grade": "N/A", "best_score": 0})
-    scores      = [r["score"] for r in all_results]
-    avg         = round(sum(scores) / len(scores))
-    best        = max(scores)
-    grade       = "A" if avg >= 90 else "B" if avg >= 75 else "C" if avg >= 60 else "D" if avg >= 40 else "F"
-    return jsonify({
-        "avg_score":    avg,
-        "best_score":   best,
-        "total_quizzes": len(all_results),
-        "grade":        grade,
-    })
+    scores = [r["score"] for r in all_results]
+    avg    = round(sum(scores) / len(scores))
+    best   = max(scores)
+    grade  = "A" if avg >= 90 else "B" if avg >= 75 else "C" if avg >= 60 else "D" if avg >= 40 else "F"
+    return jsonify({"avg_score": avg, "best_score": best,
+                    "total_quizzes": len(all_results), "grade": grade})
 
 
 # ═════════════════════════════════════════════════════════════
@@ -549,13 +649,14 @@ def api_save_motivation():
     data = request.get_json() or {}
     doc  = {
         "user_id":    uid,
-        "topic":      data.get("topic", ""),
-        "story":      data.get("story", ""),
+        "topic":      data.get("topic",     ""),
+        "story":      data.get("story",     ""),
         "daily_tip":  data.get("daily_tip", ""),
         "created_at": datetime.now(timezone.utc),
     }
     motivations().insert_one(doc)
     return jsonify({"success": True}), 201
+
 
 # ═════════════════════════════════════════════════════════════
 #  YOUTUBE API
@@ -571,28 +672,20 @@ def api_youtube():
     if not YOUTUBE_API_KEY:
         return jsonify({"error": "YOUTUBE_API_KEY not set", "videos": [], "topic": ""}), 200
 
-    # Use user's actual learning topic from their last motivation record
-    mot = motivations().find_one({"user_id": uid}, sort=[("created_at", -1)])
+    mot   = motivations().find_one({"user_id": uid}, sort=[("created_at", -1)])
     topic = mot.get("topic", "").strip() if mot else ""
     query = f"{topic} tutorial programming learn" if topic else "evidence based study techniques learning"
 
     try:
         resp = requests.get(
             "https://www.googleapis.com/youtube/v3/search",
-            params={
-                "part":              "snippet",
-                "q":                 query,
-                "type":              "video",
-                "maxResults":        4,
-                "relevanceLanguage": "en",
-                "safeSearch":        "strict",
-                "key":               YOUTUBE_API_KEY,
-            },
-            timeout=10
+            params={"part": "snippet", "q": query, "type": "video",
+                    "maxResults": 4, "relevanceLanguage": "en",
+                    "safeSearch": "strict", "key": YOUTUBE_API_KEY},
+            timeout=10,
         )
         resp.raise_for_status()
-        items = resp.json().get("items", [])
-
+        items  = resp.json().get("items", [])
         videos = []
         for item in items:
             vid_id  = item["id"]["videoId"]
@@ -605,9 +698,7 @@ def api_youtube():
                 "thumbnail":   thumb.get("url", f"https://i.ytimg.com/vi/{vid_id}/hqdefault.jpg"),
                 "channel":     snippet["channelTitle"],
             })
-
         return jsonify({"videos": videos, "topic": topic})
-
     except requests.exceptions.HTTPError as e:
         return jsonify({"error": f"YouTube API error: {e}", "videos": [], "topic": topic}), 200
     except Exception as e:
