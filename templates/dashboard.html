@@ -6,15 +6,104 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/style.css"/>
+<style>
+.mob-nav-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--bg-r);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:16px;flex-shrink:0}
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;backdrop-filter:blur(2px)}
+.drawer{position:fixed;top:0;left:-280px;width:260px;height:100vh;background:var(--bg-s);border-right:1px solid var(--bdr);z-index:301;transition:left .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:20px 16px 30px}
+.drawer.open{left:0}
+.drawer-overlay.open{display:block}
+.drawer-close{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.drawer-brand{display:flex;align-items:center;gap:8px;font-family:var(--fM);font-size:13px;color:var(--amber)}
+.drawer-brand-icon{width:26px;height:26px;background:var(--amber-g);border:1px solid var(--amber-d);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.drawer-x{background:none;border:none;color:var(--tx-m);font-size:18px;cursor:pointer;padding:4px}
+.dash-body{display:flex;min-height:calc(100vh - 60px)}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg-s);border-right:1px solid var(--bdr);padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.sl{font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-m);padding:0 10px;margin-bottom:8px}
+.slink{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--tx-s);transition:all .2s;margin-bottom:2px;font-weight:500}
+.slink:hover,.slink.active{background:var(--amber-g);color:var(--amber)}
+.si{font-size:16px;flex-shrink:0}
+.sb-spacer{flex:1}
+.s-user{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-r);border:1px solid var(--bdr);border-radius:10px;margin-top:8px}
+.s-av{width:34px;height:34px;background:var(--amber-g);border:1px solid var(--amber-d);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--fM);font-size:13px;font-weight:500;color:var(--amber);flex-shrink:0}
+.s-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-role{font-size:11px;color:var(--tx-m);font-family:var(--fM)}
+.main{flex:1;padding:28px 32px;min-width:0;overflow:hidden}
+.dw{margin-bottom:22px}
+.dw h2{font-size:1.5rem;margin-bottom:4px}
+.dw p{color:var(--tx-m);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stat{background:var(--bg-c);border:1px solid var(--bdr);border-radius:16px;padding:18px;text-align:center;transition:border-color .2s}
+.stat:hover{border-color:var(--bdr-l)}
+.stat-v{font-family:var(--fM);font-size:1.8rem;font-weight:500;color:var(--amber);line-height:1;margin-bottom:5px}
+.stat-l{font-size:12px;color:var(--tx-m)}
+.qa{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.ac{background:var(--bg-c);border:1px solid var(--bdr);border-radius:16px;padding:18px;transition:all .2s;cursor:pointer;display:block}
+.ac:hover{border-color:var(--amber-d);background:var(--bg-r);transform:translateY(-2px);box-shadow:0 0 28px rgba(240,160,64,.12)}
+.ac-icon{font-size:24px;margin-bottom:10px;display:block}
+.ac-title{font-weight:600;font-size:14px;margin-bottom:4px}
+.ac-desc{font-size:12px;color:var(--tx-m);line-height:1.5}
+.mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(19,21,23,.95);backdrop-filter:blur(14px);border-top:1px solid var(--bdr);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:200;justify-content:space-around}
+.mob-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px;cursor:pointer;border-radius:8px;transition:all .2s;color:var(--tx-m);font-size:11px;font-family:var(--fM);min-width:50px;text-align:center}
+.mob-nav-item:hover,.mob-nav-item.active{color:var(--amber)}
+.mob-nav-item .mni{font-size:20px;line-height:1}
+.mob-nav-item span{font-size:10px;letter-spacing:.02em}
+@media(max-width:768px){
+  .mob-nav-btn{display:flex}
+  .sidebar{display:none}
+  .mob-bottom-nav{display:flex}
+  .main{padding:18px 16px 90px}
+  .stats{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stat{padding:14px 12px}
+  .stat-v{font-size:1.5rem}
+  .qa{grid-template-columns:repeat(2,1fr);gap:8px}
+  .ac{padding:14px 12px}
+  .ac-icon{font-size:20px;margin-bottom:7px}
+  .ac-title{font-size:13px}
+  .dw h2{font-size:1.2rem}
+  #nav-email{display:none}
+}
+@media(max-width:380px){
+  .stats{grid-template-columns:1fr 1fr}
+  .qa{grid-template-columns:1fr 1fr}
+  .stat-v{font-size:1.3rem}
+}
+</style>
 </head>
 <body>
+
 <nav class="navbar">
-  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="mob-nav-btn" onclick="openDrawer()" aria-label="Menu">☰</button>
+    <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  </div>
   <div class="nav-r">
     <span id="nav-email" class="tx-m" style="font-size:13px;margin-right:6px"></span>
     <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
   </div>
 </nav>
+
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<div class="drawer" id="drawer">
+  <div class="drawer-close">
+    <div class="drawer-brand"><div class="drawer-brand-icon">⬡</div>NEXUS LEARN</div>
+    <button class="drawer-x" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="sl">Navigation</div>
+  <a href="/dashboard" class="slink active" onclick="closeDrawer()"><span class="si">⊞</span>Dashboard</a>
+  <a href="/chat"      class="slink" onclick="closeDrawer()"><span class="si">💬</span>AI Chatbot</a>
+  <a href="/planner"   class="slink" onclick="closeDrawer()"><span class="si">📅</span>Weekly Planner</a>
+  <a href="/coding"    class="slink" onclick="closeDrawer()"><span class="si">💻</span>Coding Practice</a>
+  <a href="/interview" class="slink" onclick="closeDrawer()"><span class="si">🎯</span>Interview Prep</a>
+  <a href="/motivation"class="slink" onclick="closeDrawer()"><span class="si">🔥</span>Motivation</a>
+  <a href="/groups"    class="slink" onclick="closeDrawer()"><span class="si">👥</span>Study Groups</a>
+  <div class="sb-spacer"></div>
+  <div class="s-user" style="margin-top:16px">
+    <div class="s-av" id="drawer-av">?</div>
+    <div><div class="s-name" id="drawer-name">Loading…</div><div class="s-role">Student</div></div>
+  </div>
+</div>
+
 <div class="dash-body">
   <aside class="sidebar">
     <div class="sl">Navigation</div>
@@ -22,37 +111,71 @@
     <a href="/chat"      class="slink"><span class="si">💬</span>AI Chatbot</a>
     <a href="/planner"   class="slink"><span class="si">📅</span>Weekly Planner</a>
     <a href="/coding"    class="slink"><span class="si">💻</span>Coding Practice</a>
-    <a href="/interview" class="slink"><span class="si">🎯</span>Interview Sim</a>
+    <a href="/interview" class="slink"><span class="si">🎯</span>Interview Prep</a>
     <a href="/motivation"class="slink"><span class="si">🔥</span>Motivation</a>
-    <a href="/groups" class="nav-item">👥 Study Groups</a>
+    <a href="/groups"    class="slink"><span class="si">👥</span>Study Groups</a>
     <div class="sb-spacer"></div>
     <div class="s-user">
       <div class="s-av" id="s-av">?</div>
       <div><div class="s-name" id="s-name">Loading…</div><div class="s-role">Student</div></div>
     </div>
   </aside>
+
   <main class="main">
     <div class="dw">
       <h2>Good day, <span id="dw-name">…</span> 👋</h2>
       <p>Here's your learning overview. Ready to continue?</p>
     </div>
+
     <div class="stats">
-  <div class="stat"><div class="stat-v" id="st-score">—</div><div class="stat-l">Avg quiz score</div></div>
-  <div class="stat"><div class="stat-v" id="st-grade">—</div><div class="stat-l">Overall grade</div></div>
-  <div class="stat"><div class="stat-v" id="st-days">—</div><div class="stat-l">Active days</div></div>
-  <div class="stat"><div class="stat-v" id="st-quizzes">—</div><div class="stat-l">Quizzes done</div></div>
-</div>
-    <h3 style="margin-bottom:14px;font-family:var(--fD)">Quick access</h3>
+      <div class="stat"><div class="stat-v" id="st-score">—</div><div class="stat-l">Avg quiz score</div></div>
+      <div class="stat"><div class="stat-v" id="st-grade">—</div><div class="stat-l">Overall grade</div></div>
+      <div class="stat"><div class="stat-v" id="st-days">—</div><div class="stat-l">Active days</div></div>
+      <div class="stat"><div class="stat-v" id="st-quizzes">—</div><div class="stat-l">Quizzes done</div></div>
+    </div>
+
+    <h3 style="margin-bottom:14px;font-family:var(--fD);font-size:1.05rem">Quick access</h3>
     <div class="qa">
       <a href="/chat"       class="ac"><span class="ac-icon">🤖</span><div class="ac-title">AI Chatbot</div><div class="ac-desc">Ask questions with full conversation memory.</div></a>
       <a href="/planner"    class="ac"><span class="ac-icon">📅</span><div class="ac-title">Weekly Planner</div><div class="ac-desc">Add and track study tasks for each day.</div></a>
-      <a href="/coding"     class="ac"><span class="ac-icon">💻</span><div class="ac-title">Coding Practice</div><div class="ac-desc">Exercises with AI hints.</div></a>
-      <a href="/interview"  class="ac"><span class="ac-icon">🎯</span><div class="ac-title">Interview Sim</div><div class="ac-desc">AI-generated interview scenarios.</div></a>
-      <a href="/motivation" class="ac"><span class="ac-icon">🔥</span><div class="ac-title">Motivation Hub</div><div class="ac-desc">Streaks and progress tracking.</div></a>
+      <a href="/coding"     class="ac"><span class="ac-icon">💻</span><div class="ac-title">Coding Practice</div><div class="ac-desc">Daily MCQ quizzes and coding tasks.</div></a>
+      <a href="/interview"  class="ac"><span class="ac-icon">🎯</span><div class="ac-title">Interview Prep</div><div class="ac-desc">Learn, practise, and simulate interviews.</div></a>
+      <a href="/motivation" class="ac"><span class="ac-icon">🔥</span><div class="ac-title">Motivation Hub</div><div class="ac-desc">Personalised success stories and tips.</div></a>
+      <a href="/groups"     class="ac"><span class="ac-icon">👥</span><div class="ac-title">Study Groups</div><div class="ac-desc">Collaborate and post to shared noticeboards.</div></a>
     </div>
   </main>
 </div>
+
+<nav class="mob-bottom-nav">
+  <div class="mob-nav-item active" onclick="location.href='/dashboard'">
+    <div class="mni">⊞</div><span>Home</span>
+  </div>
+  <div class="mob-nav-item" onclick="location.href='/chat'">
+    <div class="mni">💬</div><span>Chat</span>
+  </div>
+  <div class="mob-nav-item" onclick="location.href='/planner'">
+    <div class="mni">📅</div><span>Planner</span>
+  </div>
+  <div class="mob-nav-item" onclick="location.href='/interview'">
+    <div class="mni">🎯</div><span>Interview</span>
+  </div>
+  <div class="mob-nav-item" onclick="openDrawer()">
+    <div class="mni">☰</div><span>More</span>
+  </div>
+</nav>
+
 <script>
+function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
 async function load(){
   try{
     const r = await fetch('/api/me');
@@ -60,21 +183,28 @@ async function load(){
     const d = await r.json();
     const n = d.name||'Student';
     const initials = n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('s-av').textContent  = initials;
-    document.getElementById('s-name').textContent = n;
-    document.getElementById('dw-name').textContent = n.split(' ')[0];
-    document.getElementById('nav-email').textContent = d.email||'';
-
-    // Load practice stats separately
-    const sr = await fetch('/api/practice/stats');
-    const sd = await sr.json();
-    document.getElementById('st-score').textContent   = sd.avg_score ? sd.avg_score+'%' : '—';
-    document.getElementById('st-grade').textContent   = sd.grade || '—';
+    document.getElementById('s-av').textContent       = initials;
+    document.getElementById('s-name').textContent     = n;
+    document.getElementById('drawer-av').textContent  = initials;
+    document.getElementById('drawer-name').textContent= n;
+    document.getElementById('dw-name').textContent    = n.split(' ')[0];
+    document.getElementById('nav-email').textContent  = d.email||'';
     document.getElementById('st-days').textContent    = d.stats?.active_days ?? 0;
-    document.getElementById('st-quizzes').textContent = sd.total_quizzes ?? 0;
-  }catch(e){location.href='/login';}
+    try{
+      const sr = await fetch('/api/practice/stats');
+      const sd = await sr.json();
+      document.getElementById('st-score').textContent   = sd.avg_score ? sd.avg_score+'%' : '—';
+      document.getElementById('st-grade').textContent   = sd.grade || '—';
+      document.getElementById('st-quizzes').textContent = sd.total_quizzes ?? 0;
+    }catch(e){
+      document.getElementById('st-score').textContent   = '—';
+      document.getElementById('st-grade').textContent   = '—';
+      document.getElementById('st-quizzes').textContent = 0;
+    }
+  }catch(e){ location.href='/login'; }
 }
-async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/';}
+
+async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
 load();
 </script>
 </body>

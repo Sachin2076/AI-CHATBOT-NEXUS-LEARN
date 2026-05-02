@@ -4,32 +4,294 @@
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Motivation — Nexus Learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/style.css"/>
 <style>
-.mot-body{max-width:720px;margin:0 auto;padding:28px}
-.mot-hdr{margin-bottom:28px}
-.mot-hdr h2{font-size:1.5rem;margin-bottom:4px}
-.mot-hdr p{color:var(--tx-m);font-size:13px}
-.story-card{background:var(--bg-c);border:1px solid var(--bdr);border-radius:24px;padding:32px;margin-bottom:16px;position:relative;overflow:hidden}
-.story-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,var(--amber-g) 0%,transparent 70%);pointer-events:none}
-.story-topic{font-family:var(--fM);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
-.story-title{font-family:var(--fD);font-size:1.4rem;margin-bottom:16px}
-.story-text{font-size:14px;line-height:1.8;color:var(--tx-s);white-space:pre-line}
-.tip-card{background:var(--amber-g);border:1px solid rgba(240,160,64,.25);border-radius:18px;padding:20px 24px;display:flex;gap:14px;align-items:flex-start}
-.tip-icon{font-size:24px;flex-shrink:0}
-.tip-label{font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-d);margin-bottom:4px}
+/* ── Base resets (mirrors your existing style.css vars) ── */
+:root{
+  --bg:       #0d0d0f;
+  --bg-c:     #141417;
+  --bg-h:     #1a1a1f;
+  --bdr:      rgba(255,255,255,.08);
+  --tx:       #f0ede8;
+  --tx-s:     #b8b3aa;
+  --tx-m:     #6b6660;
+  --amber:    #f0a040;
+  --amber-d:  #c07820;
+  --amber-g:  rgba(240,160,64,.07);
+  --fD:       'Playfair Display',serif;
+  --fS:       'DM Sans',sans-serif;
+  --fM:       'DM Mono',monospace;
+  font-family: var(--fS);
+  background: var(--bg);
+  color: var(--tx);
+  min-height: 100vh;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+a{color:var(--amber);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── Navbar (unchanged from yours) ── */
+.navbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;border-bottom:1px solid var(--bdr);
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,13,15,.85);backdrop-filter:blur(14px);
+}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--fM);font-size:13px;letter-spacing:.12em;font-weight:500}
+.brand-icon{font-size:20px;color:var(--amber)}
+.nav-r{display:flex;align-items:center;gap:16px}
+.nav-link{font-size:13px;color:var(--tx-s);transition:color .2s}
+.nav-link:hover{color:var(--tx);text-decoration:none}
+.btn{font-family:var(--fS);cursor:pointer;border:none;border-radius:10px;font-size:13px;font-weight:500;transition:all .2s}
+.btn-ghost{background:transparent;color:var(--tx-s);padding:7px 14px;border:1px solid var(--bdr)}
+.btn-ghost:hover{background:var(--bg-h);color:var(--tx)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid var(--bdr);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Page layout ── */
+.mot-body{
+  max-width:780px;margin:0 auto;padding:36px 20px 60px;
+}
+
+/* ── Page header ── */
+.mot-hdr{margin-bottom:40px;animation:fadeUp .5s ease both}
+.mot-hdr-top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.mot-badge{
+  font-family:var(--fM);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  background:var(--amber-g);border:1px solid rgba(240,160,64,.2);
+  color:var(--amber);padding:4px 10px;border-radius:20px;
+}
+.mot-hdr h2{font-family:var(--fD);font-size:2rem;font-weight:700;line-height:1.15}
+.mot-hdr p{color:var(--tx-m);font-size:13px;margin-top:6px}
+
+/* ══════════════════════════════════════
+   SECTION 1 — Rotating Quote
+══════════════════════════════════════ */
+.quote-section{margin-bottom:36px;animation:fadeUp .5s .1s ease both}
+
+.quote-card{
+  position:relative;overflow:hidden;
+  background:var(--bg-c);
+  border:1px solid var(--bdr);
+  border-radius:24px;
+  padding:36px 40px;
+  cursor:pointer;
+  transition:border-color .3s,transform .25s;
+}
+.quote-card:hover{border-color:rgba(240,160,64,.3);transform:translateY(-2px)}
+
+/* ambient glow */
+.quote-card::before{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:260px;height:260px;
+  background:radial-gradient(circle,rgba(240,160,64,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.quote-card::after{
+  content:'';position:absolute;bottom:-60px;left:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(240,160,64,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+.quote-mark{
+  font-family:var(--fD);font-size:5rem;line-height:.6;
+  color:var(--amber);opacity:.18;margin-bottom:8px;user-select:none;
+}
+.quote-text{
+  font-family:var(--fD);font-size:1.25rem;font-style:italic;
+  line-height:1.65;color:var(--tx);
+  transition:opacity .35s;min-height:80px;
+}
+.quote-text.fade{opacity:0}
+.quote-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:20px;flex-wrap:wrap;gap:10px;
+}
+.quote-author{
+  font-family:var(--fM);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber-d);
+}
+.quote-dots{display:flex;gap:7px;align-items:center}
+.quote-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--bdr);cursor:pointer;transition:background .25s,transform .2s;
+  border:none;padding:0;
+}
+.quote-dot.active{background:var(--amber);transform:scale(1.3)}
+.quote-hint{
+  font-family:var(--fM);font-size:10px;color:var(--tx-m);letter-spacing:.06em;
+  opacity:.6;
+}
+
+/* ══════════════════════════════════════
+   SECTION 2 — Personalised Story
+══════════════════════════════════════ */
+.story-section{margin-bottom:36px;animation:fadeUp .5s .2s ease both}
+.section-label{
+  font-family:var(--fM);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx-m);margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+.story-card{
+  background:var(--bg-c);border:1px solid var(--bdr);border-radius:24px;
+  padding:32px 36px;position:relative;overflow:hidden;
+  margin-bottom:14px;
+}
+.story-card::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,var(--amber-g) 0%,transparent 70%);
+  pointer-events:none;
+}
+.story-topic{
+  font-family:var(--fM);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:12px;
+}
+.story-title{
+  font-family:var(--fD);font-size:1.4rem;
+  margin-bottom:16px;color:var(--tx);
+}
+.story-text{
+  font-size:14px;line-height:1.85;color:var(--tx-s);white-space:pre-line;
+}
+
+.tip-card{
+  background:var(--amber-g);border:1px solid rgba(240,160,64,.2);
+  border-radius:18px;padding:20px 24px;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.tip-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+.tip-label{
+  font-family:var(--fM);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber-d);margin-bottom:5px;
+}
 .tip-text{font-size:14px;line-height:1.6;color:var(--tx)}
-.slogan{text-align:center;padding:32px 20px;border-top:1px solid var(--bdr);margin-top:28px}
-.slogan-text{font-family:var(--fD);font-size:1.2rem;color:var(--tx-s);font-style:italic}
-.slogan-by{font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-top:8px;letter-spacing:.08em}
-.empty-mot{text-align:center;padding:60px 20px;color:var(--tx-m)}
-.empty-mot-icon{font-size:52px;opacity:.28;margin-bottom:12px}
+
+.empty-mot{
+  text-align:center;padding:64px 20px;
+  background:var(--bg-c);border:1px solid var(--bdr);border-radius:24px;
+  color:var(--tx-m);
+}
+.empty-mot-icon{font-size:52px;opacity:.28;margin-bottom:14px}
+
+/* ══════════════════════════════════════
+   SECTION 3 — YouTube Videos
+══════════════════════════════════════ */
+.video-section{animation:fadeUp .5s .3s ease both}
+
+.video-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:16px;
+}
+
+.video-card{
+  background:var(--bg-c);border:1px solid var(--bdr);border-radius:20px;
+  overflow:hidden;transition:border-color .3s,transform .25s,box-shadow .3s;
+}
+.video-card:hover{
+  border-color:rgba(240,160,64,.3);transform:translateY(-3px);
+  box-shadow:0 16px 40px rgba(0,0,0,.4);
+}
+
+.video-thumb-wrap{
+  position:relative;width:100%;padding-top:56.25%; /* 16:9 */
+  background:#0a0a0a;cursor:pointer;overflow:hidden;
+}
+.video-thumb-wrap img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;transition:transform .4s,opacity .3s;
+  opacity:.85;
+}
+.video-card:hover .video-thumb-wrap img{transform:scale(1.04);opacity:1}
+
+/* play button overlay */
+.play-btn{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.play-circle{
+  width:56px;height:56px;border-radius:50%;
+  background:rgba(240,160,64,.9);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(240,160,64,.4);
+  transition:transform .25s,background .2s;
+}
+.video-card:hover .play-circle{transform:scale(1.1);background:var(--amber)}
+.play-triangle{
+  width:0;height:0;
+  border-top:10px solid transparent;
+  border-bottom:10px solid transparent;
+  border-left:18px solid #0d0d0f;
+  margin-left:4px;
+}
+
+/* iframe embed (shown after click) */
+.video-thumb-wrap iframe{
+  position:absolute;inset:0;width:100%;height:100%;border:none;
+}
+.video-thumb-wrap.playing img,.video-thumb-wrap.playing .play-btn{display:none}
+
+.video-meta{padding:18px 20px}
+.video-tag{
+  font-family:var(--fM);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:6px;
+}
+.video-title{
+  font-family:var(--fD);font-size:1rem;color:var(--tx);
+  line-height:1.4;margin-bottom:6px;
+}
+.video-desc{font-size:12px;color:var(--tx-m);line-height:1.5}
+
+/* ── Slogan ── */
+.slogan{
+  text-align:center;padding:36px 20px 0;
+  border-top:1px solid var(--bdr);margin-top:40px;
+  animation:fadeUp .5s .4s ease both;
+}
+.slogan-text{
+  font-family:var(--fD);font-size:1.2rem;
+  color:var(--tx-s);font-style:italic;
+}
+.slogan-by{
+  font-family:var(--fM);font-size:11px;color:var(--tx-m);
+  margin-top:8px;letter-spacing:.08em;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .mot-body{padding:24px 16px 48px}
+  .mot-hdr h2{font-size:1.5rem}
+  .quote-card{padding:26px 24px}
+  .quote-text{font-size:1.05rem}
+  .story-card{padding:24px 20px}
+  .story-title{font-size:1.2rem}
+  .video-grid{grid-template-columns:1fr}
+  .navbar{padding:12px 16px}
+}
+@media(max-width:400px){
+  .quote-mark{font-size:3.5rem}
+}
 </style>
 </head>
 <body>
+
+<!-- ── Navbar ── -->
 <nav class="navbar">
-  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
+  <div class="brand" onclick="location.href='/dashboard'">
+    <div class="brand-icon">⬡</div>NEXUS LEARN
+  </div>
   <div class="nav-r">
     <a href="/dashboard" class="nav-link">Dashboard</a>
     <a href="/chat"      class="nav-link">Chat</a>
@@ -37,18 +299,106 @@
   </div>
 </nav>
 
+<!-- ── Page ── -->
 <div class="mot-body">
+
+  <!-- Header -->
   <div class="mot-hdr">
-    <h2>🔥 Motivation Hub</h2>
-    <p>Your personalised success story and daily tip based on what you're learning.</p>
+    <div class="mot-hdr-top">
+      <span class="mot-badge">Motivation Hub</span>
+    </div>
+    <h2>🔥 Stay Inspired</h2>
+    <p>Your personalised success story, daily wisdom, and hand-picked videos — all in one place.</p>
   </div>
 
-  <div id="loading" style="text-align:center;padding:40px;color:var(--tx-m)">
-    <span class="spin"></span> Loading…
+  <!-- ════════ SECTION 1: Rotating Quotes ════════ -->
+  <div class="quote-section">
+    <div class="section-label">Daily Wisdom</div>
+    <div class="quote-card" id="quoteCard" title="Click for next quote">
+      <div class="quote-mark">"</div>
+      <div class="quote-text" id="quoteText"></div>
+      <div class="quote-meta">
+        <div class="quote-author" id="quoteAuthor"></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div class="quote-dots" id="quoteDots"></div>
+          <div class="quote-hint">click to cycle</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div id="content" style="display:none"></div>
+  <!-- ════════ SECTION 2: Personalised Story ════════ -->
+  <div class="story-section">
+    <div class="section-label">Your Success Story</div>
 
+    <div id="loading" style="text-align:center;padding:40px;color:var(--tx-m)">
+      <span class="spin"></span> Loading your story…
+    </div>
+    <div id="content" style="display:none"></div>
+  </div>
+
+  <!-- ════════ SECTION 3: YouTube Videos ════════ -->
+  <div class="video-section">
+    <div class="section-label">Watch & Learn</div>
+
+    <div class="video-grid">
+
+      <!-- Video 1 -->
+      <div class="video-card">
+        <div class="video-thumb-wrap" id="v1" onclick="playVideo('v1','dQw4w9WgXcQ')">
+          <img src="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" alt="The science of learning fast"/>
+          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
+        </div>
+        <div class="video-meta">
+          <div class="video-tag">🧠 Learning Science</div>
+          <div class="video-title">The Fastest Way to Learn Anything — Evidence-Based Methods</div>
+          <div class="video-desc">Spaced repetition, active recall, interleaving — packed into 15 minutes.</div>
+        </div>
+      </div>
+
+      <!-- Video 2 -->
+      <div class="video-card">
+        <div class="video-thumb-wrap" id="v2" onclick="playVideo('v2','o_YaBE-Bugk')">
+          <img src="https://i.ytimg.com/vi/o_YaBE-Bugk/hqdefault.jpg" alt="Growth mindset"/>
+          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
+        </div>
+        <div class="video-meta">
+          <div class="video-tag">💪 Mindset</div>
+          <div class="video-title">Growth Mindset vs Fixed Mindset — What Really Changes</div>
+          <div class="video-desc">Carol Dweck's research made actionable. A must-watch for any learner.</div>
+        </div>
+      </div>
+
+      <!-- Video 3 -->
+      <div class="video-card">
+        <div class="video-thumb-wrap" id="v3" onclick="playVideo('v3','W29qwbFlMgA')">
+          <img src="https://i.ytimg.com/vi/W29qwbFlMgA/hqdefault.jpg" alt="Deep work"/>
+          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
+        </div>
+        <div class="video-meta">
+          <div class="video-tag">🎯 Focus & Flow</div>
+          <div class="video-title">How to Enter Deep Work and Stay There</div>
+          <div class="video-desc">Cal Newport's framework for distraction-free, meaningful study sessions.</div>
+        </div>
+      </div>
+
+      <!-- Video 4 -->
+      <div class="video-card">
+        <div class="video-thumb-wrap" id="v4" onclick="playVideo('v4','Ks-_Mh1QhMc')">
+          <img src="https://i.ytimg.com/vi/Ks-_Mh1QhMc/hqdefault.jpg" alt="Consistency"/>
+          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
+        </div>
+        <div class="video-meta">
+          <div class="video-tag">🔄 Consistency</div>
+          <div class="video-title">Small Daily Habits That Compound Into Mastery</div>
+          <div class="video-desc">Why showing up every day beats occasional heroic effort — every time.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Slogan -->
   <div class="slogan">
     <div class="slogan-text">"Fragmented hurts, not the technology."</div>
     <div class="slogan-by">— NEXUS LEARN SLOGAN</div>
@@ -56,6 +406,81 @@
 </div>
 
 <script>
+/* ── Quotes data ── */
+const QUOTES = [
+  { text:"An investment in knowledge pays the best interest.", author:"Benjamin Franklin" },
+  { text:"The capacity to learn is a gift; the ability to learn is a skill; the willingness to learn is a choice.", author:"Brian Herbert" },
+  { text:"Live as if you were to die tomorrow. Learn as if you were to live forever.", author:"Mahatma Gandhi" },
+  { text:"Education is not the filling of a pail, but the lighting of a fire.", author:"W.B. Yeats" },
+  { text:"The beautiful thing about learning is that no one can take it away from you.", author:"B.B. King" },
+  { text:"Success is the sum of small efforts, repeated day in and day out.", author:"Robert Collier" },
+  { text:"The expert in anything was once a beginner.", author:"Helen Hayes" },
+  { text:"It does not matter how slowly you go as long as you do not stop.", author:"Confucius" },
+];
+
+let qi = Math.floor(Math.random() * QUOTES.length);
+let autoTimer;
+
+function renderDots(){
+  const c = document.getElementById('quoteDots');
+  c.innerHTML = QUOTES.map((_,i)=>
+    `<button class="quote-dot${i===qi?' active':''}" onclick="jumpQuote(${i})" aria-label="Quote ${i+1}"></button>`
+  ).join('');
+}
+
+function showQuote(idx, animate=false){
+  const el = document.getElementById('quoteText');
+  const au = document.getElementById('quoteAuthor');
+  if(animate){
+    el.classList.add('fade');
+    setTimeout(()=>{
+      el.textContent = QUOTES[idx].text;
+      au.textContent = '— ' + QUOTES[idx].author;
+      renderDots();
+      el.classList.remove('fade');
+    },350);
+  } else {
+    el.textContent = QUOTES[idx].text;
+    au.textContent = '— ' + QUOTES[idx].author;
+    renderDots();
+  }
+}
+
+function nextQuote(){
+  qi=(qi+1)%QUOTES.length;
+  showQuote(qi, true);
+  resetAuto();
+}
+
+function jumpQuote(i){
+  qi=i;
+  showQuote(qi,true);
+  resetAuto();
+}
+
+function resetAuto(){
+  clearInterval(autoTimer);
+  autoTimer=setInterval(nextQuote,7000);
+}
+
+document.getElementById('quoteCard').addEventListener('click', nextQuote);
+
+showQuote(qi);
+resetAuto();
+
+/* ── Video play ── */
+function playVideo(id, ytId){
+  const wrap = document.getElementById(id);
+  if(wrap.classList.contains('playing')) return;
+  wrap.classList.add('playing');
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`;
+  iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+  iframe.allowFullscreen = true;
+  wrap.appendChild(iframe);
+}
+
+/* ── Story API load ── */
 async function load(){
   try{
     const r = await fetch('/api/motivation');
@@ -68,8 +493,8 @@ async function load(){
       document.getElementById('content').innerHTML=`
         <div class="empty-mot">
           <div class="empty-mot-icon">🔥</div>
-          <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:8px">No motivation yet</h3>
-          <p>Go to the <a href="/chat">AI Chatbot</a> and say "I want to learn Java" to generate your personalised success story!</p>
+          <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:8px">No story yet</h3>
+          <p>Head to the <a href="/chat">AI Chatbot</a> and say "I want to learn Java" to generate your personalised success story!</p>
         </div>`;
       return;
     }
