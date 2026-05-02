@@ -13,6 +13,7 @@ from flask import (
 from bson import ObjectId
 from datetime import datetime, timezone, date
 import traceback
+import requests
 
 from db   import get_db, messages, planner, usage_logs, chat_sessions, practice_sets, quiz_results, motivations
 from groups import groups_bp
@@ -555,6 +556,64 @@ def api_save_motivation():
     }
     motivations().insert_one(doc)
     return jsonify({"success": True}), 201
+
+# ═════════════════════════════════════════════════════════════
+#  YOUTUBE API
+# ═════════════════════════════════════════════════════════════
+
+YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
+
+@app.route("/api/youtube")
+def api_youtube():
+    uid, err = require_auth()
+    if err: return err
+
+    if not YOUTUBE_API_KEY:
+        return jsonify({"error": "YOUTUBE_API_KEY not set", "videos": [], "topic": ""}), 200
+
+    # Use user's actual learning topic from their last motivation record
+    mot = motivations().find_one({"user_id": uid}, sort=[("created_at", -1)])
+    topic = mot.get("topic", "").strip() if mot else ""
+    query = f"{topic} tutorial programming learn" if topic else "evidence based study techniques learning"
+
+    try:
+        resp = requests.get(
+            "https://www.googleapis.com/youtube/v3/search",
+            params={
+                "part":              "snippet",
+                "q":                 query,
+                "type":              "video",
+                "maxResults":        4,
+                "relevanceLanguage": "en",
+                "safeSearch":        "strict",
+                "key":               YOUTUBE_API_KEY,
+            },
+            timeout=10
+        )
+        resp.raise_for_status()
+        items = resp.json().get("items", [])
+
+        videos = []
+        for item in items:
+            vid_id  = item["id"]["videoId"]
+            snippet = item["snippet"]
+            thumb   = snippet["thumbnails"].get("high", snippet["thumbnails"].get("medium", {}))
+            videos.append({
+                "id":          vid_id,
+                "title":       snippet["title"],
+                "description": snippet["description"][:120],
+                "thumbnail":   thumb.get("url", f"https://i.ytimg.com/vi/{vid_id}/hqdefault.jpg"),
+                "channel":     snippet["channelTitle"],
+            })
+
+        return jsonify({"videos": videos, "topic": topic})
+
+    except requests.exceptions.HTTPError as e:
+        return jsonify({"error": f"YouTube API error: {e}", "videos": [], "topic": topic}), 200
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e), "videos": [], "topic": topic}), 200
+
 
 # ═════════════════════════════════════════════════════════════
 #  STATUS

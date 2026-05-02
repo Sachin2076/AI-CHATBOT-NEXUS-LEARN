@@ -337,64 +337,13 @@ a:hover{text-decoration:underline}
     <div id="content" style="display:none"></div>
   </div>
 
-  <!-- ════════ SECTION 3: YouTube Videos ════════ -->
+  <!-- ════════ SECTION 3: YouTube Videos (dynamic) ════════ -->
   <div class="video-section">
-    <div class="section-label">Watch & Learn</div>
-
-    <div class="video-grid">
-
-      <!-- Video 1 -->
-      <div class="video-card">
-        <div class="video-thumb-wrap" id="v1" onclick="playVideo('v1','dQw4w9WgXcQ')">
-          <img src="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" alt="The science of learning fast"/>
-          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
-        </div>
-        <div class="video-meta">
-          <div class="video-tag">🧠 Learning Science</div>
-          <div class="video-title">The Fastest Way to Learn Anything — Evidence-Based Methods</div>
-          <div class="video-desc">Spaced repetition, active recall, interleaving — packed into 15 minutes.</div>
-        </div>
+    <div class="section-label" id="video-section-label">Watch & Learn</div>
+    <div id="video-grid-container">
+      <div style="text-align:center;padding:32px;color:var(--tx-m)">
+        <span class="spin"></span> Loading videos…
       </div>
-
-      <!-- Video 2 -->
-      <div class="video-card">
-        <div class="video-thumb-wrap" id="v2" onclick="playVideo('v2','o_YaBE-Bugk')">
-          <img src="https://i.ytimg.com/vi/o_YaBE-Bugk/hqdefault.jpg" alt="Growth mindset"/>
-          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
-        </div>
-        <div class="video-meta">
-          <div class="video-tag">💪 Mindset</div>
-          <div class="video-title">Growth Mindset vs Fixed Mindset — What Really Changes</div>
-          <div class="video-desc">Carol Dweck's research made actionable. A must-watch for any learner.</div>
-        </div>
-      </div>
-
-      <!-- Video 3 -->
-      <div class="video-card">
-        <div class="video-thumb-wrap" id="v3" onclick="playVideo('v3','W29qwbFlMgA')">
-          <img src="https://i.ytimg.com/vi/W29qwbFlMgA/hqdefault.jpg" alt="Deep work"/>
-          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
-        </div>
-        <div class="video-meta">
-          <div class="video-tag">🎯 Focus & Flow</div>
-          <div class="video-title">How to Enter Deep Work and Stay There</div>
-          <div class="video-desc">Cal Newport's framework for distraction-free, meaningful study sessions.</div>
-        </div>
-      </div>
-
-      <!-- Video 4 -->
-      <div class="video-card">
-        <div class="video-thumb-wrap" id="v4" onclick="playVideo('v4','Ks-_Mh1QhMc')">
-          <img src="https://i.ytimg.com/vi/Ks-_Mh1QhMc/hqdefault.jpg" alt="Consistency"/>
-          <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
-        </div>
-        <div class="video-meta">
-          <div class="video-tag">🔄 Consistency</div>
-          <div class="video-title">Small Daily Habits That Compound Into Mastery</div>
-          <div class="video-desc">Why showing up every day beats occasional heroic effort — every time.</div>
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -480,45 +429,86 @@ function playVideo(id, ytId){
   wrap.appendChild(iframe);
 }
 
-/* ── Story API load ── */
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── Render YouTube video cards ── */
+function renderVideos(videos, topic){
+  const grid = document.getElementById('video-grid-container');
+  const label = document.getElementById('video-section-label');
+
+  if(topic) label.textContent = `Watch & Learn — ${topic}`;
+
+  if(!videos || videos.length === 0){
+    grid.innerHTML = `<p style="color:var(--tx-m);font-size:13px;padding:16px 0">
+      No videos found. Make sure your YouTube API key is set in <code>.env</code>.</p>`;
+    return;
+  }
+
+  grid.innerHTML = `<div class="video-grid">${videos.map((v,i)=>`
+    <div class="video-card">
+      <div class="video-thumb-wrap" id="vy${i}" onclick="playVideo('vy${i}','${escH(v.id)}')">
+        <img src="${escH(v.thumbnail)}" alt="${escH(v.title)}" loading="lazy"/>
+        <div class="play-btn"><div class="play-circle"><div class="play-triangle"></div></div></div>
+      </div>
+      <div class="video-meta">
+        <div class="video-tag">📺 ${escH(v.channel)}</div>
+        <div class="video-title">${escH(v.title)}</div>
+        <div class="video-desc">${escH(v.description)}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+/* ── Story + YouTube API load ── */
 async function load(){
   try{
-    const r = await fetch('/api/motivation');
-    if(r.status===401){location.href='/login';return;}
-    const d = await r.json();
+    // Load story and videos in parallel
+    const [storyRes, ytRes] = await Promise.all([
+      fetch('/api/motivation'),
+      fetch('/api/youtube'),
+    ]);
+
+    if(storyRes.status===401){location.href='/login';return;}
+
+    const storyData = await storyRes.json();
+    const ytData    = await ytRes.json();
+
+    // Story section
     document.getElementById('loading').style.display='none';
     document.getElementById('content').style.display='';
 
-    if(!d.motivation){
+    if(!storyData.motivation){
       document.getElementById('content').innerHTML=`
         <div class="empty-mot">
           <div class="empty-mot-icon">🔥</div>
           <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:8px">No story yet</h3>
           <p>Head to the <a href="/chat">AI Chatbot</a> and say "I want to learn Java" to generate your personalised success story!</p>
         </div>`;
-      return;
+    } else {
+      const m = storyData.motivation;
+      document.getElementById('content').innerHTML=`
+        <div class="story-card">
+          <div class="story-topic">🎯 ${escH(m.topic)} — Success Story</div>
+          <div class="story-title">From Beginner to Builder</div>
+          <div class="story-text">${escH(m.story)}</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">💡</div>
+          <div>
+            <div class="tip-label">Daily Tip</div>
+            <div class="tip-text">${escH(m.daily_tip)}</div>
+          </div>
+        </div>`;
     }
 
-    const m = d.motivation;
-    document.getElementById('content').innerHTML=`
-      <div class="story-card">
-        <div class="story-topic">🎯 ${escH(m.topic)} — Success Story</div>
-        <div class="story-title">From Beginner to Builder</div>
-        <div class="story-text">${escH(m.story)}</div>
-      </div>
-      <div class="tip-card">
-        <div class="tip-icon">💡</div>
-        <div>
-          <div class="tip-label">Daily Tip</div>
-          <div class="tip-text">${escH(m.daily_tip)}</div>
-        </div>
-      </div>`;
+    // YouTube section
+    renderVideos(ytData.videos || [], ytData.topic || '');
+
   }catch(e){
     document.getElementById('loading').innerHTML='Failed to load. Please refresh.';
+    console.error(e);
   }
 }
 
-function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
 load();
 </script>
