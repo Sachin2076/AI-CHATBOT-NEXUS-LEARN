@@ -1,6 +1,8 @@
 import os
+import re
 import json
 import traceback
+from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -28,6 +30,44 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 socketio.init_app(app, cors_allowed_origins="*")
 app.register_blueprint(groups_bp)
 app.register_blueprint(interview_bp)
+
+# ═════════════════════════════════════════════════════════════
+#  RATE LIMITER  (in-memory, per user, sliding window)
+#  20 chat messages per minute per user.
+#  Resets automatically as timestamps age out.
+# ═════════════════════════════════════════════════════════════
+import time as _time
+
+_rate_store: dict[str, list[float]] = defaultdict(list)
+RATE_LIMIT      = 20    # max requests
+RATE_WINDOW     = 60    # seconds
+
+def _check_rate_limit(user_id: str) -> bool:
+    """Return True (allowed) or False (limit exceeded)."""
+    now = _time.time()
+    timestamps = _rate_store[user_id]
+    # Drop timestamps outside the window
+    _rate_store[user_id] = [t for t in timestamps if now - t < RATE_WINDOW]
+    if len(_rate_store[user_id]) >= RATE_LIMIT:
+        return False
+    _rate_store[user_id].append(now)
+    return True
+
+
+# ═════════════════════════════════════════════════════════════
+#  INPUT SANITISER
+#  Strips HTML tags and control characters from user text
+#  before it is stored in MongoDB or sent to the LLM.
+# ═════════════════════════════════════════════════════════════
+_HTML_TAG_RE  = re.compile(r"<[^>]{0,200}>")
+_CTRL_CHAR_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+MESSAGE_MAX_LEN = 4000  # characters
+
+def sanitise_input(text: str) -> str:
+    """Strip HTML tags and control characters; truncate to safe length."""
+    text = _HTML_TAG_RE.sub("", text)
+    text = _CTRL_CHAR_RE.sub("", text)
+    return text[:MESSAGE_MAX_LEN].strip()
 
 try:
     get_db()
@@ -346,8 +386,11 @@ def api_chat_stream():
     uid, err = require_auth()
     if err: return err
 
+    if not _check_rate_limit(uid):
+        return jsonify({"error": "Too many messages. Please wait a moment."}), 429
+
     data         = request.get_json() or {}
-    user_message = data.get("message", "").strip()
+    user_message = sanitise_input(data.get("message", "").strip())
     session_id   = data.get("session_id", "")
 
     if not user_message:
@@ -397,8 +440,11 @@ def api_chat():
     uid, err = require_auth()
     if err: return err
 
+    if not _check_rate_limit(uid):
+        return jsonify({"error": "Too many messages. Please wait a moment."}), 429
+
     data         = request.get_json() or {}
-    user_message = data.get("message", "").strip()
+    user_message = sanitise_input(data.get("message", "").strip())
     session_id   = data.get("session_id", "")
 
     if not user_message:

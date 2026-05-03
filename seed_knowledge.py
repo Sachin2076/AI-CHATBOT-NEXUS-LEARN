@@ -386,6 +386,298 @@ DOCS = [
             "implementation details, creating hidden dependencies that break when internals change."
         ),
     },
+    # ── JavaScript ───────────────────────────────────────────────────────────
+    {
+        "id": "js_closures",
+        "topic": "JavaScript",
+        "text": (
+            "A closure is a function that retains access to variables from its enclosing lexical scope "
+            "even after the outer function has returned. In JavaScript, every function forms a closure. "
+            "This enables powerful patterns: factory functions that produce customised functions, "
+            "data hiding by keeping variables out of global scope, and memoization caches. "
+            "Example: a counter factory returns an increment function that closes over a private count variable. "
+            "Closures are the mechanism behind module patterns (IIFE) that were common before ES6 modules. "
+            "A common pitfall is closures inside loops: all iterations share the same variable reference, "
+            "so using var in a for loop captures the final value. Fix with let (block-scoped) or an IIFE."
+        ),
+    },
+    {
+        "id": "js_promises_async",
+        "topic": "JavaScript",
+        "text": (
+            "A Promise represents the eventual result of an asynchronous operation. It is in one of three "
+            "states: pending, fulfilled, or rejected. .then() chains handle fulfillment; .catch() handles "
+            "rejection; .finally() runs regardless. async/await is syntactic sugar over Promises: an "
+            "async function always returns a Promise; await pauses execution until the Promise settles. "
+            "Error handling with async/await uses try/catch blocks. Promise.all() runs multiple Promises "
+            "in parallel and resolves when all resolve (or rejects at the first rejection). "
+            "Promise.allSettled() waits for all regardless of outcome. "
+            "Promise.race() resolves or rejects as soon as the first Promise settles. "
+            "Avoid callback hell by converting nested callbacks to Promise chains or async/await."
+        ),
+    },
+    {
+        "id": "js_event_loop",
+        "topic": "JavaScript",
+        "text": (
+            "JavaScript is single-threaded: only one piece of code executes at a time. The event loop "
+            "enables non-blocking behaviour. When a script runs, synchronous code executes on the call stack. "
+            "Asynchronous operations (setTimeout, fetch, I/O) are offloaded to Web APIs. When they complete, "
+            "their callbacks enter the task queue (macrotask queue). The event loop moves a callback to the "
+            "call stack only when the stack is empty. Microtasks (Promise callbacks, queueMicrotask) have "
+            "higher priority than macrotasks and are processed before the next macrotask. "
+            "This explains why a resolved Promise's .then() callback runs before a setTimeout(fn, 0) callback. "
+            "Understanding the event loop is essential for debugging race conditions and ordering issues."
+        ),
+    },
+    {
+        "id": "js_es6_features",
+        "topic": "JavaScript",
+        "text": (
+            "ES6 (ECMAScript 2015) introduced major language features. let and const provide block scoping "
+            "unlike var's function scoping. Arrow functions (=>) inherit the enclosing this instead of "
+            "defining their own, solving common this binding bugs. Template literals use backticks and ${} "
+            "for string interpolation and multiline strings. Destructuring extracts values from arrays "
+            "and objects: const {name, age} = person. Rest (...args) collects remaining elements; "
+            "spread (...array) expands an iterable. Default parameters: function greet(name = 'Student'). "
+            "Modules: export named values or a default; import them with import. "
+            "Classes provide syntactic sugar over prototype-based inheritance. "
+            "Map and Set offer better keyed collection alternatives to plain objects."
+        ),
+    },
+    # ── SQL (expanded) ────────────────────────────────────────────────────────
+    {
+        "id": "sql_joins_deep",
+        "topic": "SQL",
+        "text": (
+            "SQL JOINs combine rows from two tables based on a related column. "
+            "INNER JOIN returns only rows where the join condition matches in both tables. "
+            "LEFT JOIN (LEFT OUTER JOIN) returns all rows from the left table plus matched rows "
+            "from the right; unmatched right columns are NULL. RIGHT JOIN is the mirror. "
+            "FULL OUTER JOIN returns all rows from both tables, with NULLs where there is no match. "
+            "CROSS JOIN returns the Cartesian product — every left row combined with every right row. "
+            "SELF JOIN joins a table to itself, useful for hierarchical data (e.g., employee-manager). "
+            "Join conditions use ON for explicit column matching or USING when column names are identical. "
+            "Multiple JOINs chain left-to-right. Index the foreign key columns to make JOINs fast. "
+            "Avoid SELECT * in JOINs — list only needed columns to prevent ambiguous column names."
+        ),
+    },
+    {
+        "id": "sql_aggregates_groupby",
+        "topic": "SQL",
+        "text": (
+            "Aggregate functions compute a single result from a set of rows. COUNT(*) counts all rows; "
+            "COUNT(column) counts non-NULL values. SUM, AVG, MIN, MAX work on numeric columns. "
+            "GROUP BY groups rows sharing a value so aggregates apply per group: "
+            "SELECT department, AVG(salary) FROM employees GROUP BY department. "
+            "Every column in SELECT must either be in GROUP BY or wrapped in an aggregate function. "
+            "HAVING filters groups after aggregation, unlike WHERE which filters rows before. "
+            "Example: HAVING AVG(salary) > 50000 keeps only departments with high average pay. "
+            "Window functions (OVER clause) apply aggregates without collapsing rows: "
+            "ROW_NUMBER(), RANK(), LAG(), LEAD(), SUM() OVER (PARTITION BY ... ORDER BY ...). "
+            "These are powerful for running totals, rankings, and time-series comparisons."
+        ),
+    },
+    {
+        "id": "sql_transactions_acid",
+        "topic": "SQL",
+        "text": (
+            "A transaction groups multiple SQL statements so they either all succeed (COMMIT) "
+            "or all fail (ROLLBACK), preserving data integrity. ACID properties define reliable transactions. "
+            "Atomicity: all operations complete or none do. "
+            "Consistency: the database moves from one valid state to another. "
+            "Isolation: concurrent transactions do not see each other's intermediate state. "
+            "Durability: committed changes survive system failures (written to disk). "
+            "Isolation levels trade concurrency for safety: READ UNCOMMITTED (dirty reads allowed), "
+            "READ COMMITTED (no dirty reads), REPEATABLE READ (no phantom rows in MySQL InnoDB), "
+            "SERIALIZABLE (full isolation, lowest concurrency). "
+            "Deadlocks occur when two transactions wait for each other's locks; databases detect and "
+            "resolve them by rolling back one transaction. Keep transactions short to reduce lock contention."
+        ),
+    },
+    # ── Operating Systems ─────────────────────────────────────────────────────
+    {
+        "id": "os_processes_threads",
+        "topic": "operating systems",
+        "text": (
+            "A process is an instance of a running program with its own memory space, file handles, "
+            "and OS resources. A thread is a unit of execution within a process; threads share the "
+            "process's memory and resources but have their own stack and registers. "
+            "Context switching between processes is expensive (full state save/restore); "
+            "switching between threads of the same process is cheaper because memory mappings are shared. "
+            "Concurrency with threads requires synchronisation: mutexes (mutual exclusion locks) prevent "
+            "simultaneous access to shared data; semaphores control access to a pool of resources. "
+            "Race conditions occur when output depends on non-deterministic thread scheduling. "
+            "Deadlock: two threads each hold a lock the other needs and neither can proceed. "
+            "Python's GIL (Global Interpreter Lock) prevents true parallel execution of Python threads; "
+            "use multiprocessing for CPU-bound parallelism or asyncio for I/O-bound concurrency."
+        ),
+    },
+    {
+        "id": "os_memory_management",
+        "topic": "operating systems",
+        "text": (
+            "Virtual memory gives each process the illusion of a large, private address space. "
+            "The OS and hardware (MMU) translate virtual addresses to physical RAM addresses using "
+            "page tables. Memory is divided into fixed-size pages (typically 4KB). "
+            "When a process accesses a page not in RAM, a page fault occurs and the OS loads it from disk. "
+            "Swapping moves entire processes to disk; paging moves individual pages. "
+            "Memory allocation strategies: first fit, best fit, worst fit for variable-size segments. "
+            "The heap is dynamically allocated (malloc/free in C, new/delete in C++); fragmentation "
+            "wastes space over time. Garbage collectors (Java, Python) automate deallocation using "
+            "reference counting, mark-and-sweep, or generational collection. "
+            "Stack memory is automatically managed: function frames are pushed on call and popped on return."
+        ),
+    },
+    # ── Design Patterns ───────────────────────────────────────────────────────
+    {
+        "id": "patterns_singleton",
+        "topic": "design patterns",
+        "text": (
+            "The Singleton pattern ensures a class has only one instance and provides a global access point. "
+            "Implementation: make the constructor private, store the instance in a static field, "
+            "and provide a static getInstance() method that creates the instance on first call. "
+            "Thread safety requires double-checked locking or an initialisation-on-demand holder. "
+            "In Python, module-level objects are singletons by nature (module imported once, cached). "
+            "Singletons are useful for logging, configuration, and connection pools but are often "
+            "considered an anti-pattern because they introduce global state and make unit testing harder "
+            "(hard to mock or replace). Dependency injection is a cleaner alternative in most cases: "
+            "pass the shared instance as a constructor parameter rather than accessing it globally."
+        ),
+    },
+    {
+        "id": "patterns_observer",
+        "topic": "design patterns",
+        "text": (
+            "The Observer pattern defines a one-to-many dependency: when a subject (publisher) changes "
+            "state, all registered observers (subscribers) are notified automatically. "
+            "Components: Subject (maintains observer list, attach/detach/notify methods), "
+            "Observer (interface with update() method), ConcreteObserver (implements update). "
+            "This decouples the subject from its observers — the subject does not know observer details. "
+            "Applications: GUI event systems, model-view architectures (MVC), pub/sub messaging, "
+            "real-time dashboards, and reactive programming (RxJS, Python asyncio). "
+            "Push model: subject sends data with the notification. "
+            "Pull model: subject sends only a reference; observers fetch needed data. "
+            "Avoid update storms: an observer's update triggering further notifications can cascade."
+        ),
+    },
+    {
+        "id": "patterns_factory",
+        "topic": "design patterns",
+        "text": (
+            "The Factory Method pattern defines an interface for creating an object but lets subclasses "
+            "decide which class to instantiate, deferring object creation to subclasses. "
+            "The Abstract Factory pattern provides an interface for creating families of related objects "
+            "without specifying their concrete classes. "
+            "Benefits: decouples the client from concrete implementations; easy to extend with new types "
+            "by adding a new subclass without changing existing code (Open/Closed Principle). "
+            "A simple factory (not GoF) is a helper class or method that centralises object creation logic, "
+            "choosing the right class based on a parameter. "
+            "Use factories when: the exact type is not known until runtime; object creation is complex "
+            "or involves multiple steps; you want to enforce a common creation interface across a family."
+        ),
+    },
+    # ── Git / Version Control ─────────────────────────────────────────────────
+    {
+        "id": "git_basics",
+        "topic": "Git",
+        "text": (
+            "Git is a distributed version control system where every developer has a full copy of the "
+            "repository history. Core concepts: working directory (files on disk), staging area (index, "
+            "what will be in the next commit), repository (.git folder with all history). "
+            "Key commands: git init creates a repo; git clone copies a remote repo; git add stages changes; "
+            "git commit saves a snapshot with a message; git status shows current state; "
+            "git log shows commit history; git diff compares changes. "
+            "Branching: git branch creates; git checkout or git switch changes branch; "
+            "git merge integrates another branch. Rebasing rewrites commit history onto a new base. "
+            "git stash temporarily shelves uncommitted changes. git remote manages connections to "
+            "remote repositories; git push sends commits; git pull fetches and merges remote changes."
+        ),
+    },
+    {
+        "id": "git_branching_workflow",
+        "topic": "Git",
+        "text": (
+            "Git Flow is a branching model with two permanent branches: main (production) and develop "
+            "(integration). Feature branches branch off develop and merge back via pull requests. "
+            "Release branches freeze a version for testing. Hotfix branches fix production bugs off main. "
+            "GitHub Flow is simpler: only main is permanent; all work happens on short-lived feature "
+            "branches that merge to main via pull requests after code review. "
+            "Trunk-based development pushes small commits directly to main (or short-lived branches "
+            "merged within a day), relying on feature flags to hide incomplete work. "
+            "Commit messages: use imperative mood ('Add feature' not 'Added'), keep the subject under "
+            "72 characters, and use the body to explain why not what. "
+            "Interactive rebase (git rebase -i) squashes, reorders, or edits commits before merging."
+        ),
+    },
+    # ── Python (additional) ───────────────────────────────────────────────────
+    {
+        "id": "python_oop",
+        "topic": "Python",
+        "text": (
+            "Python classes are defined with the class keyword. __init__ is the constructor. "
+            "self is the first parameter of every instance method, referring to the instance. "
+            "Class variables are shared across all instances; instance variables are per-object. "
+            "Python supports multiple inheritance; the MRO (C3 linearization) defines method resolution order. "
+            "__str__ returns a human-readable string; __repr__ returns a developer-facing representation. "
+            "Properties (@property, @setter) provide controlled attribute access. "
+            "__dunder__ (magic/dunder) methods enable operator overloading: __add__, __len__, __eq__. "
+            "Abstract base classes (abc.ABC, @abstractmethod) enforce interface contracts. "
+            "Dataclasses (@dataclass) auto-generate __init__, __repr__, and __eq__ from field definitions, "
+            "reducing boilerplate significantly for data-holding classes."
+        ),
+    },
+    {
+        "id": "python_error_handling",
+        "topic": "Python",
+        "text": (
+            "Python uses try/except/else/finally for error handling. except catches specific exception types; "
+            "always catch the most specific exception first. except Exception as e captures the exception object. "
+            "Use else after try to run code only when no exception was raised. "
+            "finally always runs — use it to release resources (close files, release locks). "
+            "raise re-raises the current exception or raises a new one. "
+            "Custom exceptions subclass Exception (or a more specific base). "
+            "Context managers (with statement) use __enter__ and __exit__ to guarantee cleanup — "
+            "file objects and database connections should always use with. "
+            "The contextlib.contextmanager decorator lets you write generators as context managers. "
+            "Never use bare except: — it catches everything including SystemExit and KeyboardInterrupt."
+        ),
+    },
+    # ── Computer Science Fundamentals ─────────────────────────────────────────
+    {
+        "id": "cs_recursion",
+        "topic": "computer science",
+        "text": (
+            "Recursion is when a function calls itself to solve a smaller instance of the same problem. "
+            "Every recursive function needs a base case (termination condition) and a recursive case "
+            "that moves toward it. Classic examples: factorial(n) = n * factorial(n-1), base case n=0; "
+            "Fibonacci; tree/graph traversal; merge sort; quicksort. "
+            "Each call adds a frame to the call stack; deep recursion risks a stack overflow. "
+            "Tail recursion: the recursive call is the very last operation — some compilers optimise "
+            "it to a loop (Python does not). "
+            "Memoization (caching results of subproblems) converts naive exponential recursion to linear. "
+            "Mutual recursion: function A calls B, B calls A — valid if both have reachable base cases. "
+            "Recursive thinking: trust that the recursive call solves the smaller problem, then build the "
+            "full solution using that result."
+        ),
+    },
+    {
+        "id": "cs_graph_theory",
+        "topic": "computer science",
+        "text": (
+            "A graph G = (V, E) consists of vertices (nodes) and edges (connections). "
+            "Directed graphs (digraphs) have one-way edges; undirected graphs have two-way edges. "
+            "Weighted graphs assign a cost to each edge. "
+            "Representations: adjacency matrix (O(V²) space, O(1) edge lookup); "
+            "adjacency list (O(V+E) space, efficient for sparse graphs). "
+            "Breadth-First Search (BFS) explores level by level using a queue — finds shortest path in "
+            "unweighted graphs. Depth-First Search (DFS) explores as deep as possible using a stack "
+            "or recursion — used for cycle detection, topological sort, connected components. "
+            "Dijkstra's algorithm finds shortest paths in weighted graphs with non-negative edges O((V+E) log V). "
+            "Topological sort orders vertices so all directed edges point forward — only possible in DAGs. "
+            "Minimum spanning tree (Kruskal's, Prim's) connects all vertices with minimum total edge weight."
+        ),
+    },
 ]
 
 

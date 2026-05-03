@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import requests
 from rag import retrieve_context
 
@@ -195,12 +196,75 @@ REMINDER — BEFORE YOU REPLY CHECK THESE RULES:
     return prompt
 
 
+def _extract_weak_topic_names(performance_context: str) -> list[str]:
+    """
+    Parse the weak topic names out of a performance_context string.
+    Returns a list of lowercase topic name strings, e.g. ['python', 'sql'].
+    """
+    if not performance_context:
+        return []
+    # Match lines like: Topics needing more attention (score < 70%): Python (55%), SQL (48%)
+    m = re.search(r"Topics needing more attention[^:]*:\s*(.+)", performance_context)
+    if not m:
+        return []
+    raw = m.group(1)
+    # Strip percentage annotations: "Python (55%)" → "python"
+    names = []
+    for part in raw.split(","):
+        name = re.sub(r"\s*\(\d+%\)", "", part).strip().lower()
+        if name:
+            names.append(name)
+    return names
+
+
+def _response_addresses_weak_topics(reply: str, weak_topics: list[str]) -> bool:
+    """
+    Return True if the reply text mentions at least one weak topic keyword.
+    Used to verify the adaptive loop actually produced personalised content.
+    """
+    if not weak_topics:
+        return True   # No weak topics → always acceptable
+    reply_lower = reply.lower()
+    return any(topic in reply_lower for topic in weak_topics)
+
+
+def _build_reprompt(
+    history: list,
+    user_message: str,
+    performance_context: str,
+    rag_context: str,
+    weak_topics: list[str],
+) -> str:
+    """
+    Build a second prompt explicitly instructing the model to address weak topics.
+    Called only when the first response failed the adaptive check.
+    """
+    topic_list = ", ".join(weak_topics)
+    reprompt_instruction = (
+        f"\n[ADAPTIVE REPROMPT — STRICT]\n"
+        f"Your previous response did not address the student's weak topics: {topic_list}.\n"
+        f"Rewrite your response. You MUST explicitly mention and explain concepts related to: {topic_list}.\n"
+        f"Tie your answer back to these areas. This is required for personalised learning.\n"
+        f"[END REPROMPT]\n"
+    )
+    base = _build_prompt(history, user_message, performance_context, rag_context)
+    return base + reprompt_instruction
+
+
 def ask_ollama(
     history: list,
     user_message: str,
     performance_context: str = "",
 ) -> str:
-    """Blocking call — returns the complete reply as a string."""
+    """
+    Blocking call — returns the complete reply as a string.
+
+    Adaptive loop:
+      1. Generate a first response.
+      2. Check whether it addresses the student's weak topics.
+      3. If not, re-prompt once with an explicit instruction to cover those topics.
+      4. Return whichever response is returned (first pass or re-prompt).
+    """
     rag_context = retrieve_context(user_message)
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
     payload = {
@@ -214,7 +278,7 @@ def ask_ollama(
             f"{OLLAMA_URL}/api/generate", json=payload, timeout=500
         )
         resp.raise_for_status()
-        return resp.json().get("response", "").strip()
+        first_reply = resp.json().get("response", "").strip()
     except requests.exceptions.ConnectionError:
         raise RuntimeError(
             "Cannot connect to Ollama. Make sure Ollama is running: ollama serve"
@@ -224,6 +288,26 @@ def ask_ollama(
     except requests.exceptions.HTTPError as e:
         raise RuntimeError(f"Ollama API error: {e}")
 
+    # ── Adaptive loop check ──────────────────────────────────────────────────
+    weak_topics = _extract_weak_topic_names(performance_context)
+    if weak_topics and not _response_addresses_weak_topics(first_reply, weak_topics):
+        reprompt = _build_reprompt(
+            history, user_message, performance_context, rag_context, weak_topics
+        )
+        reprompt_payload = {**payload, "prompt": reprompt}
+        try:
+            r2 = requests.post(
+                f"{OLLAMA_URL}/api/generate", json=reprompt_payload, timeout=500
+            )
+            r2.raise_for_status()
+            second_reply = r2.json().get("response", "").strip()
+            if second_reply:
+                return second_reply
+        except Exception:
+            pass  # Fall back to first reply if re-prompt fails
+
+    return first_reply
+
 
 def stream_ollama(
     history: list,
@@ -232,6 +316,11 @@ def stream_ollama(
 ):
     """
     Generator that yields text tokens from Ollama's streaming API.
+
+    Adaptive loop:
+      Streams the first response token-by-token.
+      After streaming completes, checks whether weak topics were addressed.
+      If not, yields a separator then streams a re-prompted response.
     """
     rag_context = retrieve_context(user_message)
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
@@ -241,6 +330,9 @@ def stream_ollama(
         "stream": True,
         "options": {"temperature": 0.5, "top_p": 0.9, "num_predict": 2048},
     }
+
+    first_tokens = []
+
     try:
         with requests.post(
             f"{OLLAMA_URL}/api/generate",
@@ -256,6 +348,7 @@ def stream_ollama(
                     chunk = json.loads(line)
                     token = chunk.get("response", "")
                     if token:
+                        first_tokens.append(token)
                         yield token
                     if chunk.get("done"):
                         break
@@ -269,6 +362,37 @@ def stream_ollama(
         raise RuntimeError("Ollama timed out.")
     except requests.exceptions.HTTPError as e:
         raise RuntimeError(f"Ollama API error: {e}")
+
+    # ── Adaptive loop check ──────────────────────────────────────────────────
+    first_reply = "".join(first_tokens)
+    weak_topics = _extract_weak_topic_names(performance_context)
+    if weak_topics and not _response_addresses_weak_topics(first_reply, weak_topics):
+        reprompt = _build_reprompt(
+            history, user_message, performance_context, rag_context, weak_topics
+        )
+        reprompt_payload = {**payload, "prompt": reprompt}
+        try:
+            with requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json=reprompt_payload,
+                stream=True,
+                timeout=600,
+            ) as resp2:
+                resp2.raise_for_status()
+                for line in resp2.iter_lines():
+                    if not line:
+                        continue
+                    try:
+                        chunk = json.loads(line)
+                        token = chunk.get("response", "")
+                        if token:
+                            yield token
+                        if chunk.get("done"):
+                            break
+                    except json.JSONDecodeError:
+                        continue
+        except Exception:
+            pass  # Silently fall back — first reply already streamed
 
 
 def check_ollama_status() -> dict:
