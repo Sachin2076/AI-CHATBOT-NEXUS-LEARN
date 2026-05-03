@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from rag import retrieve_context
 
 OLLAMA_URL   = os.environ.get("OLLAMA_URL",   "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
@@ -144,8 +145,14 @@ def _build_prompt(
     history: list,
     user_message: str,
     performance_context: str = "",
+    rag_context: str = "",
 ) -> str:
     parts = [f"[SYSTEM INSTRUCTION]\n{SYSTEM_INSTRUCTION.strip()}\n"]
+
+    if rag_context:
+        parts.append(
+            f"Relevant knowledge:\n{rag_context}\n\nUse the above to inform your response."
+        )
 
     if performance_context:
         parts.append(performance_context)
@@ -178,7 +185,8 @@ def ask_ollama(
     performance_context: str = "",
 ) -> str:
     """Blocking call — returns the complete reply as a string."""
-    prompt = _build_prompt(history, user_message, performance_context)
+    rag_context = retrieve_context(user_message)
+    prompt = _build_prompt(history, user_message, performance_context, rag_context)
     payload = {
         "model":  OLLAMA_MODEL,
         "prompt": prompt,
@@ -209,7 +217,8 @@ def stream_ollama(
     """
     Generator that yields text tokens from Ollama's streaming API.
     """
-    prompt = _build_prompt(history, user_message, performance_context)
+    rag_context = retrieve_context(user_message)
+    prompt = _build_prompt(history, user_message, performance_context, rag_context)
     payload = {
         "model":  OLLAMA_MODEL,
         "prompt": prompt,
