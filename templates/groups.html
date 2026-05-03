@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/style.css"/>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
 <style>
 /* ── Page Layout ── */
 .groups-page { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
@@ -55,7 +56,9 @@
   background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 18px;
   padding: 20px; cursor: pointer; transition: all .25s; position: relative; overflow: hidden;
 }
-.group-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--amber-gl) 0%, transparent 60%); opacity: 0; transition: opacity .3s; }
+.group-card {
+  background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 18px;
+  padding: 20px; cursor: default;
 .group-card:hover { border-color: var(--bdr-l); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.4); }
 .group-card:hover::before { opacity: 1; }
 .group-card.my-card { border-color: rgba(240,160,64,.3); background: linear-gradient(135deg, rgba(240,160,64,.08) 0%, var(--bg-c) 100%); }
@@ -225,7 +228,7 @@
             <textarea id="msg-input" placeholder="Post a message to the group…" rows="1"></textarea>
             <button class="send-btn" id="msg-send-btn" onclick="postMessage()" title="Send">➤</button>
           </div>
-          <div class="refresh-hint" id="refresh-hint">Auto-refreshes every 10s</div>
+          <div class="refresh-hint" id="refresh-hint">Connecting…</div>
         </div>
 
         <!-- Members -->
@@ -247,15 +250,14 @@ let myGroupId    = null;
 let currentUid   = null;
 let currentUname = null;
 let activeRoomId = null;
-let refreshTimer = null;
 let allGroups    = [];
+let socket       = null;
 
 /* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
 async function init(){
   await loadGroups();
-  // Auto-resize message textarea
   const ta = document.getElementById('msg-input');
   ta.addEventListener('input', ()=>{
     ta.style.height='auto';
@@ -286,7 +288,6 @@ async function loadGroups(){
     renderGroups();
     updateBanner();
 
-    // If user is in a group and room is open, refresh messages
     if(activeRoomId) loadMessages(activeRoomId);
 
   }catch(e){
@@ -297,6 +298,9 @@ async function loadGroups(){
 
 /* ══════════════════════════════════════
    RENDER GROUPS
+   FIX: use data-attributes for join button
+   to avoid JS string-quoting bugs when
+   group names contain apostrophes or quotes.
 ══════════════════════════════════════ */
 function renderGroups(){
   const grid = document.getElementById('groups-grid');
@@ -338,7 +342,10 @@ function renderGroups(){
           ? `<button class="btn btn-primary btn-sm" style="flex:1" onclick="openRoom('${g._id}')">Open Noticeboard</button>`
           : myGroupId
             ? `<button class="btn btn-outline btn-sm" style="flex:1;opacity:.5;cursor:not-allowed" disabled title="Leave your current group first">Join</button>`
-            : `<button class="btn btn-outline btn-sm" style="flex:1" onclick="joinGroup('${g._id}','${escH(g.name)}')">Join Group</button>`
+            : `<button class="btn btn-outline btn-sm" style="flex:1"
+                 data-id="${g._id}"
+                 data-name="${escH(g.name)}"
+                 onclick="joinGroup(this.dataset.id, this.dataset.name)">Join Group</button>`
         }
       </div>`;
     grid.appendChild(card);
@@ -356,7 +363,6 @@ function updateBanner(){
       document.getElementById('banner-name').textContent  = g.name;
       document.getElementById('banner-topic').textContent = '📚 ' + g.topic;
       banner.style.display='';
-      // Hide create section since user is already in a group
       document.getElementById('create-section').style.display='none';
     }
   } else {
@@ -393,7 +399,6 @@ async function createGroup(){
       document.getElementById('g-name').value  ='';
       document.getElementById('g-topic').value ='';
       await loadGroups();
-      // Auto-open the room
       if(d.group) openRoom(d.group._id);
     } else {
       err.textContent = d.error || 'Failed to create group.';
@@ -455,21 +460,17 @@ async function openRoom(groupId){
   document.getElementById('room-topic').textContent = '📚 ' + g.topic;
   document.getElementById('group-room').style.display='';
 
-  // Render members
   renderMembers(g.members_list||[]);
-
-  // Load messages then start SSE real-time stream
   await loadMessages(groupId);
-  startGroupSSE(groupId);
+  startGroupSocket(groupId);
 
-  // Scroll to room
   setTimeout(()=> document.getElementById('group-room').scrollIntoView({behavior:'smooth'}), 100);
 }
 
 function closeRoom(){
   activeRoomId = null;
   document.getElementById('group-room').style.display='none';
-  stopGroupSSE();
+  stopGroupSocket();
 }
 
 function scrollToRoom(){
@@ -502,60 +503,48 @@ function renderMembers(members){
 }
 
 /* ══════════════════════════════════════
+   SOCKET.IO REAL-TIME CHAT
+══════════════════════════════════════ */
+function startGroupSocket(groupId){
+  stopGroupSocket();
+  socket = io();
+
+  socket.on('connect', ()=>{
+    socket.emit('join_group', { group_id: groupId });
+  });
+
+  socket.on('joined', ()=>{
+    document.getElementById('refresh-hint').textContent = '● Live';
+  });
+
+  socket.on('new_message', (msg)=>{
+    appendGroupMessage(msg);
+  });
+
+  socket.on('error', (data)=>{
+    console.error('Socket error:', data.message);
+  });
+
+  socket.on('disconnect', ()=>{
+    document.getElementById('refresh-hint').textContent = 'Reconnecting…';
+  });
+}
+
+function stopGroupSocket(){
+  if(socket){
+    if(activeRoomId) socket.emit('leave_group', { group_id: activeRoomId });
+    socket.disconnect();
+    socket = null;
+  }
+}
+
+/* ══════════════════════════════════════
    MESSAGES
 ══════════════════════════════════════ */
-/* ══════════════════════════════════════
-   SSE REAL-TIME MESSAGES (Gap 3)
-   Replaces setInterval(10s) with EventSource
-   connected to /api/groups/<id>/stream.
-   New messages are appended without full
-   re-render; server reconnects every 30s.
-══════════════════════════════════════ */
-let sseSource      = null;
-let lastMsgTime    = null;   // ISO string of most-recent message seen
-
-function startGroupSSE(groupId){
-  stopGroupSSE();
-  const url = `/api/groups/${groupId}/stream` +
-              (lastMsgTime ? `?since=${encodeURIComponent(lastMsgTime)}` : '');
-  sseSource = new EventSource(url);
-
-  sseSource.onmessage = (evt) => {
-    try{
-      const msg = JSON.parse(evt.data);
-      if(msg.timeout){
-        // Server closed after 30s — reconnect transparently
-        sseSource.close();
-        sseSource = null;
-        startGroupSSE(groupId);
-        return;
-      }
-      if(msg.posted_at){
-        lastMsgTime = msg.posted_at;
-        appendGroupMessage(msg);
-      }
-    } catch(_){}
-  };
-
-  sseSource.onerror = () => {
-    if(sseSource) sseSource.close();
-    sseSource = null;
-    setTimeout(() => {
-      if(activeRoomId === groupId) startGroupSSE(groupId);
-    }, 3000);
-  };
-}
-
-function stopGroupSSE(){
-  if(sseSource){ sseSource.close(); sseSource = null; }
-}
-
-/** Append a single new message without re-rendering the whole board. */
 function appendGroupMessage(msg){
   const board = document.getElementById('msg-board');
   if(!board) return;
 
-  // Remove "no messages" placeholder if present
   const empty = board.querySelector('.board-empty');
   if(empty) empty.remove();
 
@@ -577,19 +566,12 @@ function appendGroupMessage(msg){
   if(wasAtBottom) board.scrollTop = board.scrollHeight;
 }
 
-let lastMsgCount = 0;
-
 async function loadMessages(groupId){
   try{
     const r = await fetch(`/api/groups/${groupId}/messages`);
     if(!r.ok) return;
     const d = await r.json();
-    const msgs = d.messages || [];
-    lastMsgCount = msgs.length;
-    renderMessages(msgs);
-    // Seed SSE cursor so it only streams messages *newer* than initial load
-    if(msgs.length > 0) lastMsgTime = msgs[msgs.length - 1].posted_at;
-    // Also refresh members
+    renderMessages(d.messages || []);
     const gr = await fetch(`/api/groups/${groupId}`);
     if(gr.ok){
       const gd = await gr.json();
@@ -632,34 +614,15 @@ function renderMessages(msgs){
   if(wasAtBottom) board.scrollTop = board.scrollHeight;
 }
 
-async function postMessage(){
-  if(!activeRoomId) return;
+function postMessage(){
+  if(!activeRoomId || !socket || !socket.connected) return;
   const input = document.getElementById('msg-input');
   const text  = input.value.trim();
-  const btn   = document.getElementById('msg-send-btn');
   if(!text) return;
-
-  btn.disabled=true;
-  try{
-    const r = await fetch(`/api/groups/${activeRoomId}/messages`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text})
-    });
-    const d = await r.json();
-    if(r.ok){
-      input.value='';
-      input.style.height='auto';
-      // Append our own message immediately (SSE will not echo it back to us)
-      if(d.message) appendGroupMessage(d.message);
-      // Scroll to bottom
-      const board = document.getElementById('msg-board');
-      board.scrollTop = board.scrollHeight;
-    } else {
-      alert(d.error || 'Failed to post message.');
-    }
-  }catch(e){ alert('Network error.'); }
-  finally{ btn.disabled=false; input.focus(); }
+  socket.emit('send_message', { group_id: activeRoomId, text });
+  input.value='';
+  input.style.height='auto';
+  input.focus();
 }
 
 /* ══════════════════════════════════════

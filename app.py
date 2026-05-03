@@ -1,11 +1,3 @@
-"""
-app.py — Nexus Learn Flask Backend
-Changes vs original:
-  Gap 1 — get_performance_context() feeds quiz history into every LLM call
-  Gap 2 — /api/chat/stream SSE endpoint; tokens stream to client in real-time
-  Gap 4 — serial/require_auth imported from utils.py (no more local copies)
-"""
-
 import os
 import json
 import traceback
@@ -21,16 +13,19 @@ from bson import ObjectId
 from datetime import datetime, timezone, date
 import requests
 
-from db      import get_db, messages, planner, usage_logs, chat_sessions, \
-                    practice_sets, quiz_results, motivations
-from utils   import serial, require_auth          # Gap 4 — shared helpers
-from groups  import groups_bp
+from db        import get_db, messages, planner, usage_logs, chat_sessions, \
+                      practice_sets, quiz_results, motivations, srs_records
+from srs       import update_srs, get_due_topics
+from utils     import serial, require_auth
+from extensions import socketio
+from groups    import groups_bp
 from interview import interview_bp
-from llm     import ask_ollama, stream_ollama, check_ollama_status, \
-                    build_adaptive_context        # Gap 1 + 2
+from llm       import ask_ollama, stream_ollama, check_ollama_status, \
+                      build_adaptive_context
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+socketio.init_app(app, cors_allowed_origins="*")
 app.register_blueprint(groups_bp)
 app.register_blueprint(interview_bp)
 
@@ -39,6 +34,25 @@ try:
     print("✅  MongoDB connected")
 except Exception as e:
     print(f"⚠️  MongoDB connection failed: {e}")
+
+
+# ═════════════════════════════════════════════════════════════
+#  CONTENT SECURITY POLICY
+#  Allows Socket.IO CDN + inline styles. Removes CSP block on
+#  onclick handlers in groups.html and other templates.
+# ═════════════════════════════════════════════════════════════
+
+@app.after_request
+def set_csp(response):
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.socket.io; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src https://fonts.gstatic.com; "
+        "img-src 'self' data: https://i.ytimg.com; "
+        "connect-src 'self' ws: wss:;"
+    )
+    return response
 
 
 # ═════════════════════════════════════════════════════════════
@@ -67,14 +81,12 @@ def get_user_stats(user_id):
     return {"total_messages": total_msgs, "active_days": active_days, "task_count": task_count}
 
 
-# ── Gap 1: Adaptive context from quiz history ─────────────────
-
 def get_performance_context(user_id: str) -> str:
     """
     Read the student's quiz_results and build an adaptive context string.
     Topics where avg score < 70% are flagged as weak areas; topics >= 80%
     are flagged as mastered. This string is injected into every LLM prompt
-    so responses are genuinely personalised to each user's performance.
+    so responses are personalised to each user's performance.
     """
     try:
         results = list(
@@ -100,7 +112,12 @@ def get_performance_context(user_id: str) -> str:
             if avg < 70:
                 weak_topics.append(f"{topic} ({avg}%)")
 
-        return build_adaptive_context(weak_topics, topic_avgs)
+        ctx = build_adaptive_context(weak_topics, topic_avgs)
+
+        due = get_due_topics(user_id, get_db())
+        if due:
+            ctx += f"\nTopics due for review today: {', '.join(due)}"
+        return ctx
     except Exception:
         return ""
 
@@ -240,7 +257,6 @@ HISTORY_WINDOW = 10
 
 
 def _get_or_create_session(uid: str, session_id: str, first_message: str) -> str:
-    """Return an existing session_id or create a new one."""
     if not session_id:
         now   = datetime.now(timezone.utc)
         title = first_message[:40] + ("…" if len(first_message) > 40 else "")
@@ -316,18 +332,16 @@ def api_rename_session(session_id):
     return jsonify({"success": True})
 
 
-# ── Gap 2: SSE streaming endpoint ────────────────────────────
-
 @app.route("/api/chat/stream", methods=["POST"])
 def api_chat_stream():
     """
-    Server-Sent Events endpoint.  The client uses fetch() + ReadableStream
-    to consume tokens as they arrive from Ollama, eliminating the blank wait.
+    SSE streaming endpoint. Tokens stream to the client as they arrive
+    from Ollama, eliminating the blank wait on long responses.
 
     SSE event format:
-      data: {"token": "..."}\n\n   — one or more characters from the LLM
-      data: {"error": "..."}\n\n   — on failure
-      data: {"done": true, "session_id": "..."}\n\n  — after last token
+      data: {"token": "..."}   — streamed token
+      data: {"error": "..."}   — on failure
+      data: {"done": true, "session_id": "..."}  — after last token
     """
     uid, err = require_auth()
     if err: return err
@@ -339,11 +353,9 @@ def api_chat_stream():
     if not user_message:
         return jsonify({"error": "Message cannot be empty."}), 400
 
-    # Resolve / create session before entering the generator
-    # (session must be created in the request context, not inside the generator)
     session_id = _get_or_create_session(uid, session_id, user_message)
     history    = _fetch_history(uid, session_id)
-    perf_ctx   = get_performance_context(uid)   # Gap 1: adaptive context
+    perf_ctx   = get_performance_context(uid)
 
     def generate():
         full_reply = []
@@ -359,7 +371,6 @@ def api_chat_stream():
             yield f"data: {json.dumps({'error': 'The AI model encountered an error.'})}\n\n"
             return
 
-        # Persist both messages once streaming is complete
         complete_reply = "".join(full_reply)
         now = datetime.now(timezone.utc)
         messages().insert_many([
@@ -369,20 +380,17 @@ def api_chat_stream():
              "content": complete_reply, "timestamp": now},
         ])
         log_activity(uid)
-
         yield f"data: {json.dumps({'done': True, 'session_id': session_id})}\n\n"
 
     return Response(
         stream_with_context(generate()),
         mimetype="text/event-stream",
         headers={
-            "Cache-Control":    "no-cache",
-            "X-Accel-Buffering": "no",   # disables Nginx buffering on Replit
+            "Cache-Control":     "no-cache",
+            "X-Accel-Buffering": "no",
         },
     )
 
-
-# ── Non-streaming fallback (kept for compatibility) ───────────
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
@@ -398,7 +406,7 @@ def api_chat():
 
     session_id = _get_or_create_session(uid, session_id, user_message)
     history    = _fetch_history(uid, session_id)
-    perf_ctx   = get_performance_context(uid)   # Gap 1
+    perf_ctx   = get_performance_context(uid)
 
     try:
         bot_reply = ask_ollama(history, user_message, perf_ctx)
@@ -444,8 +452,6 @@ def api_clear_history():
     return jsonify({"success": True})
 
 
-# ── Gap 1: Expose weak topics endpoint ───────────────────────
-
 @app.route("/api/practice/weak-topics")
 def api_weak_topics():
     """
@@ -468,13 +474,12 @@ def api_weak_topics():
     for topic, scores in topic_scores.items():
         avg = round(sum(scores) / len(scores))
         summary.append({
-            "topic":      topic,
-            "avg_score":  avg,
-            "attempts":   len(scores),
-            "status":     "weak" if avg < 70 else "strong" if avg >= 80 else "improving",
+            "topic":     topic,
+            "avg_score": avg,
+            "attempts":  len(scores),
+            "status":    "weak" if avg < 70 else "strong" if avg >= 80 else "improving",
         })
     summary.sort(key=lambda x: x["avg_score"])
-
     return jsonify({"topics": summary})
 
 
@@ -585,10 +590,10 @@ def api_submit_quiz(set_id):
         if is_correct:
             correct += 1
         results.append({
-            "question":      q.get("question"),
-            "user_answer":   user_ans,
+            "question":       q.get("question"),
+            "user_answer":    user_ans,
             "correct_answer": q.get("answer"),
-            "is_correct":    is_correct,
+            "is_correct":     is_correct,
         })
 
     score = round((correct / total) * 100) if total > 0 else 0
@@ -596,18 +601,32 @@ def api_submit_quiz(set_id):
 
     now = datetime.now(timezone.utc)
     result_doc = {
-        "user_id":          uid,
-        "practice_set_id":  set_id,
-        "topic":            pset.get("topic", ""),
-        "day":              day,
-        "score":            score,
-        "grade":            grade,
-        "correct":          correct,
-        "total":            total,
-        "results":          results,
-        "submitted_at":     now,
+        "user_id":         uid,
+        "practice_set_id": set_id,
+        "topic":           pset.get("topic", ""),
+        "day":             day,
+        "score":           score,
+        "grade":           grade,
+        "correct":         correct,
+        "total":           total,
+        "results":         results,
+        "submitted_at":    now,
     }
     quiz_results().insert_one(result_doc)
+
+    topic = pset.get("topic", "").strip()
+    if topic:
+        existing = srs_records().find_one({"user_id": uid, "topic": topic})
+        if not existing:
+            existing = {"user_id": uid, "topic": topic,
+                        "ease_factor": 2.5, "interval": 1,
+                        "repetitions": 0, "next_review": datetime.now(timezone.utc)}
+        updated = update_srs(existing, score)
+        srs_records().update_one(
+            {"user_id": uid, "topic": topic},
+            {"$set": updated},
+            upsert=True,
+        )
 
     return jsonify({"score": score, "grade": grade,
                     "correct": correct, "total": total, "results": results})
@@ -626,6 +645,18 @@ def api_practice_stats():
     grade  = "A" if avg >= 90 else "B" if avg >= 75 else "C" if avg >= 60 else "D" if avg >= 40 else "F"
     return jsonify({"avg_score": avg, "best_score": best,
                     "total_quizzes": len(all_results), "grade": grade})
+
+
+# ═════════════════════════════════════════════════════════════
+#  SRS API
+# ═════════════════════════════════════════════════════════════
+
+@app.route("/api/srs/due")
+def api_srs_due():
+    uid, err = require_auth()
+    if err: return err
+    due = get_due_topics(uid, get_db())
+    return jsonify({"due_topics": due})
 
 
 # ═════════════════════════════════════════════════════════════
@@ -729,4 +760,4 @@ if __name__ == "__main__":
     port  = int(os.environ.get("PORT", 5000))
     debug = os.environ.get("FLASK_DEBUG", "1") == "1"
     print(f"🚀  Starting Nexus Learn on http://localhost:{port}")
-    app.run(debug=debug, host="0.0.0.0", port=port)
+    socketio.run(app, debug=debug, host="0.0.0.0", port=port)

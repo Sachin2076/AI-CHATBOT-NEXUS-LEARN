@@ -28,6 +28,7 @@ def _ensure_indexes(db):
     db.practice_sets.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
     db.quiz_results.create_index([("user_id", ASCENDING), ("practice_set_id", ASCENDING)])
     db.motivations.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
+    db.srs_records.create_index([("user_id", ASCENDING), ("topic", ASCENDING)], unique=True)
 
 def users():          return get_db()["users"]
 def messages():       return get_db()["messages"]
@@ -37,3 +38,4 @@ def chat_sessions():  return get_db()["chat_sessions"]
 def practice_sets():  return get_db()["practice_sets"]
 def quiz_results():   return get_db()["quiz_results"]
 def motivations():    return get_db()["motivations"]
+def srs_records():    return get_db()["srs_records"]

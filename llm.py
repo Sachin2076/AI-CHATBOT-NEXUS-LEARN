@@ -1,11 +1,3 @@
-"""
-llm.py — Ollama LLM integration
-Additions vs original:
-  • stream_ollama()          — token-by-token generator for SSE streaming (Gap 2)
-  • build_adaptive_context() — injects quiz performance into prompt    (Gap 1)
-  • _build_prompt accepts optional performance_context parameter
-"""
-
 import os
 import json
 import requests
@@ -58,156 +50,14 @@ B) [option]
 C) [option]
 D) [option]
 ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-DAY:2
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-DAY:3
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-DAY:4
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-DAY:5
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-DAY:6
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-DAY:7
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
-Q: [question]
-A) [option]
-B) [option]
-C) [option]
-D) [option]
-ANS: [letter]
+...
 MCQ_END
 
 CODING_START
 DAY:1
 TASK: [beginner task]
 HINT: [hint]
-DAY:2
-TASK: [task]
-HINT: [hint]
-DAY:3
-TASK: [task]
-HINT: [hint]
-DAY:4
-TASK: [task]
-HINT: [hint]
-DAY:5
-TASK: [task]
-HINT: [hint]
-DAY:6
-TASK: [harder task combining multiple concepts]
-HINT: [hint]
-DAY:7
-TASK: [mini project combining everything]
-HINT: [hint]
+...
 CODING_END
 
 MOTIVATION_START
@@ -230,12 +80,7 @@ If user DIRECTLY asks for a plan:
 
 WEEKLY_PLAN_START
 Monday: [task]
-Tuesday: [task]
-Wednesday: [task]
-Thursday: [task]
-Friday: [task]
-Saturday: [task]
-Sunday: [task]
+...
 WEEKLY_PLAN_END
 
 CONCEPT EXPLANATION RULES:
@@ -257,8 +102,6 @@ STRICT RULES:
 - Slogan: Fragmented hurts, not the technology
 """
 
-
-# ── Adaptive context builder (Gap 1) ──────────────────────────
 
 def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
     """
@@ -297,8 +140,6 @@ def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
     return "\n".join(lines)
 
 
-# ── Prompt builder ────────────────────────────────────────────
-
 def _build_prompt(
     history: list,
     user_message: str,
@@ -331,8 +172,6 @@ REMINDER — BEFORE YOU REPLY CHECK THESE RULES:
     return prompt
 
 
-# ── Non-streaming (kept for evaluate_llm.py compatibility) ────
-
 def ask_ollama(
     history: list,
     user_message: str,
@@ -362,8 +201,6 @@ def ask_ollama(
         raise RuntimeError(f"Ollama API error: {e}")
 
 
-# ── Streaming generator (Gap 2) ───────────────────────────────
-
 def stream_ollama(
     history: list,
     user_message: str,
@@ -371,11 +208,6 @@ def stream_ollama(
 ):
     """
     Generator that yields text tokens from Ollama's streaming API.
-    Each yield is a non-empty string token.
-    Raises RuntimeError on connection / timeout / HTTP failures.
-
-    Used by /api/chat/stream to push tokens to the client via SSE
-    as they are generated — eliminating the 195-second blank wait.
     """
     prompt = _build_prompt(history, user_message, performance_context)
     payload = {
@@ -413,8 +245,6 @@ def stream_ollama(
     except requests.exceptions.HTTPError as e:
         raise RuntimeError(f"Ollama API error: {e}")
 
-
-# ── Health check ──────────────────────────────────────────────
 
 def check_ollama_status() -> dict:
     try:

@@ -1,23 +1,15 @@
-"""
-groups.py — Collaborative Study Groups Blueprint
-Changes vs original:
-  Gap 3 — /api/groups/<id>/stream  SSE endpoint (3-second polling, 30s timeout)
-  Gap 4 — serial/_require_auth imported from utils (no local copies)
-"""
-
-import json
-import time
 from datetime import datetime, timezone
 
 from flask import (
     Blueprint, render_template, jsonify,
     request, session, redirect, url_for,
-    Response, stream_with_context,
 )
+from flask_socketio import join_room, leave_room, emit
 from bson import ObjectId
 
-from db    import get_db
-from utils import serial as _serial, require_auth as _require_auth   # Gap 4
+from db         import get_db
+from utils      import serial as _serial, require_auth as _require_auth
+from extensions import socketio
 
 groups_bp = Blueprint("groups", __name__)
 
@@ -71,7 +63,7 @@ def api_list_groups():
     my_group_id = str(my_group["_id"]) if my_group else None
 
     return jsonify({
-        "groups":      result,
+        "groups":       result,
         "my_group_id": my_group_id,
         "user_id":     uid,
         "user_name":   session.get("user_name", "Student"),
@@ -256,78 +248,73 @@ def api_post_message(group_id):
 
 
 # ═════════════════════════════════════════════════════════════
-#  API — SSE REAL-TIME STREAM (Gap 3)
+#  SOCKETIO — REAL-TIME GROUP CHAT
 # ═════════════════════════════════════════════════════════════
 
-@groups_bp.route("/api/groups/<group_id>/stream")
-def api_group_stream(group_id):
-    """
-    Server-Sent Events endpoint for real-time group chat.
+@socketio.on("connect")
+def handle_connect():
+    if not session.get("user_id"):
+        return False  # reject unauthenticated connections
 
-    The client connects via EventSource; the server polls MongoDB every 3 s
-    for new messages and pushes them as SSE events.  After 30 seconds the
-    server sends a {timeout: true} event and the client auto-reconnects,
-    keeping the connection fresh without tying up workers indefinitely.
 
-    Query param:
-      ?since=<ISO-timestamp>   — only return messages newer than this
-
-    SSE event format (each new message):
-      data: {<serialised message doc>}\n\n
-
-    Heartbeat (no new messages):
-      : heartbeat\n\n
-
-    Timeout signal (client must reconnect):
-      data: {"timeout": true}\n\n
-    """
-    uid, err = _require_auth()
-    if err: return err
-
+@socketio.on("join_group")
+def handle_join_group(data):
+    uid      = session.get("user_id")
+    group_id = (data or {}).get("group_id", "")
     try:
         group = _groups().find_one({"_id": ObjectId(group_id)})
     except Exception:
-        return jsonify({"error": "Invalid group ID."}), 400
-
+        emit("error", {"message": "Invalid group ID."})
+        return
     if not group or uid not in group.get("members", []):
-        return jsonify({"error": "Must be a member to stream messages."}), 403
+        emit("error", {"message": "You must be a member to join this room."})
+        return
+    join_room(group_id)
+    emit("joined", {"group_id": group_id, "name": group["name"]})
 
-    since_param = request.args.get("since", "")
+
+@socketio.on("send_message")
+def handle_send_message(data):
+    uid = session.get("user_id")
+    if not uid:
+        emit("error", {"message": "Unauthorized."})
+        return
+    data     = data or {}
+    group_id = data.get("group_id", "")
+    text     = data.get("text", "").strip()
+    if not text:
+        emit("error", {"message": "Message cannot be empty."})
+        return
+    if len(text) > 500:
+        emit("error", {"message": "Message too long (max 500 characters)."})
+        return
     try:
-        last_seen = datetime.fromisoformat(since_param.replace("Z", "+00:00")) \
-                    if since_param else None
-    except ValueError:
-        last_seen = None
+        group = _groups().find_one({"_id": ObjectId(group_id)})
+    except Exception:
+        emit("error", {"message": "Invalid group ID."})
+        return
+    if not group or uid not in group.get("members", []):
+        emit("error", {"message": "You must be a member to post messages."})
+        return
+    now = datetime.now(timezone.utc)
+    doc = {
+        "group_id":  group_id,
+        "user_id":   uid,
+        "user_name": session.get("user_name", "Student"),
+        "text":      text,
+        "posted_at": now,
+    }
+    _gmessages().insert_one(doc)
+    emit("new_message", _serial(doc), to=group_id)
 
-    def event_stream():
-        nonlocal last_seen
-        deadline = time.time() + 30   # 30-second connection lifetime
 
-        while time.time() < deadline:
-            query = {"group_id": group_id}
-            if last_seen:
-                query["posted_at"] = {"$gt": last_seen}
+@socketio.on("leave_group")
+def handle_leave_group(data):
+    group_id = (data or {}).get("group_id", "")
+    if group_id:
+        leave_room(group_id)
 
-            new_msgs = list(
-                _gmessages().find(query).sort("posted_at", 1).limit(20)
-            )
 
-            for msg in new_msgs:
-                last_seen = msg["posted_at"]
-                yield f"data: {json.dumps(_serial(msg))}\n\n"
-
-            if not new_msgs:
-                yield ": heartbeat\n\n"   # SSE comment — keeps connection alive
-
-            time.sleep(3)
-
-        yield f"data: {json.dumps({'timeout': True})}\n\n"
-
-    return Response(
-        stream_with_context(event_stream()),
-        mimetype="text/event-stream",
-        headers={
-            "Cache-Control":     "no-cache",
-            "X-Accel-Buffering": "no",
-        },
-    )
+@socketio.on("disconnect")
+def handle_disconnect():
+    pass
