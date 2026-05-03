@@ -27,13 +27,18 @@ def update_srs(current_record: dict, score_percent: int) -> dict:
     reps = rec.get("repetitions", 0)
 
     if score_percent < 60:
+        # Poor score: reset to beginning
         iv   = 1
         reps = 0
     elif score_percent < 80:
-        # keep ease_factor and interval unchanged, just advance next_review
-        pass
+        # Partial recall (60–79%): progress schedule but don't increase ease_factor.
+        # Advance interval modestly (next review in 2 days minimum, or current iv+1).
+        # Increment reps so student moves forward — previously this was a silent pass
+        # which froze the schedule permanently for students scoring in this band.
+        iv   = max(2, iv + 1)
+        reps += 1
     else:
-        # score >= 80%: increase interval and ease_factor
+        # Good recall (>= 80%): full SM-2 progression
         if reps == 0:
             iv = 1
         elif reps == 1:

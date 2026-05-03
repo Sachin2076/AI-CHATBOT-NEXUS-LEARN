@@ -1,0 +1,76 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────
+#  Nexus Learn — full local stack
+#  Usage:
+#    docker compose up --build
+#  Then open: http://localhost:5000
+#
+#  First run only — pull an Ollama model:
+#    docker compose exec ollama ollama pull llama3
+# ─────────────────────────────────────────────
+
+services:
+
+  # ── MongoDB ──────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: nexus_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Ollama (local LLM) ───────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: nexus_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # GPU support (optional — remove deploy block if no GPU)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── Flask app ────────────────────────────────
+  web:
+    build: .
+    container_name: nexus_web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      OLLAMA_URL:  http://ollama:11434
+    depends_on:
+      mongo:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    volumes:
+      # Mount chroma_db so embeddings persist across restarts
+      - ./chroma_db:/app/chroma_db
+
+volumes:
+  mongo_data:
+  ollama_data:

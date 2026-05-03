@@ -219,13 +219,49 @@ def _extract_weak_topic_names(performance_context: str) -> list[str]:
 
 def _response_addresses_weak_topics(reply: str, weak_topics: list[str]) -> bool:
     """
-    Return True if the reply text mentions at least one weak topic keyword.
-    Used to verify the adaptive loop actually produced personalised content.
+    Check whether the reply semantically addresses the student's weak topics.
+
+    Strategy (two-tier):
+      1. Cosine similarity — embed the reply and each weak-topic description,
+         compute cosine similarity. If any topic scores >= SIMILARITY_THRESHOLD
+         the reply is considered on-topic. Uses the SentenceTransformer model
+         already loaded in rag.py, so no extra dependency is added.
+      2. Keyword fallback — if the embedding model is unavailable (cold start,
+         import error) we fall back to the original substring check so the
+         adaptive loop never breaks silently.
+
+    Why cosine over keyword match:
+      A reply that thoroughly explains "variables and loops" for a student weak
+      in Python will score high similarity to "Python programming" even without
+      the word "Python" appearing. The keyword check would incorrectly flag this
+      as non-personalised and trigger an unnecessary re-prompt.
     """
     if not weak_topics:
         return True   # No weak topics → always acceptable
-    reply_lower = reply.lower()
-    return any(topic in reply_lower for topic in weak_topics)
+
+    SIMILARITY_THRESHOLD = 0.35   # tuned for sentence-transformers/all-MiniLM-L6-v2
+
+    try:
+        from rag import _model as _st_model   # SentenceTransformer already loaded
+        import numpy as np
+
+        reply_vec  = _st_model.encode([reply])[0]
+        reply_norm = reply_vec / (np.linalg.norm(reply_vec) + 1e-9)
+
+        for topic in weak_topics:
+            topic_desc  = f"learning and studying {topic} programming concepts"
+            topic_vec   = _st_model.encode([topic_desc])[0]
+            topic_norm  = topic_vec / (np.linalg.norm(topic_vec) + 1e-9)
+            similarity  = float(np.dot(reply_norm, topic_norm))
+            if similarity >= SIMILARITY_THRESHOLD:
+                return True
+
+        return False   # No weak topic reached similarity threshold → trigger re-prompt
+
+    except Exception:
+        # Fallback: original keyword substring check
+        reply_lower = reply.lower()
+        return any(topic in reply_lower for topic in weak_topics)
 
 
 def _build_reprompt(

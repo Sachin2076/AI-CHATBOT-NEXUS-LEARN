@@ -35,6 +35,14 @@ app.register_blueprint(interview_bp)
 #  RATE LIMITER  (in-memory, per user, sliding window)
 #  20 chat messages per minute per user.
 #  Resets automatically as timestamps age out.
+#
+#  KNOWN LIMITATION: _rate_store is process-local. Under a
+#  multi-worker deployment (e.g. Gunicorn with 4 workers) each
+#  worker maintains its own store, effectively multiplying the
+#  limit by the worker count.
+#  Production fix: replace with a shared Redis counter using
+#  INCR + EXPIRE, or a library such as flask-limiter with a
+#  Redis backend. Acceptable for single-process / development use.
 # ═════════════════════════════════════════════════════════════
 import time as _time
 

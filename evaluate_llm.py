@@ -480,6 +480,206 @@ def run_rag_comparison() -> dict:
 
 
 # ════════════════════════════════════════════════════════════════
+#  A/B PERSONALISATION COMPARISON
+#
+#  PURPOSE:
+#    Proves the adaptive context system actually changes LLM output.
+#    Runs identical user questions twice:
+#      (A) No performance context  — generic response
+#      (B) With weak-topic context — personalised response
+#    Measures whether response content shifts toward the weak area.
+#
+#  This directly validates the core claim: "personalised learning."
+# ════════════════════════════════════════════════════════════════
+
+AB_TEST_CASES = [
+    {
+        "user_message": "Help me understand Python",
+        "weak_topic":   "Python",
+        "weak_score":   42,
+        "focus_keywords": [
+            "weak", "focus", "practice", "attention", "improve",
+            "struggle", "revisit", "beginner", "fundamental", "extra"
+        ],
+        "description": "Student weak in Python asks general Python help",
+    },
+    {
+        "user_message": "I want to get better at coding interviews",
+        "weak_topic":   "Data Structures",
+        "weak_score":   48,
+        "focus_keywords": [
+            "data structure", "array", "linked list", "tree", "weak",
+            "focus", "practice", "improve", "attention", "revisit"
+        ],
+        "description": "Student weak in Data Structures asks about interview prep",
+    },
+    {
+        "user_message": "What should I study today?",
+        "weak_topic":   "SQL",
+        "weak_score":   55,
+        "focus_keywords": [
+            "sql", "query", "database", "weak", "focus", "attention",
+            "practice", "improve", "joins", "revisit"
+        ],
+        "description": "Student weak in SQL asks open-ended study question",
+    },
+]
+
+
+def _build_weak_context(topic: str, score: int) -> str:
+    """Build a simulated performance context string identical to what app.py injects."""
+    return (
+        f"\n[STUDENT PERFORMANCE CONTEXT]\n"
+        f"The student has completed practice quizzes. "
+        f"Adjust responses to focus on weak areas and skip re-explaining mastered content.\n"
+        f'{{"weak_topics": [{{"topic": "{topic}", "avg_score": {score}}}], '
+        f'"strong_topics": [], "review_due": []}}\n'
+        f"Topics needing more attention (score < 70%): {topic} ({score}%)\n"
+        f"For these topics: increase explanation depth, add extra examples, "
+        f"and suggest targeted practice exercises.\n"
+        f"[END PERFORMANCE CONTEXT]\n"
+    )
+
+
+def _topic_mention_count(response: str, topic: str) -> int:
+    """Count how many times the topic is explicitly mentioned in response."""
+    return response.lower().count(topic.lower())
+
+
+def run_ab_personalisation() -> dict:
+    """
+    Run A/B test: same prompt with vs without performance context.
+    Measures keyword overlap, topic mention count, and response length delta.
+    Saves to evaluation_results/ab_personalisation.json.
+    """
+    print("\n" + "=" * 60)
+    print("  A/B Personalisation Evaluation")
+    print("  (Proves adaptive context changes LLM output)")
+    print("=" * 60)
+
+    OUTPUT_DIR.mkdir(exist_ok=True)
+
+    ab_results = []
+
+    for i, case in enumerate(AB_TEST_CASES, 1):
+        msg     = case["user_message"]
+        topic   = case["weak_topic"]
+        score   = case["weak_score"]
+        kws     = case["focus_keywords"]
+        desc    = case["description"]
+
+        print(f"\n[{i}/3] {desc}")
+        print(f"       Prompt : \"{msg}\"")
+        print(f"       Weak   : {topic} ({score}%)")
+
+        # ── Condition A: no personalisation context ──────────────
+        t0 = time.time()
+        try:
+            resp_a = ask_ollama([], msg, performance_context="")
+        except Exception as e:
+            resp_a = f"ERROR: {e}"
+        time_a = round(time.time() - t0, 1)
+
+        # ── Condition B: with weak-topic context ─────────────────
+        perf_ctx = _build_weak_context(topic, score)
+        t0 = time.time()
+        try:
+            resp_b = ask_ollama([], msg, performance_context=perf_ctx)
+        except Exception as e:
+            resp_b = f"ERROR: {e}"
+        time_b = round(time.time() - t0, 1)
+
+        # ── Metrics ───────────────────────────────────────────────
+        kw_a       = _keyword_overlap(resp_a, kws)
+        kw_b       = _keyword_overlap(resp_b, kws)
+        mentions_a = _topic_mention_count(resp_a, topic)
+        mentions_b = _topic_mention_count(resp_b, topic)
+        words_a    = len(resp_a.split())
+        words_b    = len(resp_b.split())
+        kw_delta   = round(kw_b - kw_a, 3)
+
+        personalisation_effective = kw_b > kw_a or mentions_b > mentions_a
+
+        print(f"  Condition A (no context)  → {words_a:4d} words | "
+              f"focus-kw {kw_a:.0%} | topic mentions: {mentions_a}")
+        print(f"  Condition B (with context) → {words_b:4d} words | "
+              f"focus-kw {kw_b:.0%} | topic mentions: {mentions_b}")
+        print(f"  Personalisation effective : {'YES ✅' if personalisation_effective else 'NO ⚠️'}")
+
+        # Save raw outputs for manual review
+        raw_a_path = RAW_DIR / f"ab_{i}_A_no_context.txt"
+        raw_b_path = RAW_DIR / f"ab_{i}_B_with_context.txt"
+        raw_a_path.write_text(
+            f"CONDITION A — No personalisation context\n"
+            f"Prompt: {msg}\n{'─'*50}\n{resp_a}", encoding="utf-8"
+        )
+        raw_b_path.write_text(
+            f"CONDITION B — With performance context\n"
+            f"Prompt: {msg}\nWeak topic: {topic} ({score}%)\n{'─'*50}\n{resp_b}",
+            encoding="utf-8"
+        )
+
+        ab_results.append({
+            "case":        i,
+            "description": desc,
+            "prompt":      msg,
+            "weak_topic":  topic,
+            "weak_score":  score,
+            "condition_a": {
+                "label":           "no_personalisation_context",
+                "response_words":  words_a,
+                "focus_kw_overlap": kw_a,
+                "topic_mentions":  mentions_a,
+                "elapsed_sec":     time_a,
+            },
+            "condition_b": {
+                "label":           "with_weak_topic_context",
+                "response_words":  words_b,
+                "focus_kw_overlap": kw_b,
+                "topic_mentions":  mentions_b,
+                "elapsed_sec":     time_b,
+            },
+            "kw_overlap_delta":          kw_delta,
+            "topic_mention_delta":       mentions_b - mentions_a,
+            "personalisation_effective": personalisation_effective,
+        })
+
+    # ── Aggregate summary ─────────────────────────────────────────
+    effective_count = sum(1 for r in ab_results if r["personalisation_effective"])
+    avg_kw_delta    = round(
+        sum(r["kw_overlap_delta"] for r in ab_results) / len(ab_results) * 100, 1
+    )
+    avg_mention_delta = round(
+        sum(r["topic_mention_delta"] for r in ab_results) / len(ab_results), 1
+    )
+
+    summary = {
+        "model":                     OLLAMA_MODEL,
+        "run_at":                    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "cases_tested":              len(ab_results),
+        "personalisation_effective_count": effective_count,
+        "personalisation_effective_pct":   round(effective_count / len(ab_results) * 100),
+        "avg_focus_keyword_improvement_pct": avg_kw_delta,
+        "avg_topic_mention_delta":   avg_mention_delta,
+        "cases":                     ab_results,
+    }
+
+    out_path = OUTPUT_DIR / "ab_personalisation.json"
+    out_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
+    print(f"\n{'─'*60}")
+    print(f"  A/B Personalisation Summary")
+    print(f"{'─'*60}")
+    print(f"  Cases where context changed output : {effective_count}/{len(ab_results)}")
+    print(f"  Avg focus-keyword improvement      : {avg_kw_delta:+.1f}%")
+    print(f"  Avg topic mention delta            : {avg_mention_delta:+.1f}")
+    print(f"  Results saved → {out_path}")
+    print(f"  Raw outputs   → {RAW_DIR}/ab_*")
+
+    return summary
+
+
+# ════════════════════════════════════════════════════════════════
 #  MAIN RUNNER
 # ════════════════════════════════════════════════════════════════
 
@@ -571,6 +771,7 @@ def main():
     print(f"   {RAW_DIR}/              ← raw LLM outputs\n")
 
     run_rag_comparison()
+    run_ab_personalisation()
 
 
 if __name__ == "__main__":
