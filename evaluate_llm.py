@@ -81,8 +81,28 @@ RAW_DIR    = OUTPUT_DIR / "raw_outputs"
 # ════════════════════════════════════════════════════════════════
 
 def build_eval_prompt(topic: str) -> str:
-    """Sends the same message a user would type to trigger a learning package."""
-    return f"I want to learn {topic}"
+    """
+    Sends the message a user would type to trigger a learning package.
+
+    Programming topics:   "I want to learn {topic}"
+                          → triggers LEARNING_PACKAGE_START block directly.
+
+    Non-programming:      "I want to learn {topic}. Please create a weekly
+                           study plan for this and add it to my planner."
+                          → triggers the WEEKLY_PLAN_START path directly.
+
+    Without the explicit plan request, non-programming topics correctly follow
+    the system instruction to give a 2-3 sentence overview and wait for
+    confirmation — which produces 0% structural score even though the model
+    is behaving correctly.  The direct request removes that ambiguity so the
+    evaluator measures plan *quality*, not just intent detection.
+    """
+    if topic in PROGRAMMING_TOPICS:
+        return f"I want to learn {topic}"
+    return (
+        f"I want to learn {topic}. "
+        f"Please create a weekly study plan for this and add it to my planner."
+    )
 
 
 # ════════════════════════════════════════════════════════════════

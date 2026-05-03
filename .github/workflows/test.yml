@@ -1,0 +1,52 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install \
+            flask \
+            flask-socketio \
+            pymongo \
+            bcrypt \
+            python-dotenv \
+            requests \
+            pytest \
+            pytest-mock \
+            pytest-cov
+
+      - name: Run unit and route tests
+        env:
+          SECRET_KEY: test-secret-key-for-ci
+          MONGODB_URI: mongodb://localhost:27017
+          OLLAMA_URL: http://localhost:11434
+          OLLAMA_MODEL: llama3
+        run: |
+          pytest tests/test_routes.py tests/test_adaptive.py tests/test_interview.py \
+            -v \
+            --tb=short \
+            --cov=. \
+            --cov-report=term-missing \
+            --ignore=tests/test_integration.py
+
+      # test_integration.py requires live MongoDB + Ollama — skipped in CI.
+      # Run locally with: pytest tests/test_integration.py -v

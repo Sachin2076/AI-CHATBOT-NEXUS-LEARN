@@ -31,3 +31,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# ChromaDB — binary vector store, rebuilt by seed_knowledge.py
+# Do not commit: large binary files, platform-specific, regeneratable
+chroma_db/
