@@ -36,6 +36,13 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent))
 from llm import ask_ollama, check_ollama_status, OLLAMA_MODEL, OLLAMA_URL
 
+try:
+    from rag import retrieve_context as _retrieve_context
+    _RAG_AVAILABLE = True
+except Exception:
+    _RAG_AVAILABLE = False
+    def _retrieve_context(query, **kwargs): return ""
+
 # ── Inline _ex() so no DB import triggered ──────────────────────
 def _ex(raw, key):
     m = re.search(rf"{key}:\s*(.+?)(?=\n[A-Z_]{{2,}}:|$)", raw, re.DOTALL)
@@ -338,6 +345,141 @@ def generate_manual_grading_csv(results: list) -> str:
 
 
 # ════════════════════════════════════════════════════════════════
+#  RAG COMPARISON
+# ════════════════════════════════════════════════════════════════
+
+RAG_TEST_QUESTIONS = [
+    {
+        "question": "What is a binary search tree and how does insertion work?",
+        "keywords": ["binary", "search", "tree", "node", "left", "right", "insert", "compare"],
+    },
+    {
+        "question": "Explain the difference between TCP and UDP protocols.",
+        "keywords": ["tcp", "udp", "reliable", "connection", "packet", "handshake", "stateless"],
+    },
+    {
+        "question": "What is the time complexity of quicksort and when does worst case occur?",
+        "keywords": ["quicksort", "O(n log n)", "pivot", "worst", "O(n^2)", "partition"],
+    },
+    {
+        "question": "How does garbage collection work in Python?",
+        "keywords": ["garbage", "collection", "reference", "count", "cyclic", "memory", "GC"],
+    },
+    {
+        "question": "What is normalisation in relational databases and why is it important?",
+        "keywords": ["normalisation", "1NF", "2NF", "3NF", "redundancy", "dependency", "relation"],
+    },
+]
+
+
+def _keyword_overlap(response: str, keywords: list) -> float:
+    """Fraction of expected keywords found (case-insensitive) in the response."""
+    text = response.lower()
+    hits = sum(1 for kw in keywords if kw.lower() in text)
+    return round(hits / len(keywords), 3) if keywords else 0.0
+
+
+def run_rag_comparison() -> dict:
+    """
+    Ask 5 CS questions with and without RAG context.
+    Measures response length and keyword overlap with expected answers.
+    Returns a summary dict and writes evaluation_results/rag_comparison.json.
+    """
+    print("\n" + "=" * 60)
+    print("  RAG Comparison Evaluation")
+    print("=" * 60)
+
+    if not _RAG_AVAILABLE:
+        print("⚠️  RAG not available (ChromaDB/sentence-transformers missing). Skipping.")
+        return {}
+
+    OUTPUT_DIR.mkdir(exist_ok=True)
+
+    comparisons = []
+
+    for i, item in enumerate(RAG_TEST_QUESTIONS, 1):
+        q        = item["question"]
+        keywords = item["keywords"]
+        print(f"\n[{i}/5] {q[:60]}...")
+
+        # Without RAG
+        t0 = time.time()
+        try:
+            resp_no_rag = ask_ollama([], q)
+        except Exception as e:
+            resp_no_rag = f"ERROR: {e}"
+        time_no_rag = round(time.time() - t0, 1)
+
+        # With RAG — retrieve context then build augmented prompt
+        rag_ctx = _retrieve_context(q)
+        rag_prompt = q
+        if rag_ctx:
+            rag_prompt = f"[Context]\n{rag_ctx}\n\n[Question]\n{q}"
+        t0 = time.time()
+        try:
+            resp_with_rag = ask_ollama([], rag_prompt)
+        except Exception as e:
+            resp_with_rag = f"ERROR: {e}"
+        time_with_rag = round(time.time() - t0, 1)
+
+        len_no_rag   = len(resp_no_rag.split())
+        len_with_rag = len(resp_with_rag.split())
+        kw_no_rag    = _keyword_overlap(resp_no_rag, keywords)
+        kw_with_rag  = _keyword_overlap(resp_with_rag, keywords)
+
+        comparisons.append({
+            "question":         q,
+            "keywords":         keywords,
+            "no_rag": {
+                "response_words":   len_no_rag,
+                "keyword_overlap":  kw_no_rag,
+                "elapsed_sec":      time_no_rag,
+            },
+            "with_rag": {
+                "rag_context_found": bool(rag_ctx),
+                "response_words":    len_with_rag,
+                "keyword_overlap":   kw_with_rag,
+                "elapsed_sec":       time_with_rag,
+            },
+            "keyword_improvement": round(kw_with_rag - kw_no_rag, 3),
+            "length_delta_words":  len_with_rag - len_no_rag,
+        })
+
+        print(f"    No RAG  → {len_no_rag:4d} words | kw overlap {kw_no_rag:.0%}")
+        print(f"    With RAG → {len_with_rag:4d} words | kw overlap {kw_with_rag:.0%} | ctx={'yes' if rag_ctx else 'none'}")
+
+    # Aggregate
+    avg_kw_improvement = round(
+        sum(c["keyword_improvement"] for c in comparisons) / len(comparisons) * 100, 1
+    ) if comparisons else 0.0
+    avg_len_delta = round(
+        sum(c["length_delta_words"] for c in comparisons) / len(comparisons), 1
+    ) if comparisons else 0.0
+
+    summary = {
+        "model":               OLLAMA_MODEL,
+        "run_at":              datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "rag_available":       _RAG_AVAILABLE,
+        "questions_tested":    len(comparisons),
+        "avg_keyword_improvement_pct": avg_kw_improvement,
+        "avg_response_length_delta_words": avg_len_delta,
+        "comparisons":         comparisons,
+    }
+
+    out_path = OUTPUT_DIR / "rag_comparison.json"
+    out_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
+    print(f"\n{'─'*60}")
+    print(f"  RAG Improvement Summary")
+    print(f"{'─'*60}")
+    print(f"  Avg keyword overlap improvement : {avg_kw_improvement:+.1f}%")
+    print(f"  Avg response length delta       : {avg_len_delta:+.1f} words")
+    print(f"  Results saved → {out_path}")
+
+    return summary
+
+
+# ════════════════════════════════════════════════════════════════
 #  MAIN RUNNER
 # ════════════════════════════════════════════════════════════════
 
@@ -427,6 +569,8 @@ def main():
     print(f"   {json_path}            ← full data")
     print(f"   {csv_path}  ← manually grade MCQs here")
     print(f"   {RAW_DIR}/              ← raw LLM outputs\n")
+
+    run_rag_comparison()
 
 
 if __name__ == "__main__":

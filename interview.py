@@ -10,6 +10,7 @@ from flask import Blueprint, render_template, jsonify, request, session
 from bson  import ObjectId
 from datetime import datetime, timezone
 import re
+import json
 from db  import get_db
 from llm import ask_ollama
 from utils import serial as _serial, require_auth as _require_auth, extract_field as _ex  # Gap 4
@@ -395,13 +396,18 @@ MISSING_PIECE: [The ONE most important thing missing]
 TRY_THIS: [Rewrite their opening sentence to show a stronger start]
 REFLECTION_Q: [One question to help them think deeper]
 ENCOURAGEMENT: [One short motivating sentence]
+SCORE_JSON: [Return exactly this JSON object, no other text: {{"score": <integer 0-100 based on answer quality, structure, and specificity>, "feedback": "<one sentence rationale for the score>"}}]
 
 Tone: warm, specific, constructive. Never harsh. Never just "good job"."""
 
     try:
         raw = ask_ollama([], prompt).strip()
-        base  = min(40 + len(answer.split()) * 0.5, 75)
-        score = min(int(base + (attempt-1)*5), 95)
+        try:
+            raw_json   = _ex(raw, "SCORE_JSON")
+            score_data = json.loads(raw_json)
+            score      = max(0, min(100, int(score_data["score"])))
+        except Exception:
+            score = 50
         return jsonify({
             "buddy_reaction":   _ex(raw,"BUDDY_REACTION")   or "Good effort on this one!",
             "what_worked":      _ex(raw,"WHAT_WORKED")      or "You attempted the question directly.",

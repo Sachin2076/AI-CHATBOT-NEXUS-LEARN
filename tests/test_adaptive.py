@@ -9,7 +9,7 @@ Tests the new adaptive context system (Gap 1):
 Zero external dependencies.
 
 Run with:
-    pytest tests/test_adaptive.py -v
+    pytest tests/test_adaptive.py -vs
 """
 
 import pytest

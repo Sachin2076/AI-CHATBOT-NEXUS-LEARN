@@ -109,6 +109,9 @@ def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
     Build a prompt section describing the student's past quiz performance.
     Injected after the system instruction so the LLM tailors difficulty
     and focus areas to the individual learner.
+
+    weak_topics : list of strings like ["Python (55%)", "SQL (48%)"]
+    topic_avgs  : dict of {topic: avg_score} for all topics
     """
     if not weak_topics and not topic_avgs:
         return ""
@@ -119,6 +122,21 @@ def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
         "Adjust responses to focus on weak areas and skip re-explaining mastered content."
     )
 
+    # Build structured user model from args for richer LLM context
+    weak_model   = [
+        {"topic": t.rsplit(" (", 1)[0].strip(),
+         "avg_score": topic_avgs.get(t.rsplit(" (", 1)[0].strip(), 0)}
+        for t in weak_topics
+    ]
+    strong_names = [t for t, s in topic_avgs.items() if s >= 80]
+    strong_model = [{"topic": t, "avg_score": topic_avgs[t]} for t in strong_names]
+    user_model   = {
+        "weak_topics":   weak_model,
+        "strong_topics": strong_model,
+        "review_due":    [],
+    }
+    lines.append(json.dumps(user_model, indent=2))
+
     if weak_topics:
         lines.append(
             "Topics needing more attention (score < 70%): " + ", ".join(weak_topics)
@@ -128,14 +146,12 @@ def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
             "and suggest targeted practice exercises."
         )
 
-    if topic_avgs:
-        strong = [t for t, s in topic_avgs.items() if s >= 80]
-        if strong:
-            lines.append(
-                "Topics with strong understanding (>= 80%): "
-                + ", ".join(strong)
-                + ". Build on these without re-explaining basics."
-            )
+    if strong_names:
+        lines.append(
+            "Topics with strong understanding (>= 80%): "
+            + ", ".join(strong_names)
+            + ". Build on these without re-explaining basics."
+        )
 
     lines.append("[END PERFORMANCE CONTEXT]\n")
     return "\n".join(lines)
