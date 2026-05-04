@@ -78,6 +78,8 @@
   </div>
   <div class="nav-r">
     <span id="nav-email" class="tx-m" style="font-size:13px;margin-right:6px"></span>
+    <a href="/settings" class="btn btn-ghost btn-sm">⚙ Settings</a>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
     <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
   </div>
 </nav>
@@ -97,6 +99,7 @@
   <a href="/interview" class="slink" onclick="closeDrawer()"><span class="si">🎯</span>Interview Prep</a>
   <a href="/motivation"class="slink" onclick="closeDrawer()"><span class="si">🔥</span>Motivation</a>
   <a href="/groups"    class="slink" onclick="closeDrawer()"><span class="si">👥</span>Study Groups</a>
+  <a href="/settings"  class="slink" onclick="closeDrawer()"><span class="si">⚙</span>Settings</a>
   <div class="sb-spacer"></div>
   <div class="s-user" style="margin-top:16px">
     <div class="s-av" id="drawer-av">?</div>
@@ -114,6 +117,7 @@
     <a href="/interview" class="slink"><span class="si">🎯</span>Interview Prep</a>
     <a href="/motivation"class="slink"><span class="si">🔥</span>Motivation</a>
     <a href="/groups"    class="slink"><span class="si">👥</span>Study Groups</a>
+    <a href="/settings"  class="slink"><span class="si">⚙</span>Settings</a>
     <div class="sb-spacer"></div>
     <div class="s-user">
       <div class="s-av" id="s-av">?</div>
@@ -122,10 +126,34 @@
   </aside>
 
   <main class="main">
-    <div class="dw">
-      <h2>Good day, <span id="dw-name">…</span> 👋</h2>
+    <div class="dw" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+      <div>
+        <h2>Good day, <span id="dw-name">…</span> 👋</h2>
       <p>Here's your learning overview. Ready to continue?</p>
+      </div>
+      <!-- 🔥 Streak Widget — Top-right dashboard area -->
+      <div id="streak-widget" style="
+        background:linear-gradient(135deg,rgba(240,100,30,.15),rgba(240,160,64,.08));
+        border:1px solid rgba(240,120,30,.3); border-radius:16px; padding:14px 18px;
+        display:flex; align-items:center; gap:12px; min-width:160px; cursor:pointer;
+        transition:all .25s; flex-shrink:0;" onclick="location.href='/dashboard'"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 20px rgba(240,120,30,.2)'"
+        onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div id="streak-flame" style="font-size:clamp(2rem,5vw,2.8rem);line-height:1;animation:flicker 2.5s infinite alternate;filter:drop-shadow(0 0 8px rgba(240,100,30,.5))">🔥</div>
+        <div>
+          <div id="streak-count" style="font-family:var(--fM);font-size:1.7rem;font-weight:500;color:#f06a1e;line-height:1">—</div>
+          <div style="font-size:11px;color:var(--tx-m);font-family:var(--fM);text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Day Streak</div>
+          <div id="streak-msg" style="font-size:11px;color:var(--tx-s);margin-top:3px"></div>
+        </div>
+      </div>
     </div>
+    <style>
+    @keyframes flicker {
+      0%  { transform: scale(1)   rotate(-3deg); }
+      50% { transform: scale(1.1) rotate(2deg); }
+      100%{ transform: scale(.95) rotate(-1deg); }
+    }
+    </style>
 
     <div class="stats">
       <div class="stat"><div class="stat-v" id="st-score">—</div><div class="stat-l">Avg quiz score</div></div>
@@ -141,7 +169,8 @@
       <a href="/coding"     class="ac"><span class="ac-icon">💻</span><div class="ac-title">Coding Practice</div><div class="ac-desc">Daily MCQ quizzes and coding tasks.</div></a>
       <a href="/interview"  class="ac"><span class="ac-icon">🎯</span><div class="ac-title">Interview Prep</div><div class="ac-desc">Learn, practise, and simulate interviews.</div></a>
       <a href="/motivation" class="ac"><span class="ac-icon">🔥</span><div class="ac-title">Motivation Hub</div><div class="ac-desc">Personalised success stories and tips.</div></a>
-      <a href="/groups"     class="ac"><span class="ac-icon">👥</span><div class="ac-title">Study Groups</div><div class="ac-desc">Collaborate and post to shared noticeboards.</div></a>
+      <a href="/groups"     class="ac"><span class="ac-icon">👥</span><div class="ac-title">Study Groups</div><div class="ac-desc">Chat, notes, timer, quiz & AI in one room.</div></a>
+      <a href="/settings"   class="ac"><span class="ac-icon">⚙</span><div class="ac-title">Settings</div><div class="ac-desc">Theme, AI style, timer & profile settings.</div></a>
     </div>
   </main>
 </div>
@@ -189,7 +218,18 @@ async function load(){
     document.getElementById('drawer-name').textContent= n;
     document.getElementById('dw-name').textContent    = n.split(' ')[0];
     document.getElementById('nav-email').textContent  = d.email||'';
-    document.getElementById('st-days').textContent    = d.stats?.active_days ?? 0;
+    const activeDays = d.stats?.active_days ?? 0;
+    document.getElementById('st-days').textContent    = activeDays;
+    // 🔥 Streak widget
+    const streak = activeDays;
+    document.getElementById('streak-count').textContent = streak;
+    const flame = document.getElementById('streak-flame');
+    const msg   = document.getElementById('streak-msg');
+    if (streak === 0) { flame.textContent='🌱'; msg.textContent='Start your streak!'; }
+    else if (streak < 3)  { flame.textContent='🔥'; msg.textContent='Keep it going!'; }
+    else if (streak < 7)  { flame.textContent='🔥'; msg.textContent='On fire!'; }
+    else if (streak < 14) { flame.textContent='🔥'; msg.textContent='Unstoppable!'; }
+    else { flame.textContent='🔥'; msg.textContent='Legend!'; }
     try{
       const sr = await fetch('/api/practice/stats');
       const sd = await sr.json();

@@ -795,6 +795,57 @@ def api_youtube():
 #  STATUS
 # ═════════════════════════════════════════════════════════════
 
+@app.route("/settings")
+def settings_page():
+    if not session.get("user_id"):
+        return redirect(url_for("login_page"))
+    return render_template("settings.html")
+
+
+@app.route("/api/settings", methods=["GET"])
+def api_get_settings():
+    uid, err = require_auth()
+    if err: return err
+    db   = get_db()
+    user = db["users"].find_one({"_id": ObjectId(uid)})
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+    prefs = user.get("preferences", {})
+    return jsonify({
+        "name":             user.get("name", ""),
+        "email":            user.get("email", ""),
+        "ai_style":         prefs.get("ai_style", "detailed"),
+        "notifications":    prefs.get("notifications", True),
+        "notify_ai":        prefs.get("notify_ai",    True),
+        "notify_timer":     prefs.get("notify_timer", True),
+        "theme":            prefs.get("theme", "dark"),
+        "pomodoro_work":    prefs.get("pomodoro_work", 25),
+        "pomodoro_break":   prefs.get("pomodoro_break", 5),
+        "preferences":      prefs,
+    })
+
+
+@app.route("/api/settings", methods=["POST"])
+def api_save_settings():
+    uid, err = require_auth()
+    if err: return err
+    data = request.get_json() or {}
+    db   = get_db()
+
+    allowed = {"ai_style", "notifications", "notify_ai", "notify_timer",
+               "theme", "pomodoro_work", "pomodoro_break"}
+    prefs   = {k: v for k, v in data.items() if k in allowed}
+
+    # Also allow name update
+    update_fields = {f"preferences.{k}": v for k, v in prefs.items()}
+    if "name" in data and data["name"].strip():
+        update_fields["name"] = data["name"].strip()[:60]
+        session["user_name"]  = update_fields["name"]
+
+    db["users"].update_one({"_id": ObjectId(uid)}, {"$set": update_fields})
+    return jsonify({"status": "saved"})
+
+
 @app.route("/api/status")
 def api_status():
     ollama = check_ollama_status()

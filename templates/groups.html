@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -9,128 +9,238 @@
 <link rel="stylesheet" href="/static/css/style.css"/>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
 <style>
-/* ── Page Layout ── */
-.groups-page { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
-.page-hdr { margin-bottom: 28px; }
+/* ══ Light mode override ══════════════════════════════════ */
+[data-theme="light"] {
+  --bg:#f5f5f0; --bg-s:#ededea; --bg-c:#ffffff; --bg-r:#f0f0eb;
+  --bdr:#ddddd8; --bdr-l:#cccccc;
+  --tx:#1a1a18; --tx-s:#555550; --tx-m:#888882;
+  --amber:#c47a10; --amber-g:rgba(196,122,16,.12); --amber-d:#a06010;
+}
+[data-theme="light"] body { background: var(--bg); }
+[data-theme="light"] .navbar { background: rgba(245,245,240,.92); }
+[data-theme="light"] body::after { display:none; }
+
+/* ══ Page Layout ══════════════════════════════════════════ */
+.groups-page { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+.page-hdr { margin-bottom: 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
 .page-hdr h2 { font-size: 1.6rem; margin-bottom: 4px; }
 .page-hdr p  { color: var(--tx-m); font-size: 13px; }
+.hdr-actions { display:flex; gap:8px; align-items:center; }
 
-/* ── My Group Banner ── */
+/* Theme toggle */
+.theme-btn { background: var(--bg-r); border: 1px solid var(--bdr); border-radius:8px; padding:7px 12px; cursor:pointer; font-size:14px; color:var(--tx-s); transition:all .2s; }
+.theme-btn:hover { border-color:var(--amber); color:var(--amber); }
+
+/* ══ My Group Banner ══════════════════════════════════════ */
 .my-group-banner {
   background: linear-gradient(135deg, rgba(240,160,64,.15) 0%, rgba(240,160,64,.05) 100%);
-  border: 1px solid rgba(240,160,64,.3);
-  border-radius: 18px; padding: 20px 24px;
-  margin-bottom: 24px; display: flex;
-  align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
+  border: 1px solid rgba(240,160,64,.3); border-radius: 18px;
+  padding: 20px 24px; margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
 }
 .my-group-info { display: flex; align-items: center; gap: 14px; }
-.my-group-icon { width: 44px; height: 44px; background: var(--amber-g); border: 1px solid var(--amber-d); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-.my-group-label { font-family: var(--fM); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); margin-bottom: 3px; }
-.my-group-name { font-size: 16px; font-weight: 600; }
-.my-group-topic { font-size: 12px; color: var(--tx-m); margin-top: 2px; }
+.my-group-icon { width:44px; height:44px; background:var(--amber-g); border:1px solid var(--amber-d); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.my-group-label { font-family:var(--fM); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--amber); margin-bottom:3px; }
+.my-group-name  { font-size:16px; font-weight:600; }
+.my-group-topic { font-size:12px; color:var(--tx-m); margin-top:2px; }
 
-/* ── Create Group Form ── */
-.create-section { background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 18px; padding: 22px 24px; margin-bottom: 28px; }
-.create-section h3 { font-family: var(--fD); font-size: 1.1rem; margin-bottom: 16px; }
-.create-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-.create-form .fg { flex: 1; min-width: 160px; margin-bottom: 0; }
-.create-form .fg label { font-family: var(--fM); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--tx-m); display: block; margin-bottom: 6px; }
-.create-form input, .create-form select {
-  background: var(--bg-s); border: 1px solid var(--bdr); border-radius: 6px;
-  color: var(--tx); font-family: var(--fB); font-size: 14px;
-  padding: 10px 13px; outline: none; width: 100%;
-  transition: border-color .2s, box-shadow .2s;
-}
-.create-form input:focus, .create-form select:focus { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-g); }
-.create-form select option { background: var(--bg-r); }
+/* ══ Create Group ════════════════════════════════════════ */
+.create-section { background:var(--bg-c); border:1px solid var(--bdr); border-radius:18px; padding:22px 24px; margin-bottom:28px; }
+.create-section h3 { font-family:var(--fD); font-size:1.1rem; margin-bottom:16px; }
+.create-form { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+.create-form .fg { flex:1; min-width:160px; margin-bottom:0; }
+.create-form .fg label { font-family:var(--fM); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--tx-m); display:block; margin-bottom:6px; }
+.create-form input { background:var(--bg-s); border:1px solid var(--bdr); border-radius:6px; color:var(--tx); font-family:var(--fB); font-size:14px; padding:10px 13px; outline:none; width:100%; transition:border-color .2s,box-shadow .2s; }
+.create-form input:focus { border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-g); }
 
-/* ── Section Header ── */
-.sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
-.sec-hdr h3 { font-family: var(--fD); font-size: 1.1rem; }
-.badge { background: var(--bg-r); border: 1px solid var(--bdr); border-radius: 100px; padding: 3px 10px; font-family: var(--fM); font-size: 11px; color: var(--tx-m); }
+/* ══ Groups Grid ══════════════════════════════════════════ */
+.sec-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+.sec-hdr h3 { font-family:var(--fD); font-size:1.1rem; }
+.badge { background:var(--bg-r); border:1px solid var(--bdr); border-radius:100px; padding:3px 10px; font-family:var(--fM); font-size:11px; color:var(--tx-m); }
+.groups-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; margin-bottom:36px; }
+.group-card { background:var(--bg-c); border:1px solid var(--bdr); border-radius:18px; padding:20px; transition:all .25s; position:relative; overflow:hidden; }
+.group-card:hover { border-color:var(--bdr-l); transform:translateY(-2px); box-shadow:0 4px 20px rgba(0,0,0,.3); }
+.group-card.my-card { border-color:rgba(240,160,64,.3); background:linear-gradient(135deg, rgba(240,160,64,.08) 0%, var(--bg-c) 100%); }
+.gc-top   { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+.gc-icon  { width:38px; height:38px; background:var(--bg-r); border:1px solid var(--bdr); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; font-family:var(--fM); color:var(--tx-s); }
+.gc-badge { font-family:var(--fM); font-size:10px; padding:3px 9px; border-radius:100px; letter-spacing:.06em; }
+.gc-badge.mine { background:var(--amber-g); border:1px solid rgba(240,160,64,.3); color:var(--amber); }
+.gc-badge.open { background:rgba(76,175,118,.1); border:1px solid rgba(76,175,118,.25); color:var(--green); }
+.gc-name  { font-size:15px; font-weight:600; margin-bottom:4px; line-height:1.3; }
+.gc-topic { font-size:12px; color:var(--amber); font-family:var(--fM); margin-bottom:10px; }
+.gc-meta  { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.gc-meta-item { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--tx-m); }
+.gc-actions { display:flex; gap:8px; }
+.empty-groups { text-align:center; padding:50px 20px; color:var(--tx-m); }
+.empty-groups-icon { font-size:46px; opacity:.25; margin-bottom:10px; }
 
-/* ── Groups Grid ── */
-.groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 36px; }
-.group-card {
-  background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 18px;
-  padding: 20px; cursor: pointer; transition: all .25s; position: relative; overflow: hidden;
-}
-.group-card {
-  background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 18px;
-  padding: 20px; cursor: default;
-.group-card:hover { border-color: var(--bdr-l); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.4); }
-.group-card:hover::before { opacity: 1; }
-.group-card.my-card { border-color: rgba(240,160,64,.3); background: linear-gradient(135deg, rgba(240,160,64,.08) 0%, var(--bg-c) 100%); }
-.gc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
-.gc-icon { width: 38px; height: 38px; background: var(--bg-r); border: 1px solid var(--bdr); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.gc-badge { font-family: var(--fM); font-size: 10px; padding: 3px 9px; border-radius: 100px; letter-spacing: .06em; }
-.gc-badge.mine  { background: var(--amber-g); border: 1px solid rgba(240,160,64,.3); color: var(--amber); }
-.gc-badge.open  { background: rgba(76,175,118,.1); border: 1px solid rgba(76,175,118,.25); color: var(--green); }
-.gc-name  { font-size: 15px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
-.gc-topic { font-size: 12px; color: var(--amber); font-family: var(--fM); margin-bottom: 10px; }
-.gc-meta  { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-.gc-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--tx-m); }
-.gc-members { display: flex; gap: -4px; }
-.gc-member-av { width: 22px; height: 22px; background: var(--bg-r); border: 1px solid var(--bdr-l); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: var(--fM); color: var(--tx-s); margin-right: -4px; }
-.gc-actions { display: flex; gap: 8px; }
+/* ══ Group Room (full-featured) ══════════════════════════ */
+.room-wrapper { background:var(--bg-c); border:1px solid var(--bdr); border-radius:24px; overflow:hidden; }
+.room-hdr { padding:16px 20px; background:var(--bg-s); border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.room-hdr-left { display:flex; align-items:center; gap:12px; }
+.room-icon  { width:40px; height:40px; background:var(--amber-g); border:1px solid var(--amber-d); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.room-name  { font-size:16px; font-weight:600; }
+.room-topic { font-size:12px; color:var(--amber); font-family:var(--fM); }
+.room-hdr-right { display:flex; align-items:center; gap:8px; }
 
-/* ── Group Room ── */
-.group-room { background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 24px; overflow: hidden; }
-.room-hdr { padding: 18px 24px; background: var(--bg-s); border-bottom: 1px solid var(--bdr); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-.room-hdr-left { display: flex; align-items: center; gap: 12px; }
-.room-icon { width: 40px; height: 40px; background: var(--amber-g); border: 1px solid var(--amber-d); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.room-name  { font-size: 16px; font-weight: 600; }
-.room-topic { font-size: 12px; color: var(--amber); font-family: var(--fM); }
-.room-body  { display: grid; grid-template-columns: 1fr 220px; min-height: 460px; }
-@media(max-width:700px){ .room-body { grid-template-columns: 1fr; } }
+/* Tabs */
+.tab-bar { display:flex; gap:2px; padding:12px 20px 0; background:var(--bg-s); border-bottom:1px solid var(--bdr); overflow-x:auto; }
+.tab-bar::-webkit-scrollbar { height:2px; }
+.tab-btn { padding:8px 16px; font-size:13px; font-weight:500; font-family:var(--fB); color:var(--tx-m); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; transition:all .2s; border-radius:6px 6px 0 0; }
+.tab-btn:hover { color:var(--tx); background:var(--bg-r); }
+.tab-btn.active { color:var(--amber); border-bottom-color:var(--amber); background:var(--bg-r); }
 
-/* Members sidebar */
-.members-panel { border-left: 1px solid var(--bdr); padding: 16px; background: var(--bg-s); }
-.members-panel h4 { font-family: var(--fM); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--tx-m); margin-bottom: 12px; }
-.member-item { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px solid var(--bdr); }
-.member-item:last-child { border-bottom: none; }
-.member-av { width: 28px; height: 28px; background: var(--amber-g); border: 1px solid rgba(240,160,64,.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: var(--fM); color: var(--amber); flex-shrink: 0; }
-.member-name { font-size: 13px; }
-.member-you  { font-size: 10px; color: var(--tx-m); font-family: var(--fM); }
+/* Room body split */
+.room-body { display:grid; grid-template-columns:1fr 200px; min-height:520px; }
+@media(max-width:700px){ .room-body { grid-template-columns:1fr; } }
 
-/* Message board */
-.msg-panel { display: flex; flex-direction: column; }
-.msg-board { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-height: 360px; max-height: 400px; }
-.msg-board::-webkit-scrollbar { width: 3px; }
-.msg-board::-webkit-scrollbar-thumb { background: var(--bdr-l); border-radius: 2px; }
-.msg-item { display: flex; gap: 10px; animation: mIn .2s ease both; }
+/* Tab content */
+.tab-content { display:none; padding:0; flex-direction:column; min-height:480px; }
+.tab-content.active { display:flex; }
+
+/* ── Chat Panel ─────────────────────────────────────────── */
+.msg-board { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; min-height:360px; max-height:420px; }
+.msg-board::-webkit-scrollbar { width:3px; }
+.msg-board::-webkit-scrollbar-thumb { background:var(--bdr-l); border-radius:2px; }
+.board-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--tx-m); font-size:13px; gap:6px; padding:40px; text-align:center; }
+.board-empty-icon { font-size:32px; opacity:.3; }
+.msg-item { display:flex; gap:10px; animation:mIn .2s ease both; }
 @keyframes mIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
-.msg-av   { width: 30px; height: 30px; background: var(--bg-r); border: 1px solid var(--bdr); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: var(--fM); color: var(--tx-s); flex-shrink: 0; margin-top: 2px; }
-.msg-av.me { background: var(--amber-g); border-color: rgba(240,160,64,.2); color: var(--amber); }
-.msg-bubble { background: var(--bg-r); border: 1px solid var(--bdr); border-radius: 10px; padding: 9px 13px; max-width: 85%; border-top-left-radius: 3px; }
-.msg-item.me .msg-bubble { background: var(--amber); border-color: var(--amber); color: #0c0d0f; border-radius: 10px; border-top-right-radius: 3px; }
-.msg-item.me { flex-direction: row-reverse; }
-.msg-item.me .msg-bubble { border-top-left-radius: 10px; border-top-right-radius: 3px; }
-.msg-sender { font-size: 11px; font-weight: 600; margin-bottom: 3px; color: var(--amber); font-family: var(--fM); }
-.msg-item.me .msg-sender { display: none; }
-.msg-text   { font-size: 13px; line-height: 1.55; word-break: break-word; }
-.msg-time   { font-size: 10px; color: var(--tx-m); font-family: var(--fM); margin-top: 4px; }
-.msg-item.me .msg-time { text-align: right; color: rgba(12,13,15,.5); }
-.board-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tx-m); font-size: 13px; gap: 6px; }
-.board-empty-icon { font-size: 32px; opacity: .3; }
-.msg-input-area { border-top: 1px solid var(--bdr); padding: 14px 20px; display: flex; gap: 9px; background: var(--bg-s); align-items: flex-end; }
-.msg-input-area textarea {
-  flex: 1; background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 10px;
-  color: var(--tx); font-family: var(--fB); font-size: 14px;
-  padding: 10px 13px; outline: none; resize: none; min-height: 40px; max-height: 100px;
-  transition: border-color .2s;
-}
-.msg-input-area textarea:focus { border-color: var(--amber); }
-.msg-input-area textarea::placeholder { color: var(--tx-m); }
-.send-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--amber); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0c0d0f; font-size: 15px; flex-shrink: 0; transition: all .2s; }
-.send-btn:hover { background: #f5b050; box-shadow: 0 0 12px rgba(240,160,64,.3); }
-.send-btn:disabled { opacity: .4; cursor: not-allowed; }
-.refresh-hint { font-size: 11px; color: var(--tx-m); font-family: var(--fM); padding: 6px 20px; background: var(--bg-s); text-align: right; border-top: 1px solid var(--bdr); }
+.msg-av   { width:30px; height:30px; background:var(--bg-r); border:1px solid var(--bdr); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-family:var(--fM); color:var(--tx-s); flex-shrink:0; margin-top:2px; }
+.msg-av.me { background:var(--amber-g); border-color:rgba(240,160,64,.2); color:var(--amber); }
+.msg-av.ai { background:rgba(100,180,255,.15); border-color:rgba(100,180,255,.3); color:#64b4ff; }
+.msg-body  { flex:1; min-width:0; }
+.msg-sender { font-size:11px; font-weight:600; margin-bottom:3px; color:var(--amber); font-family:var(--fM); }
+.msg-sender.ai-sender { color:#64b4ff; }
+.msg-bubble { background:var(--bg-r); border:1px solid var(--bdr); border-radius:10px; border-top-left-radius:3px; padding:9px 13px; max-width:85%; display:inline-block; }
+.msg-item.me .msg-bubble { background:var(--amber); border-color:var(--amber); color:#0c0d0f; border-radius:10px; border-top-right-radius:3px; }
+.msg-item.me { flex-direction:row-reverse; }
+.msg-item.me .msg-sender { display:none; }
+.msg-text  { font-size:13px; line-height:1.6; word-break:break-word; white-space:pre-wrap; }
+.msg-footer { display:flex; align-items:center; gap:8px; margin-top:4px; }
+.msg-time  { font-size:10px; color:var(--tx-m); font-family:var(--fM); }
+.msg-item.me .msg-time { color:rgba(12,13,15,.5); }
+.upvote-btn { background:none; border:1px solid var(--bdr); border-radius:6px; padding:2px 7px; font-size:11px; cursor:pointer; color:var(--tx-m); transition:all .2s; display:flex; align-items:center; gap:4px; font-family:var(--fM); }
+.upvote-btn:hover { border-color:var(--amber); color:var(--amber); }
+.upvote-btn.upvoted { background:var(--amber-g); border-color:rgba(240,160,64,.3); color:var(--amber); }
+.upvote-count { font-weight:500; }
+.ai-typing-ind { display:none; padding:6px 16px; font-size:12px; color:#64b4ff; font-family:var(--fM); animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
 
-/* ── Empty state ── */
-.empty-groups { text-align: center; padding: 50px 20px; color: var(--tx-m); }
-.empty-groups-icon { font-size: 46px; opacity: .25; margin-bottom: 10px; }
+/* Message input */
+.msg-input-area { border-top:1px solid var(--bdr); padding:12px 16px; display:flex; gap:8px; background:var(--bg-s); align-items:flex-end; }
+.msg-input-area textarea { flex:1; background:var(--bg-c); border:1px solid var(--bdr); border-radius:10px; color:var(--tx); font-family:var(--fB); font-size:14px; padding:10px 13px; outline:none; resize:none; min-height:40px; max-height:100px; transition:border-color .2s; }
+.msg-input-area textarea:focus { border-color:var(--amber); }
+.msg-input-area textarea::placeholder { color:var(--tx-m); }
+.send-btn { width:40px; height:40px; border-radius:10px; background:var(--amber); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#0c0d0f; font-size:15px; flex-shrink:0; transition:all .2s; }
+.send-btn:hover { background:#f5b050; box-shadow:0 0 12px rgba(240,160,64,.3); }
+.send-btn:disabled { opacity:.4; cursor:not-allowed; }
+.ai-hint { font-size:11px; color:var(--tx-m); padding:4px 16px; background:var(--bg-s); font-family:var(--fM); }
+.file-upload-panel { background:var(--bg-s); border-top:1px solid var(--bdr); padding:10px 16px; }
+.file-upload-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font-size:13px; font-family:var(--fM); color:var(--tx); }
+.file-list { display:flex; flex-direction:column; gap:5px; margin-bottom:8px; max-height:120px; overflow-y:auto; }
+.file-item { display:flex; align-items:center; justify-content:space-between; background:var(--bg-c); border:1px solid var(--bdr); border-radius:8px; padding:7px 12px; font-size:12px; }
+.file-item .file-name { font-family:var(--fM); color:var(--tx); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px; }
+.file-item .file-status { font-size:11px; padding:2px 7px; border-radius:20px; background:rgba(100,180,255,.1); color:#64b4ff; }
+.file-item .file-status.ready { background:rgba(76,175,118,.1); color:var(--green); }
+.file-item .file-status.error { background:rgba(255,100,100,.1); color:#ff6464; }
+.file-upload-btn { display:inline-block; cursor:pointer; padding:7px 14px; border:1px dashed var(--bdr); border-radius:8px; font-size:12px; color:var(--amber); font-family:var(--fM); transition:all .2s; text-align:center; }
+.file-upload-btn:hover { border-color:var(--amber); background:rgba(251,191,36,.06); }
+.file-toggle-btn { font-size:12px; }
+
+/* ── Notice Board Panel ─────────────────────────────────── */
+.notice-panel { display:flex; flex-direction:column; flex:1; }
+.notice-toolbar { padding:12px 16px; border-bottom:1px solid var(--bdr); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.notice-toolbar textarea { flex:1; min-width:200px; background:var(--bg-s); border:1px solid var(--bdr); border-radius:8px; color:var(--tx); font-family:var(--fB); font-size:13px; padding:8px 12px; outline:none; resize:none; min-height:36px; max-height:80px; transition:border-color .2s; }
+.notice-toolbar textarea:focus { border-color:var(--amber); }
+.notices-list { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; max-height:400px; }
+.notice-item { background:var(--bg-s); border:1px solid var(--bdr); border-radius:12px; padding:14px 16px; transition:border-color .2s; position:relative; }
+.notice-item.pinned-notice { border-color:rgba(240,160,64,.4); background:linear-gradient(135deg,rgba(240,160,64,.08) 0%,var(--bg-s) 100%); }
+.notice-pin-badge { position:absolute; top:10px; right:10px; font-size:10px; font-family:var(--fM); color:var(--amber); background:var(--amber-g); border:1px solid rgba(240,160,64,.2); border-radius:6px; padding:2px 7px; }
+.notice-author { font-size:11px; font-family:var(--fM); color:var(--tx-m); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+.notice-text { font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; }
+.notice-actions { margin-top:8px; display:flex; gap:6px; }
+.notice-act-btn { font-size:11px; font-family:var(--fM); background:none; border:1px solid var(--bdr); border-radius:6px; padding:3px 9px; cursor:pointer; color:var(--tx-m); transition:all .2s; }
+.notice-act-btn:hover { border-color:var(--amber); color:var(--amber); }
+.notice-ai-summary { background:rgba(100,180,255,.08); border:1px solid rgba(100,180,255,.2); border-radius:12px; padding:14px 16px; margin:12px 16px; font-size:13px; line-height:1.7; color:var(--tx); white-space:pre-wrap; }
+.notice-ai-summary::before { content:"🤖 AI Summary\n"; font-family:var(--fM); font-size:11px; color:#64b4ff; letter-spacing:.05em; text-transform:uppercase; display:block; margin-bottom:8px; }
+
+/* ── Notes Panel ─────────────────────────────────────────── */
+.notes-panel { display:flex; flex-direction:column; flex:1; }
+.notes-toolbar { padding:10px 16px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:var(--tx-m); font-family:var(--fM); flex-wrap:wrap; }
+.notes-editor { flex:1; background:var(--bg-s); border:none; color:var(--tx); font-family:var(--fM); font-size:13px; padding:18px 20px; outline:none; resize:none; min-height:380px; line-height:1.75; width:100%; }
+.notes-editor::placeholder { color:var(--tx-m); }
+.notes-saved-badge { font-size:10px; background:rgba(76,175,118,.15); border:1px solid rgba(76,175,118,.3); color:var(--green); border-radius:6px; padding:2px 8px; font-family:var(--fM); opacity:0; transition:opacity .5s; }
+.notes-saved-badge.visible { opacity:1; }
+.notes-editor-ind { font-size:11px; color:#64b4ff; font-family:var(--fM); min-width:140px; }
+
+/* ── Pomodoro Timer Panel ─────────────────────────────────── */
+.timer-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; gap:24px; flex:1; }
+.timer-display { text-align:center; }
+.timer-mode-label { font-family:var(--fM); font-size:11px; letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px; }
+.timer-mode-label.study { color:var(--amber); }
+.timer-mode-label.break { color:var(--green); }
+.timer-clock { font-family:var(--fM); font-size:clamp(3rem,10vw,5rem); font-weight:500; letter-spacing:.06em; line-height:1; }
+.timer-clock.study { color:var(--amber); text-shadow:0 0 30px rgba(240,160,64,.3); }
+.timer-clock.break { color:var(--green); text-shadow:0 0 30px rgba(76,175,118,.3); }
+.timer-progress { width:100%; max-width:340px; height:4px; background:var(--bdr); border-radius:2px; overflow:hidden; margin-top:12px; }
+.timer-progress-fill { height:100%; background:var(--amber); border-radius:2px; transition:width .5s linear; }
+.timer-progress-fill.break { background:var(--green); }
+.timer-controls { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.timer-btn { padding:10px 22px; border-radius:10px; font-size:14px; font-weight:500; border:1px solid var(--bdr); cursor:pointer; transition:all .2s; background:var(--bg-s); color:var(--tx); font-family:var(--fB); }
+.timer-btn.primary { background:var(--amber); border-color:var(--amber); color:#0c0d0f; }
+.timer-btn.primary:hover { background:#f5b050; box-shadow:0 0 16px rgba(240,160,64,.3); }
+.timer-btn:hover:not(.primary) { border-color:var(--amber); color:var(--amber); }
+.timer-stats { display:flex; gap:20px; text-align:center; }
+.timer-stat { display:flex; flex-direction:column; gap:4px; }
+.timer-stat-val { font-family:var(--fM); font-size:1.4rem; color:var(--amber); }
+.timer-stat-lbl { font-size:11px; color:var(--tx-m); font-family:var(--fM); }
+.timer-sync-info { font-size:12px; color:var(--tx-m); font-family:var(--fM); text-align:center; }
+
+/* ── Quiz Panel ────────────────────────────────────────────── */
+.quiz-panel { display:flex; flex-direction:column; flex:1; }
+.quiz-setup  { padding:24px; display:flex; flex-direction:column; gap:16px; }
+.quiz-setup h4 { font-family:var(--fD); font-size:1.1rem; }
+.quiz-options { display:flex; gap:10px; flex-wrap:wrap; }
+.quiz-opt-btn { padding:8px 16px; border:1px solid var(--bdr); border-radius:8px; background:var(--bg-s); color:var(--tx-s); font-size:13px; cursor:pointer; transition:all .2s; font-family:var(--fB); }
+.quiz-opt-btn.active { border-color:var(--amber); background:var(--amber-g); color:var(--amber); }
+.quiz-questions { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; max-height:440px; }
+.quiz-q { background:var(--bg-s); border:1px solid var(--bdr); border-radius:14px; padding:18px; }
+.quiz-q-num  { font-family:var(--fM); font-size:10px; color:var(--amber); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
+.quiz-q-text { font-size:14px; font-weight:500; margin-bottom:14px; line-height:1.5; }
+.quiz-options-list { display:flex; flex-direction:column; gap:7px; }
+.quiz-opt { padding:9px 13px; border:1px solid var(--bdr); border-radius:8px; background:var(--bg-r); cursor:pointer; font-size:13px; transition:all .2s; }
+.quiz-opt:hover { border-color:var(--amber); }
+.quiz-opt.correct { background:rgba(76,175,118,.15); border-color:var(--green); color:var(--green); }
+.quiz-opt.wrong   { background:rgba(224,90,90,.1); border-color:var(--red); color:var(--red); }
+.quiz-short-input { width:100%; background:var(--bg-r); border:1px solid var(--bdr); border-radius:8px; padding:9px 13px; color:var(--tx); font-family:var(--fB); font-size:13px; outline:none; transition:border-color .2s; }
+.quiz-short-input:focus { border-color:var(--amber); }
+.quiz-explanation { font-size:12px; color:var(--tx-m); margin-top:8px; padding:8px 12px; background:var(--bg-c); border-radius:6px; display:none; line-height:1.6; font-family:var(--fM); }
+.quiz-score-panel { padding:24px; text-align:center; }
+.quiz-score-val { font-family:var(--fM); font-size:3rem; color:var(--amber); margin:12px 0; }
+.quiz-score-label { color:var(--tx-m); font-size:14px; }
+
+/* ── Summary Panel ─────────────────────────────────────────── */
+.summary-panel { display:flex; flex-direction:column; flex:1; }
+.summary-generate { padding:24px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.summary-generate h4 { font-family:var(--fD); font-size:1.1rem; }
+.summary-generate p  { color:var(--tx-m); font-size:13px; max-width:400px; line-height:1.6; }
+.summary-content { flex:1; overflow-y:auto; padding:20px; font-size:14px; line-height:1.8; white-space:pre-wrap; max-height:420px; }
+.summary-content strong { color:var(--amber); }
+
+/* ── Members Sidebar ────────────────────────────────────────── */
+.members-panel { border-left:1px solid var(--bdr); padding:16px; background:var(--bg-s); overflow-y:auto; }
+.members-panel h4 { font-family:var(--fM); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-m); margin-bottom:12px; }
+.member-item { display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid var(--bdr); }
+.member-item:last-child { border-bottom:none; }
+.member-av   { width:28px; height:28px; background:var(--amber-g); border:1px solid rgba(240,160,64,.2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-family:var(--fM); color:var(--amber); flex-shrink:0; }
+.member-name { font-size:13px; }
+.member-you  { font-size:10px; color:var(--tx-m); font-family:var(--fM); }
+
+@media(max-width:700px) {
+  .members-panel { display:none; }
+  .room-body { grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
@@ -141,27 +251,35 @@
     <a href="/dashboard" class="nav-link">Dashboard</a>
     <a href="/chat"      class="nav-link">Chat</a>
     <a href="/planner"   class="nav-link">Planner</a>
+    <a href="/groups"    class="nav-link" style="color:var(--amber)">Groups</a>
+    <a href="/settings"  class="nav-link">⚙ Settings</a>
     <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
   </div>
 </nav>
 
 <div class="groups-page">
+
   <div class="page-hdr">
-    <h2>👥 Collaborative Study Groups</h2>
-    <p>Join a group, post to the shared noticeboard, and learn together.</p>
+    <div>
+      <h2>👥 Study Groups</h2>
+      <p>Collaborate in real-time. Use @AI to ask questions. Sync timers. Generate quizzes.</p>
+    </div>
+    <div class="hdr-actions">
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-toggle-btn">🌙 Dark</button>
+    </div>
   </div>
 
-  <!-- My Group Banner (shown when in a group) -->
+  <!-- My Group Banner -->
   <div id="my-banner" style="display:none" class="my-group-banner">
     <div class="my-group-info">
       <div class="my-group-icon">👥</div>
       <div>
         <div class="my-group-label">Your Active Group</div>
-        <div class="my-group-name" id="banner-name"></div>
+        <div class="my-group-name"  id="banner-name"></div>
         <div class="my-group-topic" id="banner-topic"></div>
       </div>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="scrollToRoom()">Open Noticeboard →</button>
+    <button class="btn btn-primary btn-sm" onclick="scrollToRoom()">Open Study Room →</button>
   </div>
 
   <!-- Create Group -->
@@ -188,20 +306,20 @@
     <h3>Available Groups</h3>
     <span class="badge" id="group-count">Loading…</span>
   </div>
-
   <div id="loading-groups" style="text-align:center;padding:32px;color:var(--tx-m)">
     <span class="spin"></span> Loading groups…
   </div>
-
   <div id="groups-grid" class="groups-grid" style="display:none"></div>
 
-  <!-- Group Room (shown when viewing a group you're in) -->
-  <div id="group-room" style="display:none">
-    <div class="sec-hdr" style="margin-top:36px">
-      <h3>📋 Group Noticeboard</h3>
+  <!-- ══ Group Room ══════════════════════════════════════════ -->
+  <div id="group-room" style="display:none;margin-top:32px">
+    <div class="sec-hdr">
+      <h3 id="room-heading">Study Room</h3>
       <button class="btn btn-ghost btn-sm" onclick="closeRoom()">✕ Close</button>
     </div>
-    <div class="group-room">
+
+    <div class="room-wrapper">
+      <!-- Header -->
       <div class="room-hdr">
         <div class="room-hdr-left">
           <div class="room-icon">👥</div>
@@ -210,28 +328,180 @@
             <div class="room-topic" id="room-topic"></div>
           </div>
         </div>
-        <button class="btn btn-ghost btn-sm" style="color:var(--red);font-size:12px" onclick="leaveGroup()" id="leave-btn">
-          🚪 Leave Group
-        </button>
+        <div class="room-hdr-right">
+          <span id="connection-badge" style="font-size:11px;font-family:var(--fM);color:var(--tx-m)">Connecting…</span>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);font-size:12px" onclick="leaveGroup()">
+            🚪 Leave
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Bar — Navigation fix: no blocking overlay, pure CSS tabs -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('chat',this)"    >💬 Chat</button>
+        <button class="tab-btn"        onclick="switchTab('notices',this)"  >📋 Noticeboard</button>
+        <button class="tab-btn"        onclick="switchTab('notes',this)"    >📝 Shared Notes</button>
+        <button class="tab-btn"        onclick="switchTab('timer',this)"    >⏱ Timer</button>
+        <button class="tab-btn"        onclick="switchTab('quiz',this)"     >❓ Quiz</button>
+        <button class="tab-btn"        onclick="switchTab('summary',this)"  >📊 Summary</button>
       </div>
 
       <div class="room-body">
-        <!-- Messages -->
-        <div class="msg-panel">
-          <div class="msg-board" id="msg-board">
-            <div class="board-empty">
-              <div class="board-empty-icon">💬</div>
-              <span>No messages yet. Be the first to post!</span>
+        <!-- Left: Tab Content -->
+        <div id="tab-all">
+
+          <!-- ── CHAT TAB ─────────────────────────────────── -->
+          <div id="tab-chat" class="tab-content active">
+            <div class="msg-board" id="msg-board">
+              <div class="board-empty">
+                <div class="board-empty-icon">💬</div>
+                <span>No messages yet. Use <strong>@AI</strong> to ask questions!</span>
+              </div>
+            </div>
+            <div class="ai-typing-ind" id="ai-typing">🤖 Nexus AI is thinking…</div>
+            <div class="msg-input-area">
+              <textarea id="msg-input" placeholder="Type a message… or @AI What is recursion?" rows="1"></textarea>
+              <button class="send-btn" id="msg-send-btn" onclick="postMessage()" title="Send">➤</button>
+            </div>
+            <div class="ai-hint">Tip: Start with <strong>@AI</strong> to get an instant AI answer in the chat</div>
+            <!-- FILE UPLOAD PANEL -->
+            <div class="file-upload-panel" id="file-upload-panel" style="display:none">
+              <div class="file-upload-header">
+                <span>📁 Group Documents <small style="opacity:.6">(AI reads these for @AI questions)</small></span>
+                <button class="btn btn-outline btn-sm" onclick="toggleFilePanel()">✕ Close</button>
+              </div>
+              <div class="file-list" id="file-list"><em style="opacity:.5;font-size:12px">No files uploaded yet.</em></div>
+              <label class="file-upload-btn">
+                <input type="file" id="file-input" accept=".pdf,.txt,.md" onchange="uploadFile(this)" style="display:none">
+                ＋ Upload PDF / TXT / MD (max 5 MB)
+              </label>
+            </div>
+            <button class="btn btn-outline btn-sm file-toggle-btn" id="file-toggle-btn"
+                    onclick="toggleFilePanel()" style="margin:4px 16px 8px;display:none" title="Upload study materials">
+              📎 Files
+            </button>
+          </div>
+
+          <!-- ── NOTICEBOARD TAB ────────────────────────── -->
+          <div id="tab-notices" class="tab-content">
+            <div class="notice-panel">
+              <div class="notice-toolbar">
+                <textarea id="notice-input" placeholder="Post an announcement to the group…" rows="1"></textarea>
+                <button class="btn btn-primary btn-sm" onclick="postNotice()">Post</button>
+                <button class="btn btn-outline btn-sm" onclick="summariseNotices()">🤖 AI Summarise</button>
+              </div>
+              <div id="notice-ai-result" style="display:none" class="notice-ai-summary"></div>
+              <div class="notices-list" id="notices-list">
+                <div class="board-empty">
+                  <div class="board-empty-icon">📋</div>
+                  <span>No notices yet. Post the first announcement!</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="msg-input-area">
-            <textarea id="msg-input" placeholder="Post a message to the group…" rows="1"></textarea>
-            <button class="send-btn" id="msg-send-btn" onclick="postMessage()" title="Send">➤</button>
-          </div>
-          <div class="refresh-hint" id="refresh-hint">Connecting…</div>
-        </div>
 
-        <!-- Members -->
+          <!-- ── SHARED NOTES TAB ──────────────────────── -->
+          <div id="tab-notes" class="tab-content">
+            <div class="notes-panel">
+              <div class="notes-toolbar">
+                <div class="notes-editor-ind" id="notes-editor-ind"></div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="notes-saved-badge" id="notes-saved-badge">✓ Saved</span>
+                  <button class="btn btn-primary btn-sm" onclick="saveNotes()">💾 Save Notes</button>
+                </div>
+              </div>
+              <textarea class="notes-editor" id="notes-editor"
+                placeholder="Shared group notes — everyone in the group can edit. Use this to capture key points, formulas, code snippets…"
+                oninput="onNotesInput()"></textarea>
+            </div>
+          </div>
+
+          <!-- ── POMODORO TIMER TAB ──────────────────── -->
+          <div id="tab-timer" class="tab-content">
+            <div class="timer-panel">
+              <div class="timer-display">
+                <div class="timer-mode-label study" id="timer-mode-lbl">🎯 Study Session</div>
+                <div class="timer-clock study"       id="timer-clock">25:00</div>
+                <div class="timer-progress">
+                  <div class="timer-progress-fill" id="timer-bar" style="width:100%"></div>
+                </div>
+              </div>
+              <div class="timer-controls">
+                <button class="timer-btn primary" id="timer-start-btn" onclick="timerStart()">▶ Start</button>
+                <button class="timer-btn"         id="timer-pause-btn" onclick="timerPause()" disabled>⏸ Pause</button>
+                <button class="timer-btn"         onclick="timerReset()">↺ Reset</button>
+              </div>
+              <div class="timer-stats">
+                <div class="timer-stat">
+                  <div class="timer-stat-val" id="pomodoros-done">0</div>
+                  <div class="timer-stat-lbl">Pomodoros</div>
+                </div>
+                <div class="timer-stat">
+                  <div class="timer-stat-val" id="sessions-done">0</div>
+                  <div class="timer-stat-lbl">Sessions</div>
+                </div>
+              </div>
+              <div class="timer-sync-info" id="timer-sync-info">Timer syncs live with your group members</div>
+            </div>
+          </div>
+
+          <!-- ── QUIZ TAB ─────────────────────────────── -->
+          <div id="tab-quiz" class="tab-content">
+            <div class="quiz-panel">
+              <div id="quiz-setup" class="quiz-setup">
+                <h4>🤖 AI Quiz Generator</h4>
+                <div>
+                  <div style="font-size:12px;color:var(--tx-m);margin-bottom:8px;font-family:var(--fM)">GENERATE FROM</div>
+                  <div class="quiz-options">
+                    <button class="quiz-opt-btn active" data-source="topic" onclick="setQuizSource(this)">📚 Group Topic</button>
+                    <button class="quiz-opt-btn"        data-source="chat"  onclick="setQuizSource(this)">💬 Chat History</button>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:12px;color:var(--tx-m);margin-bottom:8px;font-family:var(--fM)">NUMBER OF QUESTIONS</div>
+                  <div class="quiz-options">
+                    <button class="quiz-opt-btn active" data-count="5"  onclick="setQuizCount(this)">5</button>
+                    <button class="quiz-opt-btn"        data-count="8"  onclick="setQuizCount(this)">8</button>
+                    <button class="quiz-opt-btn"        data-count="10" onclick="setQuizCount(this)">10</button>
+                  </div>
+                </div>
+                <button class="btn btn-primary" id="gen-quiz-btn" onclick="generateQuiz()" style="width:fit-content">
+                  ✨ Generate Quiz
+                </button>
+              </div>
+              <div id="quiz-questions" class="quiz-questions" style="display:none"></div>
+              <div id="quiz-score" class="quiz-score-panel" style="display:none">
+                <div style="font-size:3rem">🎉</div>
+                <div class="quiz-score-val" id="quiz-score-val">0/0</div>
+                <div class="quiz-score-label">Questions Correct</div>
+                <button class="btn btn-outline" onclick="resetQuiz()" style="margin-top:16px">Try Another Quiz</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── SESSION SUMMARY TAB ──────────────────── -->
+          <div id="tab-summary" class="tab-content">
+            <div class="summary-panel">
+              <div id="summary-setup" class="summary-generate">
+                <div style="font-size:3rem">📊</div>
+                <h4>AI Session Summary</h4>
+                <p>Generate an intelligent summary of your group study session including key points, unanswered questions, and weak areas to review.</p>
+                <button class="btn btn-primary" id="gen-summary-btn" onclick="generateSummary()">
+                  📊 Generate Summary
+                </button>
+              </div>
+              <div id="summary-output" style="display:none">
+                <div class="summary-content" id="summary-text"></div>
+                <div style="padding:12px 20px;border-top:1px solid var(--bdr);display:flex;gap:8px">
+                  <button class="btn btn-outline btn-sm" onclick="resetSummary()">↺ Regenerate</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end tab-all -->
+
+        <!-- Right: Members Sidebar -->
         <div class="members-panel">
           <h4>Members</h4>
           <div id="members-list"></div>
@@ -243,9 +513,9 @@
 </div><!-- end groups-page -->
 
 <script>
-/* ══════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    STATE
-══════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 let myGroupId    = null;
 let currentUid   = null;
 let currentUname = null;
@@ -253,59 +523,139 @@ let activeRoomId = null;
 let allGroups    = [];
 let socket       = null;
 
-/* ══════════════════════════════════════
+// Timer state
+let timerInterval  = null;
+let timerRunning   = false;
+let timerTimeLeft  = 25 * 60; // seconds
+let timerTotalTime = 25 * 60;
+let timerMode      = 'study'; // 'study' | 'break'
+let pomodorosDone  = 0;
+let sessionsDone   = 0;
+let WORK_MINS  = 25;   // overridden by /api/settings
+let BREAK_MINS = 5;
+
+// Quiz state
+let quizSource   = 'topic';
+let quizCount    = 5;
+let quizData     = null;
+let quizAnswers  = {};
+let quizScored   = false;
+
+// Notes auto-save debounce
+let notesSaveTimer = null;
+let notesTypingTimeout = null;
+
+/* ══════════════════════════════════════════════════════
+   THEME TOGGLE
+══════════════════════════════════════════════════════ */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('theme-toggle-btn');
+  if (btn) btn.textContent = theme === 'dark' ? '☀ Light' : '🌙 Dark';
+  localStorage.setItem('nx-theme', theme);
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+// Apply saved theme on load
+(function() {
+  const saved = localStorage.getItem('nx-theme') || 'dark';
+  applyTheme(saved);
+})();
+
+/* ══════════════════════════════════════════════════════
    INIT
-══════════════════════════════════════ */
-async function init(){
+══════════════════════════════════════════════════════ */
+async function init() {
+  // Load user settings (pomodoro, notifications, AI style)
+  try {
+    const sr = await fetch('/api/settings');
+    if (sr.ok) {
+      const sd = await sr.json();
+      // Settings API returns top-level keys for convenience
+      const work  = parseInt(sd.pomodoro_work)  || 25;
+      const brk   = parseInt(sd.pomodoro_break) || 5;
+      WORK_MINS  = work;
+      BREAK_MINS = brk;
+      timerTimeLeft  = WORK_MINS * 60;
+      timerTotalTime = WORK_MINS * 60;
+      // Store AI style globally
+      window._aiStyle = sd.ai_style || 'detailed';
+      // Request notification permission if any notification pref is on
+      window._notifyAI    = sd.notify_ai    !== false;
+      window._notifyTimer = sd.notify_timer !== false;
+      if ((window._notifyAI || window._notifyTimer) && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  } catch(_) {}
+
   await loadGroups();
   const ta = document.getElementById('msg-input');
-  ta.addEventListener('input', ()=>{
-    ta.style.height='auto';
-    ta.style.height=Math.min(ta.scrollHeight,100)+'px';
+  ta.addEventListener('input', () => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
   });
-  ta.addEventListener('keydown', e=>{
-    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();postMessage();}
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postMessage(); }
+  });
+  const ni = document.getElementById('notice-input');
+  ni.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postNotice(); }
   });
 }
 
-/* ══════════════════════════════════════
+/* ══════════════════════════════════════════════════════
+   TAB SWITCHING — No blocking overlays, pure JS
+══════════════════════════════════════════════════════ */
+function switchTab(name, btn) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  // Show target
+  const t = document.getElementById('tab-' + name);
+  if (t) t.classList.add('active');
+  if (btn) btn.classList.add('active');
+  // Lazy load tab content
+  if (name === 'notices' && activeRoomId)  loadNotices();
+  if (name === 'notes'   && activeRoomId)  loadNotes();
+  if (name === 'timer') updateTimerDisplay();
+}
+
+/* ══════════════════════════════════════════════════════
    LOAD GROUPS
-══════════════════════════════════════ */
-async function loadGroups(){
-  try{
+══════════════════════════════════════════════════════ */
+async function loadGroups() {
+  try {
     const r = await fetch('/api/groups');
-    if(r.status===401){location.href='/login';return;}
+    if (r.status === 401) { location.href = '/login'; return; }
     const d = await r.json();
     allGroups    = d.groups || [];
     myGroupId    = d.my_group_id || null;
     currentUid   = d.user_id;
     currentUname = d.user_name;
 
-    document.getElementById('loading-groups').style.display='none';
-    document.getElementById('groups-grid').style.display='';
-    document.getElementById('group-count').textContent = allGroups.length + ' group' + (allGroups.length!==1?'s':'');
+    document.getElementById('loading-groups').style.display = 'none';
+    document.getElementById('groups-grid').style.display    = '';
+    document.getElementById('group-count').textContent =
+      allGroups.length + ' group' + (allGroups.length !== 1 ? 's' : '');
 
     renderGroups();
     updateBanner();
-
-    if(activeRoomId) loadMessages(activeRoomId);
-
-  }catch(e){
-    console.error('Failed to load groups:',e);
-    document.getElementById('loading-groups').textContent='Failed to load. Please refresh.';
+    if (activeRoomId) loadMessages(activeRoomId);
+  } catch(e) {
+    document.getElementById('loading-groups').textContent = 'Failed to load. Please refresh.';
   }
 }
 
-/* ══════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    RENDER GROUPS
-   FIX: use data-attributes for join button
-   to avoid JS string-quoting bugs when
-   group names contain apostrophes or quotes.
-══════════════════════════════════════ */
-function renderGroups(){
+══════════════════════════════════════════════════════ */
+function renderGroups() {
   const grid = document.getElementById('groups-grid');
-  if(allGroups.length===0){
-    grid.innerHTML=`
+  if (allGroups.length === 0) {
+    grid.innerHTML = `
       <div class="empty-groups" style="grid-column:1/-1">
         <div class="empty-groups-icon">👥</div>
         <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:6px">No groups yet</h3>
@@ -313,38 +663,31 @@ function renderGroups(){
       </div>`;
     return;
   }
-  grid.innerHTML='';
-  allGroups.forEach(g=>{
-    const isMine = g._id === myGroupId;
-    const card   = document.createElement('div');
-    card.className = 'group-card' + (isMine?' my-card':'');
+  grid.innerHTML = '';
+  allGroups.forEach(g => {
+    const isMine  = g._id === myGroupId;
+    const card    = document.createElement('div');
+    card.className = 'group-card' + (isMine ? ' my-card' : '');
     card.dataset.id = g._id;
-
-    const initials = g.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const memberPreviews = (g.members_list||[]).slice(0,4).map(m=>{
-      const ini = (m.name||'?')[0].toUpperCase();
-      return `<div class="gc-member-av" title="${escH(m.name)}">${ini}</div>`;
-    }).join('');
-
-    card.innerHTML=`
+    const initials = g.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    card.innerHTML = `
       <div class="gc-top">
         <div class="gc-icon">${initials}</div>
-        <span class="gc-badge ${isMine?'mine':'open'}">${isMine?'● Your Group':'Open'}</span>
+        <span class="gc-badge ${isMine ? 'mine' : 'open'}">${isMine ? '● Your Group' : 'Open'}</span>
       </div>
       <div class="gc-name">${escH(g.name)}</div>
       <div class="gc-topic">📚 ${escH(g.topic)}</div>
       <div class="gc-meta">
-        <div class="gc-meta-item">👥 ${g.member_count} member${g.member_count!==1?'s':''}</div>
+        <div class="gc-meta-item">👥 ${g.member_count} member${g.member_count !== 1 ? 's' : ''}</div>
         <div class="gc-meta-item">🗓 ${fmtDate(g.created_at)}</div>
       </div>
       <div class="gc-actions">
         ${isMine
-          ? `<button class="btn btn-primary btn-sm" style="flex:1" onclick="openRoom('${g._id}')">Open Noticeboard</button>`
+          ? `<button class="btn btn-primary btn-sm" style="flex:1" onclick="openRoom('${g._id}')">Open Study Room</button>`
           : myGroupId
-            ? `<button class="btn btn-outline btn-sm" style="flex:1;opacity:.5;cursor:not-allowed" disabled title="Leave your current group first">Join</button>`
+            ? `<button class="btn btn-outline btn-sm" style="flex:1;opacity:.5" disabled title="Leave your current group first">Join</button>`
             : `<button class="btn btn-outline btn-sm" style="flex:1"
-                 data-id="${g._id}"
-                 data-name="${escH(g.name)}"
+                 data-id="${g._id}" data-name="${escAttr(g.name)}"
                  onclick="joinGroup(this.dataset.id, this.dataset.name)">Join Group</button>`
         }
       </div>`;
@@ -352,302 +695,882 @@ function renderGroups(){
   });
 }
 
-/* ══════════════════════════════════════
-   BANNER
-══════════════════════════════════════ */
-function updateBanner(){
+function updateBanner() {
   const banner = document.getElementById('my-banner');
-  if(myGroupId){
-    const g = allGroups.find(x=>x._id===myGroupId);
-    if(g){
+  if (myGroupId) {
+    const g = allGroups.find(x => x._id === myGroupId);
+    if (g) {
       document.getElementById('banner-name').textContent  = g.name;
       document.getElementById('banner-topic').textContent = '📚 ' + g.topic;
-      banner.style.display='';
-      document.getElementById('create-section').style.display='none';
+      banner.style.display = '';
+      document.getElementById('create-section').style.display = 'none';
     }
   } else {
-    banner.style.display='none';
-    document.getElementById('create-section').style.display='';
+    banner.style.display = 'none';
+    document.getElementById('create-section').style.display = '';
   }
 }
 
-/* ══════════════════════════════════════
-   CREATE GROUP
-══════════════════════════════════════ */
-async function createGroup(){
+/* ══════════════════════════════════════════════════════
+   CREATE / JOIN / LEAVE
+══════════════════════════════════════════════════════ */
+async function createGroup() {
   const name  = document.getElementById('g-name').value.trim();
   const topic = document.getElementById('g-topic').value.trim();
   const err   = document.getElementById('create-err');
   const btn   = document.getElementById('create-btn');
   err.classList.add('hidden');
-
-  if(!name||!topic){
-    err.textContent='Group name and topic are required.';
-    err.classList.remove('hidden');
-    return;
-  }
-
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Creating…';
-  try{
-    const r = await fetch('/api/groups',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name,topic})
+  if (!name || !topic) { err.textContent = 'Group name and topic are required.'; err.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Creating…';
+  try {
+    const r = await fetch('/api/groups', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({name, topic})
     });
     const d = await r.json();
-    if(r.ok){
-      document.getElementById('g-name').value  ='';
-      document.getElementById('g-topic').value ='';
+    if (r.ok) {
+      document.getElementById('g-name').value  = '';
+      document.getElementById('g-topic').value = '';
       await loadGroups();
-      if(d.group) openRoom(d.group._id);
+      if (d.group) openRoom(d.group._id);
     } else {
       err.textContent = d.error || 'Failed to create group.';
       err.classList.remove('hidden');
     }
-  }catch(e){
-    err.textContent='Network error. Please try again.';
-    err.classList.remove('hidden');
-  }finally{
-    btn.disabled=false; btn.textContent='+ Create Group';
+  } catch(e) {
+    err.textContent = 'Network error.'; err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = '+ Create Group';
   }
 }
 
-/* ══════════════════════════════════════
-   JOIN GROUP
-══════════════════════════════════════ */
-async function joinGroup(groupId, groupName){
-  if(!confirm(`Join "${groupName}"?`)) return;
-  try{
-    const r = await fetch(`/api/groups/${groupId}/join`,{method:'POST'});
+async function joinGroup(groupId, groupName) {
+  if (!confirm(`Join "${groupName}"?`)) return;
+  try {
+    const r = await fetch(`/api/groups/${groupId}/join`, {method:'POST'});
     const d = await r.json();
-    if(r.ok){
-      await loadGroups();
-      openRoom(groupId);
-    } else {
-      alert(d.error || 'Failed to join group.');
-    }
-  }catch(e){ alert('Network error.'); }
+    if (r.ok) { await loadGroups(); openRoom(groupId); }
+    else       alert(d.error || 'Failed to join group.');
+  } catch(e) { alert('Network error.'); }
 }
 
-/* ══════════════════════════════════════
-   LEAVE GROUP
-══════════════════════════════════════ */
-async function leaveGroup(){
-  if(!activeRoomId) return;
-  const g = allGroups.find(x=>x._id===activeRoomId);
-  if(!confirm(`Leave "${g?.name||'this group'}"?`)) return;
-  try{
-    const r = await fetch(`/api/groups/${activeRoomId}/leave`,{method:'POST'});
+async function leaveGroup() {
+  if (!activeRoomId) return;
+  const g = allGroups.find(x => x._id === activeRoomId);
+  if (!confirm(`Leave "${g?.name || 'this group'}"?`)) return;
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/leave`, {method:'POST'});
     const d = await r.json();
-    if(r.ok){
-      closeRoom();
-      await loadGroups();
-    } else {
-      alert(d.error || 'Failed to leave group.');
-    }
-  }catch(e){ alert('Network error.'); }
+    if (r.ok) { closeRoom(); await loadGroups(); }
+    else       alert(d.error || 'Failed to leave group.');
+  } catch(e) { alert('Network error.'); }
 }
 
-/* ══════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    OPEN / CLOSE ROOM
-══════════════════════════════════════ */
-async function openRoom(groupId){
+══════════════════════════════════════════════════════ */
+async function openRoom(groupId) {
   activeRoomId = groupId;
-  const g = allGroups.find(x=>x._id===groupId);
-  if(!g) return;
-
-  document.getElementById('room-name').textContent  = g.name;
-  document.getElementById('room-topic').textContent = '📚 ' + g.topic;
-  document.getElementById('group-room').style.display='';
-
-  renderMembers(g.members_list||[]);
+  const g = allGroups.find(x => x._id === groupId);
+  if (!g) return;
+  document.getElementById('room-heading').textContent = g.name + ' — Study Room';
+  document.getElementById('room-name').textContent    = g.name;
+  document.getElementById('room-topic').textContent   = '📚 ' + g.topic;
+  document.getElementById('group-room').style.display = '';
+  renderMembers(g.members_list || []);
   await loadMessages(groupId);
   startGroupSocket(groupId);
-
-  setTimeout(()=> document.getElementById('group-room').scrollIntoView({behavior:'smooth'}), 100);
+  // Show file button
+  const ftb = document.getElementById('file-toggle-btn');
+  if (ftb) ftb.style.display = '';
+  // Switch to chat tab
+  switchTab('chat', document.querySelectorAll('.tab-btn')[0]);
+  setTimeout(() => document.getElementById('group-room').scrollIntoView({behavior:'smooth'}), 100);
 }
 
-function closeRoom(){
+function closeRoom() {
   activeRoomId = null;
-  document.getElementById('group-room').style.display='none';
+  document.getElementById('group-room').style.display = 'none';
+  // Hide file panel
+  const fp = document.getElementById('file-upload-panel');
+  const ftb = document.getElementById('file-toggle-btn');
+  if (fp)  fp.style.display  = 'none';
+  if (ftb) ftb.style.display = 'none';
   stopGroupSocket();
+  timerReset();
 }
 
-function scrollToRoom(){
-  if(myGroupId) openRoom(myGroupId);
+function scrollToRoom() {
+  if (myGroupId) openRoom(myGroupId);
 }
 
-/* ══════════════════════════════════════
-   RENDER MEMBERS
-══════════════════════════════════════ */
-function renderMembers(members){
+/* ══════════════════════════════════════════════════════
+   MEMBERS
+══════════════════════════════════════════════════════ */
+function renderMembers(members) {
   const list = document.getElementById('members-list');
-  list.innerHTML='';
-  if(!members||members.length===0){
-    list.innerHTML='<div style="font-size:12px;color:var(--tx-m)">No members</div>';
-    return;
-  }
-  members.forEach(m=>{
+  list.innerHTML = '';
+  (members || []).forEach(m => {
     const isMe = m.id === currentUid;
-    const ini  = (m.name||'?')[0].toUpperCase();
+    const ini  = (m.name || '?')[0].toUpperCase();
     const div  = document.createElement('div');
-    div.className='member-item';
-    div.innerHTML=`
+    div.className = 'member-item';
+    div.innerHTML = `
       <div class="member-av">${ini}</div>
       <div>
         <div class="member-name">${escH(m.name)}</div>
-        ${isMe?'<div class="member-you">You</div>':''}
+        ${isMe ? '<div class="member-you">You</div>' : ''}
       </div>`;
     list.appendChild(div);
   });
 }
 
-/* ══════════════════════════════════════
-   SOCKET.IO REAL-TIME CHAT
-══════════════════════════════════════ */
-function startGroupSocket(groupId){
+/* ══════════════════════════════════════════════════════
+   SOCKET.IO  — Chat + Timer + Notes sync
+══════════════════════════════════════════════════════ */
+function startGroupSocket(groupId) {
   stopGroupSocket();
   socket = io();
-
-  socket.on('connect', ()=>{
-    socket.emit('join_group', { group_id: groupId });
+  socket.on('connect', () => {
+    socket.emit('join_group', {group_id: groupId});
   });
-
-  socket.on('joined', ()=>{
-    document.getElementById('refresh-hint').textContent = '● Live';
+  socket.on('joined', () => {
+    document.getElementById('connection-badge').textContent = '● Live';
+    document.getElementById('connection-badge').style.color = 'var(--green)';
   });
-
-  socket.on('new_message', (msg)=>{
+  socket.on('new_message',  msg  => {
     appendGroupMessage(msg);
+    if (msg.is_ai && window._notifyAI && Notification.permission === 'granted' && document.hidden)
+      new Notification('Nexus Learn 🤖', { body: '💬 AI replied in ' + (msg.room_name || 'your group'), icon: '/static/favicon.ico' });
   });
-
-  socket.on('error', (data)=>{
-    console.error('Socket error:', data.message);
+  socket.on('ai_typing',    d    => {
+    const ind = document.getElementById('ai-typing');
+    ind.style.display = d.typing ? 'block' : 'none';
   });
-
-  socket.on('disconnect', ()=>{
-    document.getElementById('refresh-hint').textContent = 'Reconnecting…';
+  socket.on('ai_error', d => appendSystemMessage('⚠ AI Error: ' + d.message));
+  socket.on('upvote_update', d => updateUpvoteUI(d));
+  socket.on('new_notice',   n    => appendNotice(n));
+  socket.on('notice_pinned', d   => updateNoticePinUI(d));
+  socket.on('notes_updated', d   => onRemoteNotesUpdate(d));
+  socket.on('notes_editor',  d   => onNotesEditorEvent(d));
+  socket.on('timer_sync',    d   => onTimerSync(d));
+  socket.on('error',         d   => console.error('Socket error:', d.message));
+  socket.on('disconnect', () => {
+    document.getElementById('connection-badge').textContent = 'Reconnecting…';
+    document.getElementById('connection-badge').style.color = 'var(--tx-m)';
   });
 }
 
-function stopGroupSocket(){
-  if(socket){
-    if(activeRoomId) socket.emit('leave_group', { group_id: activeRoomId });
+function stopGroupSocket() {
+  if (socket) {
+    if (activeRoomId) socket.emit('leave_group', {group_id: activeRoomId});
     socket.disconnect();
     socket = null;
   }
 }
 
-/* ══════════════════════════════════════
-   MESSAGES
-══════════════════════════════════════ */
-function appendGroupMessage(msg){
-  const board = document.getElementById('msg-board');
-  if(!board) return;
-
-  const empty = board.querySelector('.board-empty');
-  if(empty) empty.remove();
-
-  const wasAtBottom = board.scrollHeight - board.clientHeight <= board.scrollTop + 50;
-  const isMe  = msg.user_id === currentUid;
-  const ini   = (msg.user_name || '?')[0].toUpperCase();
-  const item  = document.createElement('div');
-  item.className = 'msg-item' + (isMe ? ' me' : '');
-  item.innerHTML = `
-    <div class="msg-av ${isMe?'me':''}">${ini}</div>
-    <div>
-      ${!isMe ? `<div class="msg-sender">${escH(msg.user_name)}</div>` : ''}
-      <div class="msg-bubble">
-        <div class="msg-text">${escH(msg.text)}</div>
-        <div class="msg-time">${fmtTime(msg.posted_at)}</div>
-      </div>
-    </div>`;
-  board.appendChild(item);
-  if(wasAtBottom) board.scrollTop = board.scrollHeight;
-}
-
-async function loadMessages(groupId){
-  try{
+/* ══════════════════════════════════════════════════════
+   CHAT — MESSAGES
+══════════════════════════════════════════════════════ */
+async function loadMessages(groupId) {
+  try {
     const r = await fetch(`/api/groups/${groupId}/messages`);
-    if(!r.ok) return;
+    if (!r.ok) return;
     const d = await r.json();
     renderMessages(d.messages || []);
+    // Also refresh members
     const gr = await fetch(`/api/groups/${groupId}`);
-    if(gr.ok){
+    if (gr.ok) {
       const gd = await gr.json();
-      if(gd.group) renderMembers(gd.group.members_list||[]);
+      if (gd.group) renderMembers(gd.group.members_list || []);
     }
-  }catch(e){ console.error('Failed to load messages:',e); }
+  } catch(e) { console.error('Failed to load messages:', e); }
 }
 
-function renderMessages(msgs){
+function renderMessages(msgs) {
   const board = document.getElementById('msg-board');
-  const wasAtBottom = board.scrollHeight - board.clientHeight <= board.scrollTop + 30;
-
-  if(msgs.length===0){
-    board.innerHTML=`
+  if (!msgs.length) {
+    board.innerHTML = `
       <div class="board-empty">
         <div class="board-empty-icon">💬</div>
-        <span>No messages yet. Be the first to post!</span>
+        <span>No messages yet. Use <strong>@AI</strong> to ask questions!</span>
       </div>`;
     return;
   }
-
-  board.innerHTML='';
-  msgs.forEach(m=>{
-    const isMe = m.user_id === currentUid;
-    const ini  = (m.user_name||'?')[0].toUpperCase();
-    const item = document.createElement('div');
-    item.className = 'msg-item' + (isMe?' me':'');
-    item.innerHTML=`
-      <div class="msg-av ${isMe?'me':''}">${ini}</div>
-      <div>
-        ${!isMe?`<div class="msg-sender">${escH(m.user_name)}</div>`:''}
-        <div class="msg-bubble">
-          <div class="msg-text">${escH(m.text)}</div>
-          <div class="msg-time">${fmtTime(m.posted_at)}</div>
-        </div>
-      </div>`;
-    board.appendChild(item);
-  });
-
-  if(wasAtBottom) board.scrollTop = board.scrollHeight;
+  board.innerHTML = '';
+  msgs.forEach(m => appendGroupMessage(m, false));
+  board.scrollTop = board.scrollHeight;
 }
 
-function postMessage(){
-  if(!activeRoomId || !socket || !socket.connected) return;
+function appendGroupMessage(msg, scroll=true) {
+  const board = document.getElementById('msg-board');
+  if (!board) return;
+  const empty = board.querySelector('.board-empty');
+  if (empty) empty.remove();
+  const wasAtBottom = board.scrollHeight - board.clientHeight <= board.scrollTop + 60;
+  const isMe = msg.user_id === currentUid;
+  const isAI = msg.is_ai || msg.user_id === 'ai';
+  const ini  = (msg.user_name || '?')[0].toUpperCase();
+  const item = document.createElement('div');
+  item.className = 'msg-item' + (isMe ? ' me' : '');
+  item.dataset.msgId = msg._id || '';
+  const upvotes    = msg.upvotes || 0;
+  const upvotedIds = msg.upvoted_by || [];
+  const iUpvoted   = upvotedIds.includes(currentUid);
+  item.innerHTML = `
+    <div class="msg-av ${isMe ? 'me' : (isAI ? 'ai' : '')}">${isAI ? '🤖' : ini}</div>
+    <div class="msg-body">
+      ${!isMe ? `<div class="msg-sender ${isAI ? 'ai-sender' : ''}">${escH(msg.user_name)}</div>` : ''}
+      <div class="msg-bubble">
+        <div class="msg-text">${formatMsgText(msg.text)}</div>
+      </div>
+      <div class="msg-footer">
+        <span class="msg-time">${fmtTime(msg.posted_at)}</span>
+        ${!isAI && !isMe ? `<button class="upvote-btn ${iUpvoted?'upvoted':''}" data-id="${escH(msg._id||'')}"
+          onclick="upvoteMessage(this)">
+          👍 <span class="upvote-count">${upvotes > 0 ? upvotes : ''}</span>
+        </button>` : ''}
+      </div>
+    </div>`;
+  board.appendChild(item);
+  if (scroll && wasAtBottom) board.scrollTop = board.scrollHeight;
+}
+
+function appendSystemMessage(text) {
+  const board = document.getElementById('msg-board');
+  if (!board) return;
+  const div = document.createElement('div');
+  div.style.cssText = 'text-align:center;font-size:11px;color:var(--tx-m);font-family:var(--fM);padding:4px';
+  div.textContent = text;
+  board.appendChild(div);
+}
+
+function postMessage() {
+  if (!activeRoomId || !socket || !socket.connected) return;
   const input = document.getElementById('msg-input');
   const text  = input.value.trim();
-  if(!text) return;
-  socket.emit('send_message', { group_id: activeRoomId, text });
-  input.value='';
-  input.style.height='auto';
+  if (!text) return;
+  socket.emit('send_message', {group_id: activeRoomId, text});
+  input.value = '';
+  input.style.height = 'auto';
   input.focus();
 }
 
-/* ══════════════════════════════════════
+/* Format text: convert markdown bold, backticks */
+function formatMsgText(text) {
+  return escH(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-family:var(--fM);font-size:12px">$1</code>');
+}
+
+/* ══════════════════════════════════════════════════════
+   UPVOTE SYSTEM
+══════════════════════════════════════════════════════ */
+async function upvoteMessage(btn) {
+  const msgId = btn.dataset.id;
+  if (!msgId || !activeRoomId) return;
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/messages/${msgId}/upvote`, {method:'POST'});
+    const d = await r.json();
+    if (r.ok) {
+      btn.classList.toggle('upvoted', d.upvoted);
+      btn.querySelector('.upvote-count').textContent = d.upvotes > 0 ? d.upvotes : '';
+    }
+  } catch(e) {}
+}
+
+function updateUpvoteUI(d) {
+  // Update button for all viewers when upvote changes
+  const btn = document.querySelector(`.upvote-btn[data-id="${d.msg_id}"]`);
+  if (btn) {
+    if (d.user_id === currentUid) btn.classList.toggle('upvoted', d.upvoted);
+    btn.querySelector('.upvote-count').textContent = d.upvotes > 0 ? d.upvotes : '';
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   NOTICE BOARD
+══════════════════════════════════════════════════════ */
+async function loadNotices() {
+  if (!activeRoomId) return;
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/notices`);
+    if (!r.ok) return;
+    const d = await r.json();
+    renderNotices(d.notices || []);
+  } catch(e) {}
+}
+
+function renderNotices(notices) {
+  const list = document.getElementById('notices-list');
+  if (!notices.length) {
+    list.innerHTML = `
+      <div class="board-empty">
+        <div class="board-empty-icon">📋</div>
+        <span>No notices yet. Post the first announcement!</span>
+      </div>`;
+    return;
+  }
+  list.innerHTML = '';
+  notices.forEach(n => appendNotice(n, false));
+}
+
+function appendNotice(notice, prepend=false) {
+  const list  = document.getElementById('notices-list');
+  const empty = list.querySelector('.board-empty');
+  if (empty) empty.remove();
+  // Avoid duplicates
+  if (list.querySelector(`[data-notice-id="${notice._id}"]`)) return;
+  const div = document.createElement('div');
+  div.className = 'notice-item' + (notice.pinned ? ' pinned-notice' : '');
+  div.dataset.noticeId = notice._id;
+  div.innerHTML = `
+    ${notice.pinned ? '<span class="notice-pin-badge">📌 Pinned</span>' : ''}
+    <div class="notice-author">
+      <strong>${escH(notice.user_name)}</strong>
+      <span>• ${fmtTime(notice.posted_at)}</span>
+    </div>
+    <div class="notice-text">${escH(notice.text)}</div>
+    <div class="notice-actions">
+      <button class="notice-act-btn" data-nid="${notice._id}"
+        onclick="pinNotice(this.dataset.nid,this)">
+        ${notice.pinned ? '📌 Unpin' : '📌 Pin'}
+      </button>
+    </div>`;
+  if (prepend && list.firstChild) list.insertBefore(div, list.firstChild);
+  else list.appendChild(div);
+}
+
+async function postNotice() {
+  const input = document.getElementById('notice-input');
+  const text  = input.value.trim();
+  if (!text || !activeRoomId) return;
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/notices`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text})
+    });
+    if (r.ok) { input.value = ''; }
+    else {
+      const d = await r.json();
+      alert(d.error || 'Failed to post notice.');
+    }
+  } catch(e) { alert('Network error.'); }
+}
+
+async function pinNotice(noticeId, btn) {
+  if (!activeRoomId) return;
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/notices/${noticeId}/pin`, {method:'POST'});
+    const d = await r.json();
+    if (r.ok) {
+      btn.textContent = d.pinned ? '📌 Unpin' : '📌 Pin';
+    }
+  } catch(e) {}
+}
+
+function updateNoticePinUI(d) {
+  const item = document.querySelector(`[data-notice-id="${d.notice_id}"]`);
+  if (!item) return;
+  item.classList.toggle('pinned-notice', d.pinned);
+  const badge = item.querySelector('.notice-pin-badge');
+  if (d.pinned && !badge) {
+    const b = document.createElement('span');
+    b.className = 'notice-pin-badge'; b.textContent = '📌 Pinned';
+    item.insertBefore(b, item.firstChild);
+  } else if (!d.pinned && badge) {
+    badge.remove();
+  }
+  const btn = item.querySelector('.notice-act-btn');
+  if (btn) btn.textContent = d.pinned ? '📌 Unpin' : '📌 Pin';
+}
+
+async function summariseNotices() {
+  if (!activeRoomId) return;
+  const el    = document.getElementById('notice-ai-result');
+  el.style.display = 'block';
+  el.textContent   = 'AI is summarising…';
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/notices/ai-summarise`, {method:'POST'});
+    const d = await r.json();
+    el.textContent = d.summary || d.error || 'Failed to summarise.';
+  } catch(e) {
+    el.textContent = 'Network error.';
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   SHARED NOTES
+══════════════════════════════════════════════════════ */
+async function loadNotes() {
+  if (!activeRoomId) return;
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/notes`);
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('notes-editor').value = d.content || '';
+  } catch(e) {}
+}
+
+async function saveNotes() {
+  if (!activeRoomId) return;
+  const content = document.getElementById('notes-editor').value;
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/notes`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({content})
+    });
+    if (r.ok) {
+      const badge = document.getElementById('notes-saved-badge');
+      badge.classList.add('visible');
+      setTimeout(() => badge.classList.remove('visible'), 2000);
+    }
+  } catch(e) {}
+}
+
+function onNotesInput() {
+  // Emit typing event to peers
+  if (socket && activeRoomId) {
+    socket.emit('notes_typing', {group_id: activeRoomId, typing: true});
+    clearTimeout(notesTypingTimeout);
+    notesTypingTimeout = setTimeout(() => {
+      socket.emit('notes_typing', {group_id: activeRoomId, typing: false});
+    }, 2000);
+  }
+  // Auto-save after 2s inactivity
+  clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(saveNotes, 2000);
+}
+
+function onRemoteNotesUpdate(d) {
+  // Only update if user is NOT currently editing
+  const editor = document.getElementById('notes-editor');
+  if (document.activeElement !== editor) {
+    editor.value = d.content || '';
+  }
+  const ind = document.getElementById('notes-editor-ind');
+  ind.textContent = `✏ ${escH(d.last_editor)} saved notes`;
+  setTimeout(() => { ind.textContent = ''; }, 3000);
+}
+
+function onNotesEditorEvent(d) {
+  const ind = document.getElementById('notes-editor-ind');
+  ind.textContent = d.typing ? `✏ ${escH(d.editor)} is editing…` : '';
+}
+
+/* ══════════════════════════════════════════════════════
+   POMODORO TIMER
+══════════════════════════════════════════════════════ */
+function updateTimerDisplay() {
+  const mins = Math.floor(timerTimeLeft / 60);
+  const secs = timerTimeLeft % 60;
+  const str  = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  const clk  = document.getElementById('timer-clock');
+  const lbl  = document.getElementById('timer-mode-lbl');
+  const bar  = document.getElementById('timer-bar');
+  if (clk) {
+    clk.textContent = str;
+    clk.className   = 'timer-clock ' + timerMode;
+  }
+  if (lbl) {
+    lbl.className   = 'timer-mode-label ' + timerMode;
+    lbl.textContent = timerMode === 'study' ? '🎯 Study Session' : '☕ Break Time';
+  }
+  if (bar) {
+    bar.style.width    = (timerTimeLeft / timerTotalTime * 100) + '%';
+    bar.className      = 'timer-progress-fill ' + timerMode;
+  }
+  document.getElementById('pomodoros-done').textContent = pomodorosDone;
+  document.getElementById('sessions-done').textContent  = sessionsDone;
+}
+
+function timerStart() {
+  if (timerRunning) return;
+  timerRunning = true;
+  document.getElementById('timer-start-btn').disabled = true;
+  document.getElementById('timer-pause-btn').disabled = false;
+  // Sync with group
+  if (socket && activeRoomId) {
+    socket.emit('timer_action', {
+      group_id: activeRoomId, action: 'start',
+      time_left: timerTimeLeft, mode: timerMode
+    });
+  }
+  timerInterval = setInterval(() => {
+    timerTimeLeft--;
+    updateTimerDisplay();
+    if (timerTimeLeft <= 0) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      if (timerMode === 'study') {
+        pomodorosDone++;
+        sessionsDone++;
+        timerMode     = 'break';
+        timerTotalTime = BREAK_MINS * 60;
+        timerTimeLeft  = BREAK_MINS * 60;
+        document.getElementById('timer-sync-info').textContent = '☕ Break time! Great work!';
+        if (window._notifyTimer && Notification.permission === 'granted')
+          new Notification('Nexus Learn ⏱', { body: '🎯 Pomodoro done! Time for a break.', icon: '/static/favicon.ico' });
+      } else {
+        timerMode     = 'study';
+        timerTotalTime = WORK_MINS * 60;
+        timerTimeLeft  = WORK_MINS * 60;
+        document.getElementById('timer-sync-info').textContent = '🎯 Back to work!';
+        if (window._notifyTimer && Notification.permission === 'granted')
+          new Notification('Nexus Learn ⏱', { body: '☕ Break over! Back to studying.', icon: '/static/favicon.ico' });
+      }
+      updateTimerDisplay();
+      document.getElementById('timer-start-btn').disabled = false;
+      document.getElementById('timer-pause-btn').disabled = true;
+      // Auto-start next
+      setTimeout(timerStart, 2000);
+    }
+  }, 1000);
+}
+
+function timerPause() {
+  if (!timerRunning) return;
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timer-start-btn').disabled = false;
+  document.getElementById('timer-pause-btn').disabled = true;
+  if (socket && activeRoomId) {
+    socket.emit('timer_action', {
+      group_id: activeRoomId, action: 'pause',
+      time_left: timerTimeLeft, mode: timerMode
+    });
+  }
+}
+
+function timerReset() {
+  clearInterval(timerInterval);
+  timerRunning   = false;
+  timerMode      = 'study';
+  timerTotalTime = WORK_MINS * 60;
+  timerTimeLeft  = WORK_MINS * 60;
+  document.getElementById('timer-start-btn').disabled = false;
+  document.getElementById('timer-pause-btn').disabled = true;
+  updateTimerDisplay();
+  if (socket && activeRoomId) {
+    socket.emit('timer_action', {
+      group_id: activeRoomId, action: 'reset',
+      time_left: timerTimeLeft, mode: timerMode
+    });
+  }
+}
+
+function onTimerSync(d) {
+  const info = document.getElementById('timer-sync-info');
+  if (d.action === 'start') {
+    info.textContent = `▶ ${escH(d.by)} started the timer`;
+    // Sync time if significantly different
+    if (Math.abs(timerTimeLeft - d.time_left) > 3) {
+      timerTimeLeft = d.time_left;
+      timerMode     = d.mode;
+      timerTotalTime = timerMode === 'study' ? WORK_MINS * 60 : BREAK_MINS * 60;
+    }
+    if (!timerRunning) timerStart();
+  } else if (d.action === 'pause') {
+    info.textContent = `⏸ ${escH(d.by)} paused the timer`;
+    timerPause();
+  } else if (d.action === 'reset') {
+    info.textContent = `↺ ${escH(d.by)} reset the timer`;
+    timerReset();
+  }
+  setTimeout(() => { info.textContent = 'Timer syncs live with your group members'; }, 3000);
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ GENERATOR
+══════════════════════════════════════════════════════ */
+function setQuizSource(btn) {
+  quizSource = btn.dataset.source;
+  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setQuizCount(btn) {
+  quizCount = parseInt(btn.dataset.count);
+  document.querySelectorAll('[data-count]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function generateQuiz() {
+  if (!activeRoomId) return;
+  const btn = document.getElementById('gen-quiz-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Generating…';
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/quiz`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({source: quizSource, count: quizCount})
+    });
+    const d = await r.json();
+    if (r.ok && d.quiz) {
+      quizData    = d.quiz;
+      quizAnswers = {};
+      quizScored  = false;
+      renderQuiz(d.quiz);
+    } else {
+      alert(d.error || 'Failed to generate quiz. Ensure AI is running.');
+    }
+  } catch(e) {
+    alert('Network error generating quiz.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Generate Quiz';
+  }
+}
+
+function renderQuiz(quiz) {
+  const setup = document.getElementById('quiz-setup');
+  const qlist = document.getElementById('quiz-questions');
+  const score = document.getElementById('quiz-score');
+  setup.style.display = 'none';
+  score.style.display = 'none';
+  qlist.style.display = '';
+  qlist.innerHTML = '';
+
+  (quiz.questions || []).forEach((q, idx) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-q';
+    let choicesHTML = '';
+    if (q.type === 'mcq') {
+      choicesHTML = `<div class="quiz-options-list">
+        ${(q.options || []).map((opt, i) => `
+          <div class="quiz-opt" data-qidx="${idx}" data-opt="${i}"
+               onclick="pickMCQ(this,${idx},'${escAttr(q.answer)}',${i})">
+            ${escH(opt)}
+          </div>`).join('')}
+      </div>`;
+    } else {
+      choicesHTML = `
+        <input class="quiz-short-input" type="text" placeholder="Your answer…"
+          data-qidx="${idx}" oninput="quizAnswers[${idx}]=this.value"/>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px"
+          onclick="checkShort(${idx},'${escAttr(q.answer)}',this)">Check</button>`;
+    }
+    div.innerHTML = `
+      <div class="quiz-q-num">Q${q.id || idx+1} · ${q.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}</div>
+      <div class="quiz-q-text">${escH(q.question)}</div>
+      ${choicesHTML}
+      <div class="quiz-explanation" id="qexp-${idx}">${escH(q.explanation || '')}</div>`;
+    qlist.appendChild(div);
+  });
+
+  // Submit button
+  const submitDiv = document.createElement('div');
+  submitDiv.style.cssText = 'text-align:center;padding:12px 0';
+  submitDiv.innerHTML = `
+    <button class="btn btn-primary" onclick="submitQuiz()">Submit & Score</button>`;
+  qlist.appendChild(submitDiv);
+}
+
+function pickMCQ(el, qIdx, answer, optIdx) {
+  if (quizScored) return;
+  quizAnswers[qIdx] = optIdx;
+  const opts = el.parentElement.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.style.borderColor = '');
+  el.style.borderColor = 'var(--amber)';
+}
+
+function checkShort(qIdx, answer, btn) {
+  const input = document.querySelector(`.quiz-short-input[data-qidx="${qIdx}"]`);
+  if (!input || !input.value.trim()) return;
+  const exp = document.getElementById('qexp-' + qIdx);
+  if (exp) exp.style.display = 'block';
+  btn.disabled = true;
+}
+
+function submitQuiz() {
+  if (!quizData) return;
+  quizScored = true;
+  let correct = 0;
+  const questions = quizData.questions || [];
+
+  questions.forEach((q, idx) => {
+    const exp = document.getElementById('qexp-' + idx);
+    if (exp) exp.style.display = 'block';
+
+    if (q.type === 'mcq') {
+      const selectedIdx = quizAnswers[idx];
+      const opts = document.querySelectorAll(`.quiz-opt[data-qidx="${idx}"]`);
+      const answerIdx = (q.options || []).findIndex(o => o.startsWith(q.answer + ')'));
+      opts.forEach((opt, i) => {
+        if (i === answerIdx)    opt.classList.add('correct');
+        else if (i === selectedIdx && i !== answerIdx) opt.classList.add('wrong');
+      });
+      if (selectedIdx === answerIdx) correct++;
+    }
+  });
+
+  const total = questions.filter(q => q.type === 'mcq').length;
+  setTimeout(() => {
+    document.getElementById('quiz-questions').style.display = 'none';
+    const scoreEl = document.getElementById('quiz-score');
+    scoreEl.style.display = 'block';
+    document.getElementById('quiz-score-val').textContent = `${correct}/${total}`;
+  }, 500);
+}
+
+function resetQuiz() {
+  quizData    = null;
+  quizAnswers = {};
+  quizScored  = false;
+  document.getElementById('quiz-questions').style.display = 'none';
+  document.getElementById('quiz-score').style.display     = 'none';
+  document.getElementById('quiz-setup').style.display     = '';
+}
+
+/* ══════════════════════════════════════════════════════
+   SESSION SUMMARY
+══════════════════════════════════════════════════════ */
+async function generateSummary() {
+  if (!activeRoomId) return;
+  const btn = document.getElementById('gen-summary-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Generating summary…';
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/summary`, {method:'POST'});
+    const d = await r.json();
+    if (r.ok) {
+      document.getElementById('summary-setup').style.display  = 'none';
+      document.getElementById('summary-output').style.display = 'block';
+      // Render markdown-ish formatting
+      const summaryText = d.summary
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^- /gm, '• ');
+      document.getElementById('summary-text').innerHTML = summaryText;
+    } else {
+      alert(d.error || 'Failed to generate summary.');
+    }
+  } catch(e) {
+    alert('Network error.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '📊 Generate Summary';
+  }
+}
+
+function resetSummary() {
+  document.getElementById('summary-setup').style.display  = '';
+  document.getElementById('summary-output').style.display = 'none';
+}
+
+/* ══════════════════════════════════════════════════════
    HELPERS
-══════════════════════════════════════ */
-function escH(s){
-  return String(s||'')
+══════════════════════════════════════════════════════ */
+function escH(s) {
+  return String(s || '')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function fmtDate(iso){
-  if(!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleDateString([],{month:'short',day:'numeric'});
+function escAttr(s) {
+  return String(s || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-function fmtTime(iso){
-  if(!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString([], {month:'short', day:'numeric'});
 }
-async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
+function fmtTime(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+async function logout() {
+  await fetch('/api/logout', {method:'POST'});
+  location.href = '/';
+}
 
-/* ══════════════════════════════════════
-   START
-══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   FILE UPLOAD + RAG
+══════════════════════════════════════════════════════ */
+function toggleFilePanel() {
+  const panel = document.getElementById('file-upload-panel');
+  const btn   = document.getElementById('file-toggle-btn');
+  const vis   = panel.style.display === 'none';
+  panel.style.display = vis ? '' : 'none';
+  if (vis && activeRoomId) loadFileList();
+}
+
+async function loadFileList() {
+  if (!activeRoomId) return;
+  const list = document.getElementById('file-list');
+  list.innerHTML = '<em style="opacity:.5;font-size:12px">Loading…</em>';
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/files`);
+    const d = await r.json();
+    const files = d.files || [];
+    if (!files.length) {
+      list.innerHTML = '<em style="opacity:.5;font-size:12px">No files uploaded yet.</em>';
+      return;
+    }
+    list.innerHTML = files.map(f => `
+      <div class="file-item" id="fitem-${escAttr(f._id)}">
+        <span class="file-name" title="${escH(f.file_name)}">📄 ${escH(f.file_name)}</span>
+        <span class="file-status ${f.status === 'ready' ? 'ready' : f.status === 'error' ? 'error' : ''}">${
+          f.status === 'ready' ? `✓ ${f.chunks} chunks` : f.status === 'error' ? '✗ Error' : '⟳ Processing'
+        }</span>
+        <button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 7px"
+          onclick="deleteFile('${escAttr(f._id)}')">✕</button>
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = '<em style="color:#ff6464;font-size:12px">Failed to load files.</em>';
+  }
+}
+
+async function uploadFile(input) {
+  if (!activeRoomId || !input.files.length) return;
+  const file   = input.files[0];
+  const fd     = new FormData();
+  fd.append('file', file);
+  const list = document.getElementById('file-list');
+  // Optimistic row
+  const tmpId = 'tmp-' + Date.now();
+  const row   = document.createElement('div');
+  row.className = 'file-item';
+  row.id = tmpId;
+  row.innerHTML = `<span class="file-name">📄 ${escH(file.name)}</span><span class="file-status">⟳ Uploading…</span>`;
+  if (list.querySelector('em')) list.innerHTML = '';
+  list.appendChild(row);
+  input.value = '';
+  try {
+    const r = await fetch(`/api/groups/${activeRoomId}/files`, { method: 'POST', body: fd });
+    const d = await r.json();
+    if (d.error) { row.querySelector('.file-status').textContent = '✗ ' + d.error; row.querySelector('.file-status').className = 'file-status error'; return; }
+    row.querySelector('.file-status').textContent = '⟳ Processing…';
+    row.id = 'fitem-' + (d.file_id || '');
+    // Poll until ready
+    let polls = 0;
+    const poll = setInterval(async () => {
+      polls++;
+      if (polls > 30) { clearInterval(poll); return; }
+      try {
+        const pr = await fetch(`/api/groups/${activeRoomId}/files`);
+        const pd = await pr.json();
+        const match = (pd.files || []).find(f => f._id === d.file_id);
+        if (match && match.status !== 'processing') {
+          clearInterval(poll);
+          loadFileList();
+        }
+      } catch(_) {}
+    }, 2000);
+  } catch(e) {
+    row.querySelector('.file-status').textContent = '✗ Upload failed';
+    row.querySelector('.file-status').className = 'file-status error';
+  }
+}
+
+async function deleteFile(fileId) {
+  if (!activeRoomId || !confirm('Remove this file from group context?')) return;
+  try {
+    await fetch(`/api/groups/${activeRoomId}/files/${fileId}`, { method: 'DELETE' });
+    loadFileList();
+  } catch(e) { alert('Delete failed.'); }
+}
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
 init();
 </script>
 </body>
