@@ -7,33 +7,98 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/style.css"/>
+
+<!-- ① theme.js must be the FIRST script — prevents flash of wrong theme -->
+<script src="/static/js/theme.js"></script>
+
 <style>
-/* Light mode */
+/* ── Light mode variables ── */
 [data-theme="light"] {
   --bg:#f5f5f0; --bg-s:#ededea; --bg-c:#ffffff; --bg-r:#f0f0eb;
   --bdr:#ddddd8; --bdr-l:#cccccc;
   --tx:#1a1a18; --tx-s:#555550; --tx-m:#888882;
   --amber:#c47a10; --amber-g:rgba(196,122,16,.12); --amber-d:#a06010;
 }
-[data-theme="light"] body   { background: var(--bg); }
-[data-theme="light"] .navbar { background: rgba(245,245,240,.92); }
+[data-theme="light"] body        { background: var(--bg); color: var(--tx); }
+[data-theme="light"] .navbar     { background: rgba(245,245,240,.95) !important; border-bottom: 1px solid var(--bdr); }
 [data-theme="light"] body::after { display: none; }
 
+/* ── Navbar ── */
+.navbar {
+  position: sticky; top: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.nav-r { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.nav-hamburger {
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 6px; color: var(--tx); font-size: 22px; line-height: 1; margin-left: 8px;
+}
+.nav-drawer {
+  display: none; flex-direction: column; position: fixed;
+  top: 56px; left: 0; right: 0;
+  background: var(--bg-c, #1a1a18); border-bottom: 1px solid var(--bdr);
+  padding: 12px 16px 20px; z-index: 999; gap: 2px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25); animation: drawerSlide .2s ease;
+}
+@keyframes drawerSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+.nav-drawer.open { display: flex; }
+.nav-drawer .nav-link { padding: 12px 10px; border-radius: 8px; font-size: 15px; display: block; }
+.nav-drawer .nav-link:hover { background: var(--bg-s); }
+.nav-drawer .drawer-bottom {
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--bdr);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.theme-toggle-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-s, rgba(255,255,255,.07));
+  border: 1px solid var(--bdr, rgba(255,255,255,.12));
+  border-radius: 100px; padding: 5px 11px 5px 8px;
+  cursor: pointer; font-size: 12px; font-family: var(--fM, 'DM Mono', monospace);
+  color: var(--tx-m, #888); transition: border-color .2s, background .2s;
+  user-select: none; white-space: nowrap;
+}
+.theme-toggle-pill:hover { border-color: var(--amber, #c47a10); color: var(--tx); }
+.theme-toggle-pill .pill-icon { font-size: 14px; line-height: 1; }
+.nx-theme-toggle { position: relative; width: 34px; height: 19px; flex-shrink: 0; }
+.nx-theme-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.nx-toggle-track {
+  position: absolute; inset: 0; background: var(--bdr-l, #555);
+  border-radius: 100px; cursor: pointer; transition: background .3s;
+}
+.nx-toggle-track::before {
+  content: ''; position: absolute; width: 13px; height: 13px;
+  left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform .3s;
+}
+.nx-theme-toggle input:checked + .nx-toggle-track { background: var(--amber, #c47a10); }
+.nx-theme-toggle input:checked + .nx-toggle-track::before { transform: translateX(15px); }
+@media (max-width: 900px) {
+  .nav-r .nav-link, .nav-r .btn-ghost, .nav-r .theme-toggle-pill { display: none; }
+  .nav-hamburger { display: flex; align-items: center; }
+}
+@media (max-width: 480px) {
+  .navbar { padding: 0 14px; }
+  .brand  { font-size: 13px; }
+}
+
+/* ── Settings page ── */
 .settings-page { max-width: 720px; margin: 0 auto; padding: 32px 24px; }
+@media (max-width: 600px) { .settings-page { padding: 20px 14px; } }
+
 .settings-hdr  { margin-bottom: 32px; }
 .settings-hdr h2 { font-size: 1.6rem; margin-bottom: 4px; }
 .settings-hdr p  { color: var(--tx-m); font-size: 13px; }
 
-/* Section card */
 .settings-section {
   background: var(--bg-c); border: 1px solid var(--bdr); border-radius: 18px;
   padding: 24px; margin-bottom: 16px; animation: fadeUp .3s ease both;
 }
 @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-.settings-section:nth-child(2) { animation-delay:.05s }
-.settings-section:nth-child(3) { animation-delay:.1s }
-.settings-section:nth-child(4) { animation-delay:.15s }
-.settings-section:nth-child(5) { animation-delay:.2s }
+.settings-section:nth-child(2){animation-delay:.05s}
+.settings-section:nth-child(3){animation-delay:.10s}
+.settings-section:nth-child(4){animation-delay:.15s}
+.settings-section:nth-child(5){animation-delay:.20s}
 
 .section-title {
   display: flex; align-items: center; gap: 10px;
@@ -42,7 +107,6 @@
 }
 .section-icon { font-size: 16px; }
 
-/* Setting row */
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 0; border-bottom: 1px solid var(--bdr); gap: 16px; flex-wrap: wrap;
@@ -52,7 +116,6 @@
 .setting-label strong { font-size: 14px; font-weight: 600; }
 .setting-label span   { font-size: 12px; color: var(--tx-m); }
 
-/* Toggle switch */
 .toggle-wrap { display: flex; align-items: center; gap: 8px; }
 .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
 .toggle input { opacity: 0; width: 0; height: 0; }
@@ -67,7 +130,6 @@
 .toggle input:checked + .toggle-slider { background: var(--amber); }
 .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
 
-/* Select & Input */
 .setting-select {
   background: var(--bg-s); border: 1px solid var(--bdr); border-radius: 8px;
   color: var(--tx); font-family: var(--fB); font-size: 14px; padding: 8px 12px;
@@ -75,6 +137,7 @@
 }
 .setting-select:focus { border-color: var(--amber); }
 .setting-select option { background: var(--bg-s); }
+
 .setting-input {
   background: var(--bg-s); border: 1px solid var(--bdr); border-radius: 8px;
   color: var(--tx); font-family: var(--fB); font-size: 14px; padding: 8px 12px;
@@ -82,77 +145,101 @@
 }
 .setting-input:focus { border-color: var(--amber); }
 
-/* Theme cards */
-.theme-cards { display: flex; gap: 10px; flex-wrap: wrap; }
-.theme-card {
-  flex: 1; min-width: 120px; max-width: 160px; padding: 16px 14px;
-  border: 2px solid var(--bdr); border-radius: 14px; cursor: pointer;
-  transition: all .2s; text-align: center; font-size: 13px;
-}
-.theme-card:hover  { border-color: var(--bdr-l); }
-.theme-card.active { border-color: var(--amber); background: var(--amber-g); }
-.theme-card-icon   { font-size: 24px; margin-bottom: 6px; }
-.theme-card-name   { font-weight: 600; margin-bottom: 2px; }
-.theme-card-desc   { font-size: 11px; color: var(--tx-m); }
-
-/* AI Style cards */
 .ai-style-cards { display: flex; gap: 10px; flex-wrap: wrap; }
 .ai-style-card {
   flex: 1; min-width: 130px; padding: 14px 16px;
-  border: 2px solid var(--bdr); border-radius: 12px; cursor: pointer;
-  transition: all .2s;
+  border: 2px solid var(--bdr); border-radius: 12px; cursor: pointer; transition: all .2s;
 }
 .ai-style-card:hover  { border-color: var(--bdr-l); }
 .ai-style-card.active { border-color: var(--amber); background: var(--amber-g); }
 .ai-style-card-name   { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
 .ai-style-card-desc   { font-size: 12px; color: var(--tx-m); line-height: 1.5; }
 
-/* Pomodoro inputs */
 .pomo-inputs { display: flex; gap: 12px; flex-wrap: wrap; }
 .pomo-input-wrap { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
 .pomo-input-wrap label { font-size:11px; font-family:var(--fM); color:var(--tx-m); text-transform:uppercase; letter-spacing:.06em; }
-.pomo-num { background:var(--bg-s); border:1px solid var(--bdr); border-radius:8px; color:var(--tx); font-family:var(--fM); font-size:1.1rem; padding:8px 12px; outline:none; width:100%; text-align:center; transition:border-color .2s; }
+.pomo-num {
+  background:var(--bg-s); border:1px solid var(--bdr); border-radius:8px;
+  color:var(--tx); font-family:var(--fM); font-size:1.1rem;
+  padding:8px 12px; outline:none; width:100%; text-align:center; transition:border-color .2s;
+}
 .pomo-num:focus { border-color:var(--amber); }
 
-/* Save bar */
-.save-bar { display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-top:20px; }
+.save-bar { display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-top:20px; flex-wrap:wrap; }
 .save-status { font-size:13px; color:var(--green); font-family:var(--fM); opacity:0; transition:opacity .4s; }
 .save-status.visible { opacity:1; }
 
-/* Avatar */
 .avatar-circle {
   width: 60px; height: 60px; background: var(--amber-g); border: 2px solid var(--amber-d);
   border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  font-size: 24px; font-family: var(--fM); color: var(--amber); font-weight: 500;
-  flex-shrink: 0;
+  font-size: 24px; font-family: var(--fM); color: var(--amber); font-weight: 500; flex-shrink: 0;
 }
 </style>
 </head>
 <body>
 
+<!-- ═══ NAVBAR ═══════════════════════════════════════════════════ -->
 <nav class="navbar">
-  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
-  <div class="nav-r">
-    <a href="/dashboard" class="nav-link">Dashboard</a>
-    <a href="/chat"      class="nav-link">Chat</a>
-    <a href="/groups"    class="nav-link">Groups</a>
-    <a href="/settings"  class="nav-link" style="color:var(--amber)">⚙ Settings</a>
-    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  <div class="brand" onclick="location.href='/dashboard'" style="cursor:pointer;">
+    <div class="brand-icon">⬡</div>NEXUS LEARN
   </div>
+  <div class="nav-r">
+    <a href="/dashboard"  class="nav-link">Dashboard</a>
+    <a href="/chat"       class="nav-link">💬 Chat</a>
+    <a href="/planner"    class="nav-link">📅 Planner</a>
+    <a href="/coding"     class="nav-link">💻 Coding</a>
+    <a href="/interview"  class="nav-link">🎯 Interview</a>
+    <a href="/motivation" class="nav-link">🔥 Motivation</a>
+    <a href="/groups"     class="nav-link">👥 Groups</a>
+    <a href="/settings"   class="nav-link" style="color:var(--amber);font-weight:600;">⚙ Settings</a>
+    <label class="theme-toggle-pill" title="Toggle dark / light mode">
+      <span class="pill-icon" id="theme-pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="navbar-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleDrawer()" aria-label="Menu">
+    <span id="hamburger-icon">☰</span>
+  </button>
 </nav>
+
+<!-- Mobile drawer -->
+<div class="nav-drawer" id="nav-drawer">
+  <a href="/dashboard"  class="nav-link">Dashboard</a>
+  <a href="/chat"       class="nav-link">💬 AI Chatbot</a>
+  <a href="/planner"    class="nav-link">📅 Weekly Planner</a>
+  <a href="/coding"     class="nav-link">💻 Coding Practice</a>
+  <a href="/interview"  class="nav-link">🎯 Interview Prep</a>
+  <a href="/motivation" class="nav-link">🔥 Motivation</a>
+  <a href="/groups"     class="nav-link">👥 Study Groups</a>
+  <a href="/settings"   class="nav-link" style="color:var(--amber)">⚙ Settings</a>
+  <div class="drawer-bottom">
+    <label class="theme-toggle-pill">
+      <span class="pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="drawer-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+      <span id="drawer-theme-label">Dark</span>
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+</div>
+<!-- ═══ END NAVBAR ════════════════════════════════════════════════ -->
 
 <div class="settings-page">
 
   <div class="settings-hdr">
     <h2>⚙ Settings</h2>
-    <p>Customise your learning experience, theme, and AI preferences.</p>
+    <p>Customise your learning experience and AI preferences.</p>
   </div>
 
-  <!-- ── Profile ──────────────────────────────────────── -->
+  <!-- ── Profile ── -->
   <div class="settings-section">
-    <div class="section-title">
-      <span class="section-icon">👤</span> Profile
-    </div>
+    <div class="section-title"><span class="section-icon">👤</span> Profile</div>
     <div class="setting-row">
       <div style="display:flex;align-items:center;gap:14px;flex:1">
         <div class="avatar-circle" id="avatar-circle">?</div>
@@ -171,36 +258,9 @@
     </div>
   </div>
 
-  <!-- ── Theme ─────────────────────────────────────────── -->
+  <!-- ── AI Preferences ── -->
   <div class="settings-section">
-    <div class="section-title">
-      <span class="section-icon">🎨</span> Appearance
-    </div>
-    <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px">
-      <div class="setting-label">
-        <strong>Theme</strong>
-        <span>Choose your preferred colour scheme</span>
-      </div>
-      <div class="theme-cards">
-        <div class="theme-card" data-theme-val="dark" onclick="selectTheme(this)">
-          <div class="theme-card-icon">🌙</div>
-          <div class="theme-card-name">Dark</div>
-          <div class="theme-card-desc">Easy on eyes</div>
-        </div>
-        <div class="theme-card" data-theme-val="light" onclick="selectTheme(this)">
-          <div class="theme-card-icon">☀</div>
-          <div class="theme-card-name">Light</div>
-          <div class="theme-card-desc">Clean & bright</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── AI Preferences ──────────────────────────────── -->
-  <div class="settings-section">
-    <div class="section-title">
-      <span class="section-icon">🤖</span> AI Preferences
-    </div>
+    <div class="section-title"><span class="section-icon">🤖</span> AI Preferences</div>
     <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px">
       <div class="setting-label">
         <strong>Response Style</strong>
@@ -223,11 +283,9 @@
     </div>
   </div>
 
-  <!-- ── Timer Preferences ──────────────────────────── -->
+  <!-- ── Study Timer ── -->
   <div class="settings-section">
-    <div class="section-title">
-      <span class="section-icon">⏱</span> Study Timer
-    </div>
+    <div class="section-title"><span class="section-icon">⏱</span> Study Timer</div>
     <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px">
       <div class="setting-label">
         <strong>Pomodoro Intervals</strong>
@@ -246,11 +304,9 @@
     </div>
   </div>
 
-  <!-- ── Notifications ──────────────────────────────── -->
+  <!-- ── Notifications ── -->
   <div class="settings-section">
-    <div class="section-title">
-      <span class="section-icon">🔔</span> Notifications
-    </div>
+    <div class="section-title"><span class="section-icon">🔔</span> Notifications</div>
     <div class="setting-row">
       <div class="setting-label">
         <strong>Group Notifications</strong>
@@ -293,56 +349,65 @@
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════
-   THEME (from localStorage, same as groups page)
-══════════════════════════════════════════════════════ */
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('nx-theme', theme);
-  // Mark active card
-  document.querySelectorAll('.theme-card').forEach(c => {
-    c.classList.toggle('active', c.dataset.themeVal === theme);
-  });
+/* ── Navbar: hamburger ── */
+function toggleDrawer() {
+  const d = document.getElementById('nav-drawer');
+  const open = d.classList.toggle('open');
+  document.getElementById('hamburger-icon').textContent = open ? '✕' : '☰';
+  if (open) {
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        if (!d.contains(e.target) && !document.getElementById('nav-hamburger').contains(e.target)) {
+          d.classList.remove('open');
+          document.getElementById('hamburger-icon').textContent = '☰';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 50);
+  }
 }
-function selectTheme(card) {
-  applyTheme(card.dataset.themeVal);
-}
-// Load saved theme immediately
-(function() { applyTheme(localStorage.getItem('nx-theme') || 'dark'); })();
 
-/* ══════════════════════════════════════════════════════
-   AI STYLE
-══════════════════════════════════════════════════════ */
+/* ── Sync pill icon / drawer label when theme changes ── */
+document.addEventListener('nx-theme-change', function(e) {
+  const isLight = e.detail === 'light';
+  document.querySelectorAll('.theme-toggle-pill .pill-icon').forEach(el => {
+    el.textContent = isLight ? '☀' : '🌙';
+  });
+  const lbl = document.getElementById('drawer-theme-label');
+  if (lbl) lbl.textContent = isLight ? 'Light' : 'Dark';
+});
+// Fire once on load to set icon correctly
+document.dispatchEvent(new CustomEvent('nx-theme-change', {
+  detail: localStorage.getItem('nx-theme') || 'dark'
+}));
+
+/* ── AI Style ── */
 function selectAIStyle(card) {
   document.querySelectorAll('.ai-style-card').forEach(c => c.classList.remove('active'));
   card.classList.add('active');
 }
 
-/* ══════════════════════════════════════════════════════
-   LOAD SETTINGS FROM API
-══════════════════════════════════════════════════════ */
+/* ── Load settings ── */
 async function loadSettings() {
   try {
     const r = await fetch('/api/settings');
     if (r.status === 401) { location.href = '/login'; return; }
     const d = await r.json();
 
-    document.getElementById('pref-name').value   = d.name  || '';
-    document.getElementById('pref-email').textContent = d.email || '';
-    document.getElementById('pref-work').value   = d.pomodoro_work  || 25;
-    document.getElementById('pref-break').value  = d.pomodoro_break || 5;
-    document.getElementById('pref-notif').checked       = d.notifications !== false;
-    document.getElementById('pref-ai-notif').checked    = d.notify_ai    !== false;
-    document.getElementById('pref-timer-notif').checked = d.notify_timer !== false;
+    document.getElementById('pref-name').value         = d.name  || '';
+    document.getElementById('pref-email').textContent  = d.email || '';
+    document.getElementById('pref-work').value         = d.pomodoro_work  || 25;
+    document.getElementById('pref-break').value        = d.pomodoro_break || 5;
+    document.getElementById('pref-notif').checked      = d.notifications !== false;
+    document.getElementById('pref-ai-notif').checked   = d.notify_ai    !== false;
+    document.getElementById('pref-timer-notif').checked= d.notify_timer !== false;
 
-    // Avatar initials
     const name = d.name || d.email || '?';
     document.getElementById('avatar-circle').textContent = name[0].toUpperCase();
 
-    // Theme
-    applyTheme(d.theme || localStorage.getItem('nx-theme') || 'dark');
+    // Apply theme via NxTheme (syncs toggle + all UI)
+    NxTheme.set(d.theme || localStorage.getItem('nx-theme') || 'dark');
 
-    // AI style
     const styleVal = d.ai_style || 'detailed';
     document.querySelectorAll('.ai-style-card').forEach(c => {
       c.classList.toggle('active', c.dataset.style === styleVal);
@@ -352,25 +417,19 @@ async function loadSettings() {
   }
 }
 
-/* ══════════════════════════════════════════════════════
-   SAVE SETTINGS
-══════════════════════════════════════════════════════ */
+/* ── Save settings ── */
 async function saveSettings() {
   const aiStyleCard = document.querySelector('.ai-style-card.active');
-  const themeCard   = document.querySelector('.theme-card.active');
   const payload = {
-    name:            document.getElementById('pref-name').value.trim(),
-    ai_style:        aiStyleCard ? aiStyleCard.dataset.style : 'detailed',
-    theme:           themeCard   ? themeCard.dataset.themeVal : 'dark',
-    notifications:   document.getElementById('pref-notif').checked,
-    notify_ai:       document.getElementById('pref-ai-notif').checked,
-    notify_timer:    document.getElementById('pref-timer-notif').checked,
-    pomodoro_work:   parseInt(document.getElementById('pref-work').value)  || 25,
-    pomodoro_break:  parseInt(document.getElementById('pref-break').value) || 5,
+    name:           document.getElementById('pref-name').value.trim(),
+    ai_style:       aiStyleCard ? aiStyleCard.dataset.style : 'detailed',
+    theme:          NxTheme.get(),
+    notifications:  document.getElementById('pref-notif').checked,
+    notify_ai:      document.getElementById('pref-ai-notif').checked,
+    notify_timer:   document.getElementById('pref-timer-notif').checked,
+    pomodoro_work:  parseInt(document.getElementById('pref-work').value)  || 25,
+    pomodoro_break: parseInt(document.getElementById('pref-break').value) || 5,
   };
-
-  // Apply theme immediately
-  applyTheme(payload.theme);
 
   try {
     const r = await fetch('/api/settings', {
@@ -381,7 +440,6 @@ async function saveSettings() {
       const s = document.getElementById('save-status');
       s.classList.add('visible');
       setTimeout(() => s.classList.remove('visible'), 2500);
-      // Update avatar
       if (payload.name) {
         document.getElementById('avatar-circle').textContent = payload.name[0].toUpperCase();
       }
@@ -394,12 +452,11 @@ async function saveSettings() {
   }
 }
 
-async function logout() {
-  await fetch('/api/logout', {method:'POST'});
-  location.href = '/';
+async function nxLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/login';
 }
 
-// Load on page start
 loadSettings();
 </script>
 </body>

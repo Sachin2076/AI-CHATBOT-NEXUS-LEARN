@@ -1,81 +1,240 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AI Chatbot — Nexus Learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/style.css"/>
-<style>
-.chat-page{display:flex;height:calc(100vh - 60px)}
-/* ── History Sidebar ── */
-.history-sidebar{width:240px;flex-shrink:0;background:var(--bg-s);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden}
-.hs-header{padding:14px 14px 10px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
-.hs-title{font-family:var(--fM);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-m)}
-.hs-list{flex:1;overflow-y:auto;padding:8px}
-.hs-list::-webkit-scrollbar{width:3px}
-.hs-list::-webkit-scrollbar-thumb{background:var(--bdr-l);border-radius:2px}.session-item{padding:10px 11px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .2s;margin-bottom:3px;position:relative;}
-.session-item.active{background:var(--amber-g);border-color:rgba(240,160,64,.2)}
-.session-title{font-size:13px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
-.session-item.active .session-title{color:var(--amber)}
-.session-date{font-size:11px;color:var(--tx-m);font-family:var(--fM);margin-top:2px}
-.session-del{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx-m);cursor:pointer;font-size:12px;opacity:0;transition:opacity .2s;padding:3px}
-.session-item:hover .session-del{opacity:1}
-.session-del:hover{color:var(--red)}
-.hs-empty{text-align:center;padding:30px 12px;color:var(--tx-m);font-size:13px}
-/* ── Chat Area ── */
-.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
-/* ── Sidebar Toggle Button (hidden on desktop) ── */
-.sidebar-toggle{display:none;background:none;border:none;cursor:pointer;padding:6px 8px;color:var(--tx);font-size:18px;line-height:1;border-radius:6px;transition:background .15s}
-.sidebar-toggle:hover{background:var(--bg-r)}
+<!-- MUST BE FIRST SCRIPT — prevents theme flash -->
+<script src="/static/js/theme.js"></script>
+
+<style>
+/* ── Light mode ── */
+[data-theme="light"] {
+  --bg:#f5f5f0; --bg-s:#ededea; --bg-c:#ffffff; --bg-r:#f0f0eb;
+  --bdr:#ddddd8; --bdr-l:#cccccc;
+  --tx:#1a1a18; --tx-s:#555550; --tx-m:#888882;
+  --amber:#c47a10; --amber-g:rgba(196,122,16,.12); --amber-d:#a06010;
+}
+[data-theme="light"] body        { background: var(--bg); color: var(--tx); }
+[data-theme="light"] .navbar     { background: rgba(245,245,240,.95) !important; border-bottom:1px solid var(--bdr); }
+[data-theme="light"] body::after { display: none; }
+
+/* ── Navbar ── */
+.navbar {
+  position: sticky; top: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.nav-r { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.nav-hamburger {
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 6px; color: var(--tx); font-size: 22px; line-height: 1; margin-left: 8px;
+}
+
+/* ── Nav Drawer (mobile) ── */
+.nav-drawer {
+  display: none; flex-direction: column;
+  position: fixed; top: 56px; left: 0; right: 0;
+  background: var(--bg-c, #1a1a18); border-bottom: 1px solid var(--bdr);
+  padding: 12px 16px 20px; z-index: 999; gap: 2px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25); animation: drawerSlide .2s ease;
+}
+@keyframes drawerSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+.nav-drawer.open { display: flex; }
+.nav-drawer .nav-link { padding: 12px 10px; border-radius: 8px; font-size: 15px; display: block; }
+.nav-drawer .nav-link:hover { background: var(--bg-s); }
+.nav-drawer .drawer-bottom {
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--bdr);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* ── Theme toggle pill ── */
+.theme-toggle-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-s, rgba(255,255,255,.07));
+  border: 1px solid var(--bdr, rgba(255,255,255,.12));
+  border-radius: 100px; padding: 5px 11px 5px 8px;
+  cursor: pointer; font-size: 12px; font-family: var(--fM, 'DM Mono', monospace);
+  color: var(--tx-m, #888); transition: border-color .2s, background .2s;
+  user-select: none; white-space: nowrap;
+}
+.theme-toggle-pill:hover { border-color: var(--amber, #c47a10); color: var(--tx); }
+.theme-toggle-pill .pill-icon { font-size: 14px; line-height: 1; }
+.nx-theme-toggle { position: relative; width: 34px; height: 19px; flex-shrink: 0; }
+.nx-theme-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.nx-toggle-track {
+  position: absolute; inset: 0; background: var(--bdr-l, #555);
+  border-radius: 100px; cursor: pointer; transition: background .3s;
+}
+.nx-toggle-track::before {
+  content: ''; position: absolute; width: 13px; height: 13px;
+  left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform .3s;
+}
+.nx-theme-toggle input:checked + .nx-toggle-track { background: var(--amber, #c47a10); }
+.nx-theme-toggle input:checked + .nx-toggle-track::before { transform: translateX(15px); }
+
+/* ── Responsive navbar ── */
+@media (max-width: 900px) {
+  .nav-r .nav-link,
+  .nav-r .btn-ghost,
+  .nav-r .theme-toggle-pill { display: none; }
+  .nav-hamburger { display: flex; align-items: center; }
+}
+@media (max-width: 480px) {
+  .navbar { padding: 0 14px; }
+  .brand  { font-size: 13px; }
+}
+
+/* ══════════════════════════════════════════
+   CHAT PAGE LAYOUT
+══════════════════════════════════════════ */
+.chat-page { display:flex; height:calc(100vh - 56px); }
+
+/* ── History Sidebar ── */
+.history-sidebar {
+  width:240px; flex-shrink:0; background:var(--bg-s);
+  border-right:1px solid var(--bdr); display:flex; flex-direction:column; overflow:hidden;
+}
+.hs-header {
+  padding:14px 14px 10px; border-bottom:1px solid var(--bdr);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.hs-title { font-family:var(--fM); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-m); }
+.hs-list  { flex:1; overflow-y:auto; padding:8px; }
+.hs-list::-webkit-scrollbar { width:3px; }
+.hs-list::-webkit-scrollbar-thumb { background:var(--bdr-l); border-radius:2px; }
+
+.session-item {
+  padding:10px 11px; border-radius:8px; cursor:pointer;
+  border:1px solid transparent; transition:all .2s; margin-bottom:3px; position:relative;
+}
+.session-item.active { background:var(--amber-g); border-color:rgba(240,160,64,.2); }
+.session-title {
+  font-size:13px; color:var(--tx); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; max-width:160px;
+}
+.session-item.active .session-title { color:var(--amber); }
+.session-date { font-size:11px; color:var(--tx-m); font-family:var(--fM); margin-top:2px; }
+.session-del {
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--tx-m); cursor:pointer;
+  font-size:12px; opacity:0; transition:opacity .2s; padding:3px;
+}
+.session-item:hover .session-del { opacity:1; }
+.session-del:hover { color:var(--red); }
+.hs-empty { text-align:center; padding:30px 12px; color:var(--tx-m); font-size:13px; }
+
+/* ── Chat Area ── */
+.chat-area { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+
+/* ── Sidebar Toggle (mobile only) ── */
+.sidebar-toggle {
+  display:none; background:none; border:none; cursor:pointer;
+  padding:6px 8px; color:var(--tx); font-size:18px; line-height:1;
+  border-radius:6px; transition:background .15s;
+}
+.sidebar-toggle:hover { background:var(--bg-r); }
 
 /* ── Sidebar Overlay (mobile) ── */
-.sidebar-overlay{display:none;position:fixed;inset:0;top:60px;background:rgba(0,0,0,.4);z-index:99;opacity:0;pointer-events:none;transition:opacity .25s}
-.sidebar-overlay.visible{opacity:1;pointer-events:all}
+.sidebar-overlay {
+  display:none; position:fixed; inset:0; top:56px;
+  background:rgba(0,0,0,.4); z-index:99;
+  opacity:0; pointer-events:none; transition:opacity .25s;
+}
+.sidebar-overlay.visible { opacity:1; pointer-events:all; }
 
 /* ── Tablet ── */
-@media(max-width:900px){
-  .history-sidebar{width:200px}
-  .session-title{max-width:120px}
+@media(max-width:900px) {
+  .history-sidebar { width:200px; }
+  .session-title   { max-width:120px; }
 }
 
 /* ── Mobile ── */
-@media(max-width:600px){
-  .history-sidebar{
-    position:fixed;top:60px;left:0;bottom:0;
-    width:260px;z-index:100;
+@media(max-width:600px) {
+  .history-sidebar {
+    position:fixed; top:56px; left:0; bottom:0;
+    width:260px; z-index:100;
     transform:translateX(-100%);
     transition:transform .25s ease;
-    box-shadow:4px 0 16px rgba(0,0,0,.12)
+    box-shadow:4px 0 16px rgba(0,0,0,.12);
   }
-  .history-sidebar.open{transform:translateX(0)}
-  .sidebar-overlay{display:block}
-  .sidebar-toggle{display:inline-flex;align-items:center;justify-content:center}
-  .navbar .nav-r .nav-link{display:none}
-  .chat-htitle{font-size:14px}
-  .chat-hsub{font-size:11px}
-  .chat-hdr{padding:8px 10px;gap:8px}
-  .chat-av{width:32px;height:32px;font-size:16px;flex-shrink:0}
-  .msgs{padding:12px 10px}
-  .chat-bar{padding:8px 10px 10px}
-  .iw textarea{font-size:16px}
-  .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .chip{text-align:center;font-size:12px}
+  .history-sidebar.open { transform:translateX(0); }
+  .sidebar-overlay { display:block; }
+  .sidebar-toggle  { display:inline-flex; align-items:center; justify-content:center; }
+  .chat-htitle  { font-size:14px; }
+  .chat-hsub    { font-size:11px; }
+  .chat-hdr     { padding:8px 10px; gap:8px; }
+  .chat-av      { width:32px; height:32px; font-size:16px; flex-shrink:0; }
+  .msgs         { padding:12px 10px; }
+  .chat-bar     { padding:8px 10px 10px; }
+  .iw textarea  { font-size:16px; }
+  .chips        { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .chip         { text-align:center; font-size:12px; }
 }
 </style>
 </head>
 <body>
+
+<!-- ═══ NAVBAR ═══════════════════════════════════════════════════ -->
 <nav class="navbar">
-  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
-  <div class="nav-r">
-    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Open chat history">☰</button>
-    <a href="/dashboard" class="nav-link">Dashboard</a>
-    <a href="/planner"   class="nav-link">Planner</a>
-    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  <div class="brand" onclick="location.href='/dashboard'" style="cursor:pointer;">
+    <div class="brand-icon">⬡</div>NEXUS LEARN
   </div>
+  <div class="nav-r">
+    <a href="/dashboard"  class="nav-link">Dashboard</a>
+    <a href="/chat"       class="nav-link" style="color:var(--amber);font-weight:600;">💬 Chat</a>
+    <a href="/planner"    class="nav-link">📅 Planner</a>
+    <a href="/coding"     class="nav-link">💻 Coding</a>
+    <a href="/interview"  class="nav-link">🎯 Interview</a>
+    <a href="/motivation" class="nav-link">🔥 Motivation</a>
+    <a href="/groups"     class="nav-link">👥 Groups</a>
+    <a href="/settings"   class="nav-link">⚙ Settings</a>
+
+    <!-- 🌙/☀️ Theme toggle pill -->
+    <label class="theme-toggle-pill" title="Toggle dark / light mode">
+      <span class="pill-icon" id="theme-pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="navbar-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+    </label>
+
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleNavDrawer()" aria-label="Menu">
+    <span id="hamburger-icon">☰</span>
+  </button>
 </nav>
 
+<!-- Mobile nav drawer -->
+<div class="nav-drawer" id="nav-drawer">
+  <a href="/dashboard"  class="nav-link">Dashboard</a>
+  <a href="/chat"       class="nav-link" style="color:var(--amber)">💬 AI Chatbot</a>
+  <a href="/planner"    class="nav-link">📅 Weekly Planner</a>
+  <a href="/coding"     class="nav-link">💻 Coding Practice</a>
+  <a href="/interview"  class="nav-link">🎯 Interview Prep</a>
+  <a href="/motivation" class="nav-link">🔥 Motivation</a>
+  <a href="/groups"     class="nav-link">👥 Study Groups</a>
+  <a href="/settings"   class="nav-link">⚙ Settings</a>
+  <div class="drawer-bottom">
+    <label class="theme-toggle-pill">
+      <span class="pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="drawer-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+      <span id="drawer-theme-label">Dark</span>
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+</div>
+<!-- ═══ END NAVBAR ════════════════════════════════════════════════ -->
+
+<!-- Chat sidebar overlay (mobile) -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <div class="chat-page">
@@ -94,6 +253,8 @@
   <!-- ── Main Chat Area ── -->
   <div class="chat-area">
     <div class="chat-hdr">
+      <!-- Sidebar toggle (mobile only) -->
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Chat history">☰</button>
       <div class="chat-av">🤖</div>
       <div>
         <div class="chat-htitle" id="chat-title">AI Learning Assistant — Nexus</div>
@@ -138,19 +299,65 @@
 
 <script src="/static/js/chat.js"></script>
 <script>
-function toggleSidebar(){
-  const s=document.getElementById('history-sidebar');
-  const o=document.getElementById('sidebar-overlay');
-  s.classList.contains('open')?closeSidebar():(s.classList.add('open'),o.classList.add('visible'),document.body.style.overflow='hidden');
+/* ── Chat sidebar (mobile slide-in) ── */
+function toggleSidebar() {
+  const s = document.getElementById('history-sidebar');
+  const o = document.getElementById('sidebar-overlay');
+  if (s.classList.contains('open')) {
+    closeSidebar();
+  } else {
+    s.classList.add('open');
+    o.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  }
 }
-function closeSidebar(){
+function closeSidebar() {
   document.getElementById('history-sidebar').classList.remove('open');
   document.getElementById('sidebar-overlay').classList.remove('visible');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
 }
-document.getElementById('session-list').addEventListener('click',function(e){
-  if(window.innerWidth<=600&&e.target.closest('.session-item'))closeSidebar();
+document.getElementById('session-list').addEventListener('click', function(e) {
+  if (window.innerWidth <= 600 && e.target.closest('.session-item')) closeSidebar();
 });
+
+/* ── Nav drawer (hamburger) ── */
+function toggleNavDrawer() {
+  const d = document.getElementById('nav-drawer');
+  const open = d.classList.toggle('open');
+  document.getElementById('hamburger-icon').textContent = open ? '✕' : '☰';
+  if (open) {
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        if (!d.contains(e.target) && !document.getElementById('nav-hamburger').contains(e.target)) {
+          d.classList.remove('open');
+          document.getElementById('hamburger-icon').textContent = '☰';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 50);
+  }
+}
+
+/* ── Sync theme pill icon + drawer label ── */
+document.addEventListener('nx-theme-change', function(e) {
+  const isLight = e.detail === 'light';
+  document.querySelectorAll('.theme-toggle-pill .pill-icon').forEach(el => {
+    el.textContent = isLight ? '☀' : '🌙';
+  });
+  const lbl = document.getElementById('drawer-theme-label');
+  if (lbl) lbl.textContent = isLight ? 'Light' : 'Dark';
+});
+// Set correct icon on load
+document.dispatchEvent(new CustomEvent('nx-theme-change', {
+  detail: localStorage.getItem('nx-theme') || 'dark'
+}));
+
+/* ── Logout ── */
+async function nxLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/login';
+}
 </script>
+
 </body>
 </html>

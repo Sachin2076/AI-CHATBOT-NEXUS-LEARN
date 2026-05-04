@@ -6,7 +6,92 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/style.css"/>
+
+<!-- MUST BE FIRST SCRIPT — prevents theme flash -->
+<script src="/static/js/theme.js"></script>
+
 <style>
+/* ── Light mode ── */
+[data-theme="light"] {
+  --bg:#f5f5f0; --bg-s:#ededea; --bg-c:#ffffff; --bg-r:#f0f0eb;
+  --bdr:#ddddd8; --bdr-l:#cccccc;
+  --tx:#1a1a18; --tx-s:#555550; --tx-m:#888882;
+  --amber:#c47a10; --amber-g:rgba(196,122,16,.12); --amber-d:#a06010;
+}
+[data-theme="light"] body        { background: var(--bg); color: var(--tx); }
+[data-theme="light"] .navbar     { background: rgba(245,245,240,.95) !important; border-bottom:1px solid var(--bdr); }
+[data-theme="light"] body::after { display: none; }
+
+/* ── Navbar ── */
+.navbar {
+  position: sticky; top: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.nav-r { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.nav-hamburger {
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 6px; color: var(--tx); font-size: 22px; line-height: 1; margin-left: 8px;
+}
+
+/* ── Nav Drawer (mobile) ── */
+.nav-drawer {
+  display: none; flex-direction: column;
+  position: fixed; top: 56px; left: 0; right: 0;
+  background: var(--bg-c, #1a1a18); border-bottom: 1px solid var(--bdr);
+  padding: 12px 16px 20px; z-index: 999; gap: 2px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25); animation: drawerSlide .2s ease;
+}
+@keyframes drawerSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+.nav-drawer.open { display: flex; }
+.nav-drawer .nav-link { padding: 12px 10px; border-radius: 8px; font-size: 15px; display: block; }
+.nav-drawer .nav-link:hover { background: var(--bg-s); }
+.nav-drawer .drawer-bottom {
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--bdr);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* ── Theme toggle pill ── */
+.theme-toggle-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-s, rgba(255,255,255,.07));
+  border: 1px solid var(--bdr, rgba(255,255,255,.12));
+  border-radius: 100px; padding: 5px 11px 5px 8px;
+  cursor: pointer; font-size: 12px; font-family: var(--fM, 'DM Mono', monospace);
+  color: var(--tx-m, #888); transition: border-color .2s, background .2s;
+  user-select: none; white-space: nowrap;
+}
+.theme-toggle-pill:hover { border-color: var(--amber, #c47a10); color: var(--tx); }
+.theme-toggle-pill .pill-icon { font-size: 14px; line-height: 1; }
+.nx-theme-toggle { position: relative; width: 34px; height: 19px; flex-shrink: 0; }
+.nx-theme-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.nx-toggle-track {
+  position: absolute; inset: 0; background: var(--bdr-l, #555);
+  border-radius: 100px; cursor: pointer; transition: background .3s;
+}
+.nx-toggle-track::before {
+  content: ''; position: absolute; width: 13px; height: 13px;
+  left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform .3s;
+}
+.nx-theme-toggle input:checked + .nx-toggle-track { background: var(--amber, #c47a10); }
+.nx-theme-toggle input:checked + .nx-toggle-track::before { transform: translateX(15px); }
+
+/* ── Responsive navbar ── */
+@media (max-width: 900px) {
+  .nav-r .nav-link,
+  .nav-r .btn-ghost,
+  .nav-r .theme-toggle-pill { display: none; }
+  .nav-hamburger { display: flex; align-items: center; }
+}
+@media (max-width: 480px) {
+  .navbar { padding: 0 14px; }
+  .brand  { font-size: 13px; }
+}
+
+/* ══════════════════════════════════════════
+   PRACTICE PAGE STYLES (original)
+══════════════════════════════════════════ */
 .prac-body{max-width:860px;margin:0 auto;padding:28px}
 .prac-hdr{margin-bottom:24px}
 .prac-hdr h2{font-size:1.5rem;margin-bottom:4px}
@@ -39,14 +124,61 @@
 </style>
 </head>
 <body>
+
+<!-- ═══ NAVBAR ═══════════════════════════════════════════════════ -->
 <nav class="navbar">
-  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
-  <div class="nav-r">
-    <a href="/dashboard" class="nav-link">Dashboard</a>
-    <a href="/chat"      class="nav-link">Chat</a>
-    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  <div class="brand" onclick="location.href='/dashboard'" style="cursor:pointer;">
+    <div class="brand-icon">⬡</div>NEXUS LEARN
   </div>
+  <div class="nav-r">
+    <a href="/dashboard"  class="nav-link">Dashboard</a>
+    <a href="/chat"       class="nav-link">💬 Chat</a>
+    <a href="/planner"    class="nav-link">📅 Planner</a>
+    <a href="/coding"     class="nav-link">💻 Coding</a>
+    <a href="/interview"  class="nav-link">🎯 Interview</a>
+    <a href="/motivation" class="nav-link">🔥 Motivation</a>
+    <a href="/groups"     class="nav-link">👥 Groups</a>
+    <a href="/settings"   class="nav-link">⚙ Settings</a>
+
+    <!-- Theme toggle pill -->
+    <label class="theme-toggle-pill" title="Toggle dark / light mode">
+      <span class="pill-icon" id="theme-pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="navbar-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+    </label>
+
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleNavDrawer()" aria-label="Menu">
+    <span id="hamburger-icon">☰</span>
+  </button>
 </nav>
+
+<!-- Mobile nav drawer -->
+<div class="nav-drawer" id="nav-drawer">
+  <a href="/dashboard"  class="nav-link">Dashboard</a>
+  <a href="/chat"       class="nav-link">💬 AI Chatbot</a>
+  <a href="/planner"    class="nav-link">📅 Weekly Planner</a>
+  <a href="/coding"     class="nav-link">💻 Coding Practice</a>
+  <a href="/interview"  class="nav-link">🎯 Interview Prep</a>
+  <a href="/motivation" class="nav-link">🔥 Motivation</a>
+  <a href="/groups"     class="nav-link">👥 Study Groups</a>
+  <a href="/settings"   class="nav-link">⚙ Settings</a>
+  <div class="drawer-bottom">
+    <label class="theme-toggle-pill">
+      <span class="pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="drawer-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+      <span id="drawer-theme-label">Dark</span>
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+</div>
+<!-- ═══ END NAVBAR ════════════════════════════════════════════════ -->
 
 <div class="prac-body">
   <div class="prac-hdr">
@@ -247,7 +379,44 @@ function showResults(result, dayQ){
 
 function scrollToBottom(){ window.scrollTo(0,document.body.scrollHeight); }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
+
+/* ── Nav drawer (hamburger) ── */
+function toggleNavDrawer() {
+  const d = document.getElementById('nav-drawer');
+  const open = d.classList.toggle('open');
+  document.getElementById('hamburger-icon').textContent = open ? '✕' : '☰';
+  if (open) {
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        if (!d.contains(e.target) && !document.getElementById('nav-hamburger').contains(e.target)) {
+          d.classList.remove('open');
+          document.getElementById('hamburger-icon').textContent = '☰';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 50);
+  }
+}
+
+/* ── Sync theme pill icon + drawer label ── */
+document.addEventListener('nx-theme-change', function(e) {
+  const isLight = e.detail === 'light';
+  document.querySelectorAll('.theme-toggle-pill .pill-icon').forEach(el => {
+    el.textContent = isLight ? '☀' : '🌙';
+  });
+  const lbl = document.getElementById('drawer-theme-label');
+  if (lbl) lbl.textContent = isLight ? 'Light' : 'Dark';
+});
+// Set correct icon on load
+document.dispatchEvent(new CustomEvent('nx-theme-change', {
+  detail: localStorage.getItem('nx-theme') || 'dark'
+}));
+
+/* ── Logout ── */
+async function nxLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/login';
+}
 
 load();
 </script>

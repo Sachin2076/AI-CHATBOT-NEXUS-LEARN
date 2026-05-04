@@ -8,43 +8,105 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/style.css"/>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+
+<!-- MUST BE FIRST SCRIPT — prevents theme flash -->
+<script src="/static/js/theme.js"></script>
+
 <style>
-/* ══ Light mode override ══════════════════════════════════ */
+/* ── Light mode ── */
 [data-theme="light"] {
   --bg:#f5f5f0; --bg-s:#ededea; --bg-c:#ffffff; --bg-r:#f0f0eb;
   --bdr:#ddddd8; --bdr-l:#cccccc;
   --tx:#1a1a18; --tx-s:#555550; --tx-m:#888882;
   --amber:#c47a10; --amber-g:rgba(196,122,16,.12); --amber-d:#a06010;
 }
-[data-theme="light"] body { background: var(--bg); }
-[data-theme="light"] .navbar { background: rgba(245,245,240,.92); }
-[data-theme="light"] body::after { display:none; }
+[data-theme="light"] body        { background: var(--bg); color: var(--tx); }
+[data-theme="light"] .navbar     { background: rgba(245,245,240,.95) !important; border-bottom:1px solid var(--bdr); }
+[data-theme="light"] body::after { display: none; }
 
-/* ══ Page Layout ══════════════════════════════════════════ */
+/* ── Navbar ── */
+.navbar {
+  position: sticky; top: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.nav-r { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.nav-hamburger {
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 6px; color: var(--tx); font-size: 22px; line-height: 1; margin-left: 8px;
+}
+.nav-drawer {
+  display: none; flex-direction: column;
+  position: fixed; top: 56px; left: 0; right: 0;
+  background: var(--bg-c, #1a1a18); border-bottom: 1px solid var(--bdr);
+  padding: 12px 16px 20px; z-index: 999; gap: 2px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25); animation: drawerSlide .2s ease;
+}
+@keyframes drawerSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+.nav-drawer.open { display: flex; }
+.nav-drawer .nav-link { padding: 12px 10px; border-radius: 8px; font-size: 15px; display: block; }
+.nav-drawer .nav-link:hover { background: var(--bg-s); }
+.nav-drawer .drawer-bottom {
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--bdr);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.theme-toggle-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-s, rgba(255,255,255,.07));
+  border: 1px solid var(--bdr, rgba(255,255,255,.12));
+  border-radius: 100px; padding: 5px 11px 5px 8px;
+  cursor: pointer; font-size: 12px; font-family: var(--fM, 'DM Mono', monospace);
+  color: var(--tx-m, #888); transition: border-color .2s, background .2s;
+  user-select: none; white-space: nowrap;
+}
+.theme-toggle-pill:hover { border-color: var(--amber, #c47a10); color: var(--tx); }
+.theme-toggle-pill .pill-icon { font-size: 14px; line-height: 1; }
+.nx-theme-toggle { position: relative; width: 34px; height: 19px; flex-shrink: 0; }
+.nx-theme-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.nx-toggle-track {
+  position: absolute; inset: 0; background: var(--bdr-l, #555);
+  border-radius: 100px; cursor: pointer; transition: background .3s;
+}
+.nx-toggle-track::before {
+  content: ''; position: absolute; width: 13px; height: 13px;
+  left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform .3s;
+}
+.nx-theme-toggle input:checked + .nx-toggle-track { background: var(--amber, #c47a10); }
+.nx-theme-toggle input:checked + .nx-toggle-track::before { transform: translateX(15px); }
+@media (max-width: 900px) {
+  .nav-r .nav-link, .nav-r .btn-ghost, .nav-r .theme-toggle-pill { display: none; }
+  .nav-hamburger { display: flex; align-items: center; }
+}
+@media (max-width: 480px) {
+  .navbar { padding: 0 14px; }
+  .brand  { font-size: 13px; }
+}
+
+/* ══════════════════════════════════════════════════════
+   PAGE LAYOUT
+══════════════════════════════════════════════════════ */
 .groups-page { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+@media(max-width:600px) { .groups-page { padding: 16px 12px; } }
+
 .page-hdr { margin-bottom: 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
 .page-hdr h2 { font-size: 1.6rem; margin-bottom: 4px; }
 .page-hdr p  { color: var(--tx-m); font-size: 13px; }
-.hdr-actions { display:flex; gap:8px; align-items:center; }
 
-/* Theme toggle */
-.theme-btn { background: var(--bg-r); border: 1px solid var(--bdr); border-radius:8px; padding:7px 12px; cursor:pointer; font-size:14px; color:var(--tx-s); transition:all .2s; }
-.theme-btn:hover { border-color:var(--amber); color:var(--amber); }
-
-/* ══ My Group Banner ══════════════════════════════════════ */
+/* ── My Group Banner ── */
 .my-group-banner {
   background: linear-gradient(135deg, rgba(240,160,64,.15) 0%, rgba(240,160,64,.05) 100%);
   border: 1px solid rgba(240,160,64,.3); border-radius: 18px;
   padding: 20px 24px; margin-bottom: 24px;
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
 }
-.my-group-info { display: flex; align-items: center; gap: 14px; }
-.my-group-icon { width:44px; height:44px; background:var(--amber-g); border:1px solid var(--amber-d); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.my-group-info  { display: flex; align-items: center; gap: 14px; }
+.my-group-icon  { width:44px; height:44px; background:var(--amber-g); border:1px solid var(--amber-d); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
 .my-group-label { font-family:var(--fM); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--amber); margin-bottom:3px; }
 .my-group-name  { font-size:16px; font-weight:600; }
 .my-group-topic { font-size:12px; color:var(--tx-m); margin-top:2px; }
 
-/* ══ Create Group ════════════════════════════════════════ */
+/* ── Create Group ── */
 .create-section { background:var(--bg-c); border:1px solid var(--bdr); border-radius:18px; padding:22px 24px; margin-bottom:28px; }
 .create-section h3 { font-family:var(--fD); font-size:1.1rem; margin-bottom:16px; }
 .create-form { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
@@ -53,7 +115,7 @@
 .create-form input { background:var(--bg-s); border:1px solid var(--bdr); border-radius:6px; color:var(--tx); font-family:var(--fB); font-size:14px; padding:10px 13px; outline:none; width:100%; transition:border-color .2s,box-shadow .2s; }
 .create-form input:focus { border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-g); }
 
-/* ══ Groups Grid ══════════════════════════════════════════ */
+/* ── Groups Grid ── */
 .sec-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
 .sec-hdr h3 { font-family:var(--fD); font-size:1.1rem; }
 .badge { background:var(--bg-r); border:1px solid var(--bdr); border-radius:100px; padding:3px 10px; font-family:var(--fM); font-size:11px; color:var(--tx-m); }
@@ -74,7 +136,7 @@
 .empty-groups { text-align:center; padding:50px 20px; color:var(--tx-m); }
 .empty-groups-icon { font-size:46px; opacity:.25; margin-bottom:10px; }
 
-/* ══ Group Room (full-featured) ══════════════════════════ */
+/* ── Group Room ── */
 .room-wrapper { background:var(--bg-c); border:1px solid var(--bdr); border-radius:24px; overflow:hidden; }
 .room-hdr { padding:16px 20px; background:var(--bg-s); border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
 .room-hdr-left { display:flex; align-items:center; gap:12px; }
@@ -82,23 +144,17 @@
 .room-name  { font-size:16px; font-weight:600; }
 .room-topic { font-size:12px; color:var(--amber); font-family:var(--fM); }
 .room-hdr-right { display:flex; align-items:center; gap:8px; }
-
-/* Tabs */
 .tab-bar { display:flex; gap:2px; padding:12px 20px 0; background:var(--bg-s); border-bottom:1px solid var(--bdr); overflow-x:auto; }
 .tab-bar::-webkit-scrollbar { height:2px; }
 .tab-btn { padding:8px 16px; font-size:13px; font-weight:500; font-family:var(--fB); color:var(--tx-m); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; transition:all .2s; border-radius:6px 6px 0 0; }
 .tab-btn:hover { color:var(--tx); background:var(--bg-r); }
 .tab-btn.active { color:var(--amber); border-bottom-color:var(--amber); background:var(--bg-r); }
-
-/* Room body split */
 .room-body { display:grid; grid-template-columns:1fr 200px; min-height:520px; }
 @media(max-width:700px){ .room-body { grid-template-columns:1fr; } }
-
-/* Tab content */
 .tab-content { display:none; padding:0; flex-direction:column; min-height:480px; }
 .tab-content.active { display:flex; }
 
-/* ── Chat Panel ─────────────────────────────────────────── */
+/* ── Chat ── */
 .msg-board { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; min-height:360px; max-height:420px; }
 .msg-board::-webkit-scrollbar { width:3px; }
 .msg-board::-webkit-scrollbar-thumb { background:var(--bdr-l); border-radius:2px; }
@@ -126,8 +182,6 @@
 .upvote-count { font-weight:500; }
 .ai-typing-ind { display:none; padding:6px 16px; font-size:12px; color:#64b4ff; font-family:var(--fM); animation:pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
-
-/* Message input */
 .msg-input-area { border-top:1px solid var(--bdr); padding:12px 16px; display:flex; gap:8px; background:var(--bg-s); align-items:flex-end; }
 .msg-input-area textarea { flex:1; background:var(--bg-c); border:1px solid var(--bdr); border-radius:10px; color:var(--tx); font-family:var(--fB); font-size:14px; padding:10px 13px; outline:none; resize:none; min-height:40px; max-height:100px; transition:border-color .2s; }
 .msg-input-area textarea:focus { border-color:var(--amber); }
@@ -148,7 +202,7 @@
 .file-upload-btn:hover { border-color:var(--amber); background:rgba(251,191,36,.06); }
 .file-toggle-btn { font-size:12px; }
 
-/* ── Notice Board Panel ─────────────────────────────────── */
+/* ── Notice Board ── */
 .notice-panel { display:flex; flex-direction:column; flex:1; }
 .notice-toolbar { padding:12px 16px; border-bottom:1px solid var(--bdr); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .notice-toolbar textarea { flex:1; min-width:200px; background:var(--bg-s); border:1px solid var(--bdr); border-radius:8px; color:var(--tx); font-family:var(--fB); font-size:13px; padding:8px 12px; outline:none; resize:none; min-height:36px; max-height:80px; transition:border-color .2s; }
@@ -163,9 +217,9 @@
 .notice-act-btn { font-size:11px; font-family:var(--fM); background:none; border:1px solid var(--bdr); border-radius:6px; padding:3px 9px; cursor:pointer; color:var(--tx-m); transition:all .2s; }
 .notice-act-btn:hover { border-color:var(--amber); color:var(--amber); }
 .notice-ai-summary { background:rgba(100,180,255,.08); border:1px solid rgba(100,180,255,.2); border-radius:12px; padding:14px 16px; margin:12px 16px; font-size:13px; line-height:1.7; color:var(--tx); white-space:pre-wrap; }
-.notice-ai-summary::before { content:"🤖 AI Summary\n"; font-family:var(--fM); font-size:11px; color:#64b4ff; letter-spacing:.05em; text-transform:uppercase; display:block; margin-bottom:8px; }
+.notice-ai-summary::before { content:"🤖 AI Summary\A"; font-family:var(--fM); font-size:11px; color:#64b4ff; letter-spacing:.05em; text-transform:uppercase; display:block; margin-bottom:8px; white-space:pre; }
 
-/* ── Notes Panel ─────────────────────────────────────────── */
+/* ── Notes ── */
 .notes-panel { display:flex; flex-direction:column; flex:1; }
 .notes-toolbar { padding:10px 16px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:var(--tx-m); font-family:var(--fM); flex-wrap:wrap; }
 .notes-editor { flex:1; background:var(--bg-s); border:none; color:var(--tx); font-family:var(--fM); font-size:13px; padding:18px 20px; outline:none; resize:none; min-height:380px; line-height:1.75; width:100%; }
@@ -174,7 +228,7 @@
 .notes-saved-badge.visible { opacity:1; }
 .notes-editor-ind { font-size:11px; color:#64b4ff; font-family:var(--fM); min-width:140px; }
 
-/* ── Pomodoro Timer Panel ─────────────────────────────────── */
+/* ── Timer ── */
 .timer-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; gap:24px; flex:1; }
 .timer-display { text-align:center; }
 .timer-mode-label { font-family:var(--fM); font-size:11px; letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px; }
@@ -197,7 +251,7 @@
 .timer-stat-lbl { font-size:11px; color:var(--tx-m); font-family:var(--fM); }
 .timer-sync-info { font-size:12px; color:var(--tx-m); font-family:var(--fM); text-align:center; }
 
-/* ── Quiz Panel ────────────────────────────────────────────── */
+/* ── Quiz ── */
 .quiz-panel { display:flex; flex-direction:column; flex:1; }
 .quiz-setup  { padding:24px; display:flex; flex-direction:column; gap:16px; }
 .quiz-setup h4 { font-family:var(--fD); font-size:1.1rem; }
@@ -220,7 +274,7 @@
 .quiz-score-val { font-family:var(--fM); font-size:3rem; color:var(--amber); margin:12px 0; }
 .quiz-score-label { color:var(--tx-m); font-size:14px; }
 
-/* ── Summary Panel ─────────────────────────────────────────── */
+/* ── Summary ── */
 .summary-panel { display:flex; flex-direction:column; flex:1; }
 .summary-generate { padding:24px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; }
 .summary-generate h4 { font-family:var(--fD); font-size:1.1rem; }
@@ -228,7 +282,7 @@
 .summary-content { flex:1; overflow-y:auto; padding:20px; font-size:14px; line-height:1.8; white-space:pre-wrap; max-height:420px; }
 .summary-content strong { color:var(--amber); }
 
-/* ── Members Sidebar ────────────────────────────────────────── */
+/* ── Members Sidebar ── */
 .members-panel { border-left:1px solid var(--bdr); padding:16px; background:var(--bg-s); overflow-y:auto; }
 .members-panel h4 { font-family:var(--fM); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-m); margin-bottom:12px; }
 .member-item { display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid var(--bdr); }
@@ -236,7 +290,6 @@
 .member-av   { width:28px; height:28px; background:var(--amber-g); border:1px solid rgba(240,160,64,.2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-family:var(--fM); color:var(--amber); flex-shrink:0; }
 .member-name { font-size:13px; }
 .member-you  { font-size:10px; color:var(--tx-m); font-family:var(--fM); }
-
 @media(max-width:700px) {
   .members-panel { display:none; }
   .room-body { grid-template-columns:1fr; }
@@ -245,17 +298,60 @@
 </head>
 <body>
 
+<!-- ═══ NAVBAR ═══════════════════════════════════════════════════ -->
 <nav class="navbar">
-  <div class="brand" onclick="location.href='/dashboard'"><div class="brand-icon">⬡</div>NEXUS LEARN</div>
-  <div class="nav-r">
-    <a href="/dashboard" class="nav-link">Dashboard</a>
-    <a href="/chat"      class="nav-link">Chat</a>
-    <a href="/planner"   class="nav-link">Planner</a>
-    <a href="/groups"    class="nav-link" style="color:var(--amber)">Groups</a>
-    <a href="/settings"  class="nav-link">⚙ Settings</a>
-    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+  <div class="brand" onclick="location.href='/dashboard'" style="cursor:pointer;">
+    <div class="brand-icon">⬡</div>NEXUS LEARN
   </div>
+  <div class="nav-r">
+    <a href="/dashboard"  class="nav-link">Dashboard</a>
+    <a href="/chat"       class="nav-link">💬 Chat</a>
+    <a href="/planner"    class="nav-link">📅 Planner</a>
+    <a href="/coding"     class="nav-link">💻 Coding</a>
+    <a href="/interview"  class="nav-link">🎯 Interview</a>
+    <a href="/motivation" class="nav-link">🔥 Motivation</a>
+    <a href="/groups"     class="nav-link" style="color:var(--amber);font-weight:600;">👥 Groups</a>
+    <a href="/settings"   class="nav-link">⚙ Settings</a>
+
+    <!-- 🌙/☀️ Theme toggle pill -->
+    <label class="theme-toggle-pill" title="Toggle dark / light mode">
+      <span class="pill-icon" id="theme-pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="navbar-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+    </label>
+
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleNavDrawer()" aria-label="Menu">
+    <span id="hamburger-icon">☰</span>
+  </button>
 </nav>
+
+<!-- Mobile nav drawer -->
+<div class="nav-drawer" id="nav-drawer">
+  <a href="/dashboard"  class="nav-link">Dashboard</a>
+  <a href="/chat"       class="nav-link">💬 AI Chatbot</a>
+  <a href="/planner"    class="nav-link">📅 Weekly Planner</a>
+  <a href="/coding"     class="nav-link">💻 Coding Practice</a>
+  <a href="/interview"  class="nav-link">🎯 Interview Prep</a>
+  <a href="/motivation" class="nav-link">🔥 Motivation</a>
+  <a href="/groups"     class="nav-link" style="color:var(--amber)">👥 Study Groups</a>
+  <a href="/settings"   class="nav-link">⚙ Settings</a>
+  <div class="drawer-bottom">
+    <label class="theme-toggle-pill">
+      <span class="pill-icon">🌙</span>
+      <label class="nx-theme-toggle">
+        <input type="checkbox" id="drawer-theme-cb"/>
+        <span class="nx-toggle-track"></span>
+      </label>
+      <span id="drawer-theme-label">Dark</span>
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="nxLogout()">Sign out</button>
+  </div>
+</div>
+<!-- ═══ END NAVBAR ════════════════════════════════════════════════ -->
 
 <div class="groups-page">
 
@@ -263,9 +359,6 @@
     <div>
       <h2>👥 Study Groups</h2>
       <p>Collaborate in real-time. Use @AI to ask questions. Sync timers. Generate quizzes.</p>
-    </div>
-    <div class="hdr-actions">
-      <button class="theme-btn" onclick="toggleTheme()" id="theme-toggle-btn">🌙 Dark</button>
     </div>
   </div>
 
@@ -311,7 +404,7 @@
   </div>
   <div id="groups-grid" class="groups-grid" style="display:none"></div>
 
-  <!-- ══ Group Room ══════════════════════════════════════════ -->
+  <!-- Group Room -->
   <div id="group-room" style="display:none;margin-top:32px">
     <div class="sec-hdr">
       <h3 id="room-heading">Study Room</h3>
@@ -319,7 +412,6 @@
     </div>
 
     <div class="room-wrapper">
-      <!-- Header -->
       <div class="room-hdr">
         <div class="room-hdr-left">
           <div class="room-icon">👥</div>
@@ -336,7 +428,6 @@
         </div>
       </div>
 
-      <!-- Tab Bar — Navigation fix: no blocking overlay, pure CSS tabs -->
       <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('chat',this)"    >💬 Chat</button>
         <button class="tab-btn"        onclick="switchTab('notices',this)"  >📋 Noticeboard</button>
@@ -347,10 +438,9 @@
       </div>
 
       <div class="room-body">
-        <!-- Left: Tab Content -->
         <div id="tab-all">
 
-          <!-- ── CHAT TAB ─────────────────────────────────── -->
+          <!-- CHAT TAB -->
           <div id="tab-chat" class="tab-content active">
             <div class="msg-board" id="msg-board">
               <div class="board-empty">
@@ -364,7 +454,6 @@
               <button class="send-btn" id="msg-send-btn" onclick="postMessage()" title="Send">➤</button>
             </div>
             <div class="ai-hint">Tip: Start with <strong>@AI</strong> to get an instant AI answer in the chat</div>
-            <!-- FILE UPLOAD PANEL -->
             <div class="file-upload-panel" id="file-upload-panel" style="display:none">
               <div class="file-upload-header">
                 <span>📁 Group Documents <small style="opacity:.6">(AI reads these for @AI questions)</small></span>
@@ -382,7 +471,7 @@
             </button>
           </div>
 
-          <!-- ── NOTICEBOARD TAB ────────────────────────── -->
+          <!-- NOTICEBOARD TAB -->
           <div id="tab-notices" class="tab-content">
             <div class="notice-panel">
               <div class="notice-toolbar">
@@ -400,7 +489,7 @@
             </div>
           </div>
 
-          <!-- ── SHARED NOTES TAB ──────────────────────── -->
+          <!-- SHARED NOTES TAB -->
           <div id="tab-notes" class="tab-content">
             <div class="notes-panel">
               <div class="notes-toolbar">
@@ -411,12 +500,12 @@
                 </div>
               </div>
               <textarea class="notes-editor" id="notes-editor"
-                placeholder="Shared group notes — everyone in the group can edit. Use this to capture key points, formulas, code snippets…"
+                placeholder="Shared group notes — everyone in the group can edit…"
                 oninput="onNotesInput()"></textarea>
             </div>
           </div>
 
-          <!-- ── POMODORO TIMER TAB ──────────────────── -->
+          <!-- TIMER TAB -->
           <div id="tab-timer" class="tab-content">
             <div class="timer-panel">
               <div class="timer-display">
@@ -445,7 +534,7 @@
             </div>
           </div>
 
-          <!-- ── QUIZ TAB ─────────────────────────────── -->
+          <!-- QUIZ TAB -->
           <div id="tab-quiz" class="tab-content">
             <div class="quiz-panel">
               <div id="quiz-setup" class="quiz-setup">
@@ -479,7 +568,7 @@
             </div>
           </div>
 
-          <!-- ── SESSION SUMMARY TAB ──────────────────── -->
+          <!-- SUMMARY TAB -->
           <div id="tab-summary" class="tab-content">
             <div class="summary-panel">
               <div id="summary-setup" class="summary-generate">
@@ -501,7 +590,7 @@
 
         </div><!-- end tab-all -->
 
-        <!-- Right: Members Sidebar -->
+        <!-- Members sidebar -->
         <div class="members-panel">
           <h4>Members</h4>
           <div id="members-list"></div>
@@ -513,6 +602,42 @@
 </div><!-- end groups-page -->
 
 <script>
+/* ── Navbar hamburger ── */
+function toggleNavDrawer() {
+  const d = document.getElementById('nav-drawer');
+  const open = d.classList.toggle('open');
+  document.getElementById('hamburger-icon').textContent = open ? '✕' : '☰';
+  if (open) {
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        if (!d.contains(e.target) && !document.getElementById('nav-hamburger').contains(e.target)) {
+          d.classList.remove('open');
+          document.getElementById('hamburger-icon').textContent = '☰';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 50);
+  }
+}
+
+/* ── Sync theme pill icon + drawer label ── */
+document.addEventListener('nx-theme-change', function(e) {
+  const isLight = e.detail === 'light';
+  document.querySelectorAll('.theme-toggle-pill .pill-icon').forEach(el => {
+    el.textContent = isLight ? '☀' : '🌙';
+  });
+  const lbl = document.getElementById('drawer-theme-label');
+  if (lbl) lbl.textContent = isLight ? 'Light' : 'Dark';
+});
+document.dispatchEvent(new CustomEvent('nx-theme-change', {
+  detail: localStorage.getItem('nx-theme') || 'dark'
+}));
+
+async function nxLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/';
+}
+
 /* ══════════════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════════════ */
@@ -522,76 +647,45 @@ let currentUname = null;
 let activeRoomId = null;
 let allGroups    = [];
 let socket       = null;
-
-// Timer state
 let timerInterval  = null;
 let timerRunning   = false;
-let timerTimeLeft  = 25 * 60; // seconds
+let timerTimeLeft  = 25 * 60;
 let timerTotalTime = 25 * 60;
-let timerMode      = 'study'; // 'study' | 'break'
+let timerMode      = 'study';
 let pomodorosDone  = 0;
 let sessionsDone   = 0;
-let WORK_MINS  = 25;   // overridden by /api/settings
+let WORK_MINS  = 25;
 let BREAK_MINS = 5;
-
-// Quiz state
 let quizSource   = 'topic';
 let quizCount    = 5;
 let quizData     = null;
 let quizAnswers  = {};
 let quizScored   = false;
-
-// Notes auto-save debounce
 let notesSaveTimer = null;
 let notesTypingTimeout = null;
-
-/* ══════════════════════════════════════════════════════
-   THEME TOGGLE
-══════════════════════════════════════════════════════ */
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  const btn = document.getElementById('theme-toggle-btn');
-  if (btn) btn.textContent = theme === 'dark' ? '☀ Light' : '🌙 Dark';
-  localStorage.setItem('nx-theme', theme);
-}
-function toggleTheme() {
-  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
-  applyTheme(cur === 'dark' ? 'light' : 'dark');
-}
-// Apply saved theme on load
-(function() {
-  const saved = localStorage.getItem('nx-theme') || 'dark';
-  applyTheme(saved);
-})();
 
 /* ══════════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════════ */
 async function init() {
-  // Load user settings (pomodoro, notifications, AI style)
   try {
     const sr = await fetch('/api/settings');
     if (sr.ok) {
       const sd = await sr.json();
-      // Settings API returns top-level keys for convenience
-      const work  = parseInt(sd.pomodoro_work)  || 25;
-      const brk   = parseInt(sd.pomodoro_break) || 5;
-      WORK_MINS  = work;
-      BREAK_MINS = brk;
+      WORK_MINS  = parseInt(sd.pomodoro_work)  || 25;
+      BREAK_MINS = parseInt(sd.pomodoro_break) || 5;
       timerTimeLeft  = WORK_MINS * 60;
       timerTotalTime = WORK_MINS * 60;
-      // Store AI style globally
-      window._aiStyle = sd.ai_style || 'detailed';
-      // Request notification permission if any notification pref is on
+      window._aiStyle     = sd.ai_style || 'detailed';
       window._notifyAI    = sd.notify_ai    !== false;
       window._notifyTimer = sd.notify_timer !== false;
-      if ((window._notifyAI || window._notifyTimer) && Notification.permission === 'default') {
+      if ((window._notifyAI || window._notifyTimer) && Notification.permission === 'default')
         Notification.requestPermission();
-      }
     }
   } catch(_) {}
 
   await loadGroups();
+
   const ta = document.getElementById('msg-input');
   ta.addEventListener('input', () => {
     ta.style.height = 'auto';
@@ -607,19 +701,16 @@ async function init() {
 }
 
 /* ══════════════════════════════════════════════════════
-   TAB SWITCHING — No blocking overlays, pure JS
+   TABS
 ══════════════════════════════════════════════════════ */
 function switchTab(name, btn) {
-  // Hide all tabs
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  // Show target
   const t = document.getElementById('tab-' + name);
   if (t) t.classList.add('active');
   if (btn) btn.classList.add('active');
-  // Lazy load tab content
-  if (name === 'notices' && activeRoomId)  loadNotices();
-  if (name === 'notes'   && activeRoomId)  loadNotes();
+  if (name === 'notices' && activeRoomId) loadNotices();
+  if (name === 'notes'   && activeRoomId) loadNotes();
   if (name === 'timer') updateTimerDisplay();
 }
 
@@ -635,12 +726,10 @@ async function loadGroups() {
     myGroupId    = d.my_group_id || null;
     currentUid   = d.user_id;
     currentUname = d.user_name;
-
     document.getElementById('loading-groups').style.display = 'none';
     document.getElementById('groups-grid').style.display    = '';
     document.getElementById('group-count').textContent =
       allGroups.length + ' group' + (allGroups.length !== 1 ? 's' : '');
-
     renderGroups();
     updateBanner();
     if (activeRoomId) loadMessages(activeRoomId);
@@ -649,27 +738,21 @@ async function loadGroups() {
   }
 }
 
-/* ══════════════════════════════════════════════════════
-   RENDER GROUPS
-══════════════════════════════════════════════════════ */
 function renderGroups() {
   const grid = document.getElementById('groups-grid');
   if (allGroups.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-groups" style="grid-column:1/-1">
-        <div class="empty-groups-icon">👥</div>
-        <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:6px">No groups yet</h3>
-        <p>Be the first to create a study group above!</p>
-      </div>`;
+    grid.innerHTML = `<div class="empty-groups" style="grid-column:1/-1">
+      <div class="empty-groups-icon">👥</div>
+      <h3 style="color:var(--tx-s);font-family:var(--fD);margin-bottom:6px">No groups yet</h3>
+      <p>Be the first to create a study group above!</p></div>`;
     return;
   }
   grid.innerHTML = '';
   allGroups.forEach(g => {
-    const isMine  = g._id === myGroupId;
-    const card    = document.createElement('div');
+    const isMine = g._id === myGroupId;
+    const card   = document.createElement('div');
     card.className = 'group-card' + (isMine ? ' my-card' : '');
-    card.dataset.id = g._id;
-    const initials = g.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const initials = g.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     card.innerHTML = `
       <div class="gc-top">
         <div class="gc-icon">${initials}</div>
@@ -678,17 +761,17 @@ function renderGroups() {
       <div class="gc-name">${escH(g.name)}</div>
       <div class="gc-topic">📚 ${escH(g.topic)}</div>
       <div class="gc-meta">
-        <div class="gc-meta-item">👥 ${g.member_count} member${g.member_count !== 1 ? 's' : ''}</div>
+        <div class="gc-meta-item">👥 ${g.member_count} member${g.member_count!==1?'s':''}</div>
         <div class="gc-meta-item">🗓 ${fmtDate(g.created_at)}</div>
       </div>
       <div class="gc-actions">
         ${isMine
           ? `<button class="btn btn-primary btn-sm" style="flex:1" onclick="openRoom('${g._id}')">Open Study Room</button>`
           : myGroupId
-            ? `<button class="btn btn-outline btn-sm" style="flex:1;opacity:.5" disabled title="Leave your current group first">Join</button>`
+            ? `<button class="btn btn-outline btn-sm" style="flex:1;opacity:.5" disabled>Join</button>`
             : `<button class="btn btn-outline btn-sm" style="flex:1"
                  data-id="${g._id}" data-name="${escAttr(g.name)}"
-                 onclick="joinGroup(this.dataset.id, this.dataset.name)">Join Group</button>`
+                 onclick="joinGroup(this.dataset.id,this.dataset.name)">Join Group</button>`
         }
       </div>`;
     grid.appendChild(card);
@@ -711,866 +794,543 @@ function updateBanner() {
   }
 }
 
-/* ══════════════════════════════════════════════════════
-   CREATE / JOIN / LEAVE
-══════════════════════════════════════════════════════ */
 async function createGroup() {
   const name  = document.getElementById('g-name').value.trim();
   const topic = document.getElementById('g-topic').value.trim();
   const err   = document.getElementById('create-err');
   const btn   = document.getElementById('create-btn');
   err.classList.add('hidden');
-  if (!name || !topic) { err.textContent = 'Group name and topic are required.'; err.classList.remove('hidden'); return; }
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Creating…';
+  if (!name || !topic) { err.textContent='Group name and topic are required.'; err.classList.remove('hidden'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Creating…';
   try {
-    const r = await fetch('/api/groups', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({name, topic})
-    });
+    const r = await fetch('/api/groups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,topic})});
     const d = await r.json();
-    if (r.ok) {
-      document.getElementById('g-name').value  = '';
-      document.getElementById('g-topic').value = '';
-      await loadGroups();
-      if (d.group) openRoom(d.group._id);
-    } else {
-      err.textContent = d.error || 'Failed to create group.';
-      err.classList.remove('hidden');
-    }
-  } catch(e) {
-    err.textContent = 'Network error.'; err.classList.remove('hidden');
-  } finally {
-    btn.disabled = false; btn.textContent = '+ Create Group';
-  }
+    if (r.ok) { document.getElementById('g-name').value=''; document.getElementById('g-topic').value=''; await loadGroups(); if(d.group) openRoom(d.group._id); }
+    else { err.textContent=d.error||'Failed to create.'; err.classList.remove('hidden'); }
+  } catch(e) { err.textContent='Network error.'; err.classList.remove('hidden'); }
+  finally { btn.disabled=false; btn.textContent='+ Create Group'; }
 }
 
 async function joinGroup(groupId, groupName) {
   if (!confirm(`Join "${groupName}"?`)) return;
   try {
-    const r = await fetch(`/api/groups/${groupId}/join`, {method:'POST'});
+    const r = await fetch(`/api/groups/${groupId}/join`,{method:'POST'});
     const d = await r.json();
     if (r.ok) { await loadGroups(); openRoom(groupId); }
-    else       alert(d.error || 'Failed to join group.');
+    else alert(d.error||'Failed to join.');
   } catch(e) { alert('Network error.'); }
 }
 
 async function leaveGroup() {
   if (!activeRoomId) return;
-  const g = allGroups.find(x => x._id === activeRoomId);
-  if (!confirm(`Leave "${g?.name || 'this group'}"?`)) return;
+  const g = allGroups.find(x=>x._id===activeRoomId);
+  if (!confirm(`Leave "${g?.name||'this group'}"?`)) return;
   try {
-    const r = await fetch(`/api/groups/${activeRoomId}/leave`, {method:'POST'});
-    const d = await r.json();
+    const r = await fetch(`/api/groups/${activeRoomId}/leave`,{method:'POST'});
     if (r.ok) { closeRoom(); await loadGroups(); }
-    else       alert(d.error || 'Failed to leave group.');
+    else { const d=await r.json(); alert(d.error||'Failed to leave.'); }
   } catch(e) { alert('Network error.'); }
 }
 
-/* ══════════════════════════════════════════════════════
-   OPEN / CLOSE ROOM
-══════════════════════════════════════════════════════ */
 async function openRoom(groupId) {
   activeRoomId = groupId;
-  const g = allGroups.find(x => x._id === groupId);
+  const g = allGroups.find(x=>x._id===groupId);
   if (!g) return;
-  document.getElementById('room-heading').textContent = g.name + ' — Study Room';
+  document.getElementById('room-heading').textContent = g.name+' — Study Room';
   document.getElementById('room-name').textContent    = g.name;
-  document.getElementById('room-topic').textContent   = '📚 ' + g.topic;
+  document.getElementById('room-topic').textContent   = '📚 '+g.topic;
   document.getElementById('group-room').style.display = '';
-  renderMembers(g.members_list || []);
+  renderMembers(g.members_list||[]);
   await loadMessages(groupId);
   startGroupSocket(groupId);
-  // Show file button
   const ftb = document.getElementById('file-toggle-btn');
   if (ftb) ftb.style.display = '';
-  // Switch to chat tab
   switchTab('chat', document.querySelectorAll('.tab-btn')[0]);
-  setTimeout(() => document.getElementById('group-room').scrollIntoView({behavior:'smooth'}), 100);
+  setTimeout(()=>document.getElementById('group-room').scrollIntoView({behavior:'smooth'}),100);
 }
 
 function closeRoom() {
   activeRoomId = null;
   document.getElementById('group-room').style.display = 'none';
-  // Hide file panel
-  const fp = document.getElementById('file-upload-panel');
-  const ftb = document.getElementById('file-toggle-btn');
-  if (fp)  fp.style.display  = 'none';
-  if (ftb) ftb.style.display = 'none';
+  const fp=document.getElementById('file-upload-panel');
+  const ftb=document.getElementById('file-toggle-btn');
+  if(fp) fp.style.display='none';
+  if(ftb) ftb.style.display='none';
   stopGroupSocket();
   timerReset();
 }
 
-function scrollToRoom() {
-  if (myGroupId) openRoom(myGroupId);
-}
+function scrollToRoom() { if (myGroupId) openRoom(myGroupId); }
 
-/* ══════════════════════════════════════════════════════
-   MEMBERS
-══════════════════════════════════════════════════════ */
 function renderMembers(members) {
   const list = document.getElementById('members-list');
   list.innerHTML = '';
-  (members || []).forEach(m => {
-    const isMe = m.id === currentUid;
-    const ini  = (m.name || '?')[0].toUpperCase();
+  (members||[]).forEach(m => {
+    const isMe = m.id===currentUid;
     const div  = document.createElement('div');
     div.className = 'member-item';
-    div.innerHTML = `
-      <div class="member-av">${ini}</div>
-      <div>
-        <div class="member-name">${escH(m.name)}</div>
-        ${isMe ? '<div class="member-you">You</div>' : ''}
-      </div>`;
+    div.innerHTML = `<div class="member-av">${(m.name||'?')[0].toUpperCase()}</div>
+      <div><div class="member-name">${escH(m.name)}</div>${isMe?'<div class="member-you">You</div>':''}</div>`;
     list.appendChild(div);
   });
 }
 
 /* ══════════════════════════════════════════════════════
-   SOCKET.IO  — Chat + Timer + Notes sync
+   SOCKET.IO
 ══════════════════════════════════════════════════════ */
 function startGroupSocket(groupId) {
   stopGroupSocket();
   socket = io();
-  socket.on('connect', () => {
-    socket.emit('join_group', {group_id: groupId});
+  socket.on('connect', () => socket.emit('join_group',{group_id:groupId}));
+  socket.on('joined',  () => {
+    document.getElementById('connection-badge').textContent='● Live';
+    document.getElementById('connection-badge').style.color='var(--green)';
   });
-  socket.on('joined', () => {
-    document.getElementById('connection-badge').textContent = '● Live';
-    document.getElementById('connection-badge').style.color = 'var(--green)';
-  });
-  socket.on('new_message',  msg  => {
+  socket.on('new_message',  msg => {
     appendGroupMessage(msg);
-    if (msg.is_ai && window._notifyAI && Notification.permission === 'granted' && document.hidden)
-      new Notification('Nexus Learn 🤖', { body: '💬 AI replied in ' + (msg.room_name || 'your group'), icon: '/static/favicon.ico' });
+    if(msg.is_ai&&window._notifyAI&&Notification.permission==='granted'&&document.hidden)
+      new Notification('Nexus Learn 🤖',{body:'💬 AI replied in '+(msg.room_name||'your group'),icon:'/static/favicon.ico'});
   });
-  socket.on('ai_typing',    d    => {
-    const ind = document.getElementById('ai-typing');
-    ind.style.display = d.typing ? 'block' : 'none';
-  });
-  socket.on('ai_error', d => appendSystemMessage('⚠ AI Error: ' + d.message));
-  socket.on('upvote_update', d => updateUpvoteUI(d));
-  socket.on('new_notice',   n    => appendNotice(n));
-  socket.on('notice_pinned', d   => updateNoticePinUI(d));
-  socket.on('notes_updated', d   => onRemoteNotesUpdate(d));
-  socket.on('notes_editor',  d   => onNotesEditorEvent(d));
-  socket.on('timer_sync',    d   => onTimerSync(d));
-  socket.on('error',         d   => console.error('Socket error:', d.message));
-  socket.on('disconnect', () => {
-    document.getElementById('connection-badge').textContent = 'Reconnecting…';
-    document.getElementById('connection-badge').style.color = 'var(--tx-m)';
+  socket.on('ai_typing',    d => { document.getElementById('ai-typing').style.display=d.typing?'block':'none'; });
+  socket.on('ai_error',     d => appendSystemMessage('⚠ AI Error: '+d.message));
+  socket.on('upvote_update',d => updateUpvoteUI(d));
+  socket.on('new_notice',   n => appendNotice(n));
+  socket.on('notice_pinned',d => updateNoticePinUI(d));
+  socket.on('notes_updated',d => onRemoteNotesUpdate(d));
+  socket.on('notes_editor', d => onNotesEditorEvent(d));
+  socket.on('timer_sync',   d => onTimerSync(d));
+  socket.on('error',        d => console.error('Socket error:',d.message));
+  socket.on('disconnect',   () => {
+    document.getElementById('connection-badge').textContent='Reconnecting…';
+    document.getElementById('connection-badge').style.color='var(--tx-m)';
   });
 }
 
 function stopGroupSocket() {
   if (socket) {
-    if (activeRoomId) socket.emit('leave_group', {group_id: activeRoomId});
-    socket.disconnect();
-    socket = null;
+    if (activeRoomId) socket.emit('leave_group',{group_id:activeRoomId});
+    socket.disconnect(); socket=null;
   }
 }
 
 /* ══════════════════════════════════════════════════════
-   CHAT — MESSAGES
+   CHAT
 ══════════════════════════════════════════════════════ */
 async function loadMessages(groupId) {
   try {
     const r = await fetch(`/api/groups/${groupId}/messages`);
     if (!r.ok) return;
     const d = await r.json();
-    renderMessages(d.messages || []);
-    // Also refresh members
+    renderMessages(d.messages||[]);
     const gr = await fetch(`/api/groups/${groupId}`);
-    if (gr.ok) {
-      const gd = await gr.json();
-      if (gd.group) renderMembers(gd.group.members_list || []);
-    }
-  } catch(e) { console.error('Failed to load messages:', e); }
+    if (gr.ok) { const gd=await gr.json(); if(gd.group) renderMembers(gd.group.members_list||[]); }
+  } catch(e) { console.error('Failed to load messages:',e); }
 }
 
 function renderMessages(msgs) {
   const board = document.getElementById('msg-board');
   if (!msgs.length) {
-    board.innerHTML = `
-      <div class="board-empty">
-        <div class="board-empty-icon">💬</div>
-        <span>No messages yet. Use <strong>@AI</strong> to ask questions!</span>
-      </div>`;
+    board.innerHTML=`<div class="board-empty"><div class="board-empty-icon">💬</div><span>No messages yet. Use <strong>@AI</strong> to ask questions!</span></div>`;
     return;
   }
-  board.innerHTML = '';
-  msgs.forEach(m => appendGroupMessage(m, false));
-  board.scrollTop = board.scrollHeight;
+  board.innerHTML='';
+  msgs.forEach(m=>appendGroupMessage(m,false));
+  board.scrollTop=board.scrollHeight;
 }
 
 function appendGroupMessage(msg, scroll=true) {
-  const board = document.getElementById('msg-board');
+  const board=document.getElementById('msg-board');
   if (!board) return;
-  const empty = board.querySelector('.board-empty');
+  const empty=board.querySelector('.board-empty');
   if (empty) empty.remove();
-  const wasAtBottom = board.scrollHeight - board.clientHeight <= board.scrollTop + 60;
-  const isMe = msg.user_id === currentUid;
-  const isAI = msg.is_ai || msg.user_id === 'ai';
-  const ini  = (msg.user_name || '?')[0].toUpperCase();
-  const item = document.createElement('div');
-  item.className = 'msg-item' + (isMe ? ' me' : '');
-  item.dataset.msgId = msg._id || '';
-  const upvotes    = msg.upvotes || 0;
-  const upvotedIds = msg.upvoted_by || [];
-  const iUpvoted   = upvotedIds.includes(currentUid);
-  item.innerHTML = `
-    <div class="msg-av ${isMe ? 'me' : (isAI ? 'ai' : '')}">${isAI ? '🤖' : ini}</div>
+  const wasAtBottom=board.scrollHeight-board.clientHeight<=board.scrollTop+60;
+  const isMe=msg.user_id===currentUid;
+  const isAI=msg.is_ai||msg.user_id==='ai';
+  const ini=(msg.user_name||'?')[0].toUpperCase();
+  const item=document.createElement('div');
+  item.className='msg-item'+(isMe?' me':'');
+  item.dataset.msgId=msg._id||'';
+  const upvotes=msg.upvotes||0;
+  const iUpvoted=(msg.upvoted_by||[]).includes(currentUid);
+  item.innerHTML=`
+    <div class="msg-av ${isMe?'me':(isAI?'ai':'')}">${isAI?'🤖':ini}</div>
     <div class="msg-body">
-      ${!isMe ? `<div class="msg-sender ${isAI ? 'ai-sender' : ''}">${escH(msg.user_name)}</div>` : ''}
-      <div class="msg-bubble">
-        <div class="msg-text">${formatMsgText(msg.text)}</div>
-      </div>
+      ${!isMe?`<div class="msg-sender ${isAI?'ai-sender':''}">${escH(msg.user_name)}</div>`:''}
+      <div class="msg-bubble"><div class="msg-text">${formatMsgText(msg.text)}</div></div>
       <div class="msg-footer">
         <span class="msg-time">${fmtTime(msg.posted_at)}</span>
-        ${!isAI && !isMe ? `<button class="upvote-btn ${iUpvoted?'upvoted':''}" data-id="${escH(msg._id||'')}"
-          onclick="upvoteMessage(this)">
-          👍 <span class="upvote-count">${upvotes > 0 ? upvotes : ''}</span>
-        </button>` : ''}
+        ${!isAI&&!isMe?`<button class="upvote-btn ${iUpvoted?'upvoted':''}" data-id="${escH(msg._id||'')}"
+          onclick="upvoteMessage(this)">👍 <span class="upvote-count">${upvotes>0?upvotes:''}</span></button>`:''}
       </div>
     </div>`;
   board.appendChild(item);
-  if (scroll && wasAtBottom) board.scrollTop = board.scrollHeight;
+  if(scroll&&wasAtBottom) board.scrollTop=board.scrollHeight;
 }
 
 function appendSystemMessage(text) {
-  const board = document.getElementById('msg-board');
-  if (!board) return;
-  const div = document.createElement('div');
-  div.style.cssText = 'text-align:center;font-size:11px;color:var(--tx-m);font-family:var(--fM);padding:4px';
-  div.textContent = text;
+  const board=document.getElementById('msg-board');
+  if(!board) return;
+  const div=document.createElement('div');
+  div.style.cssText='text-align:center;font-size:11px;color:var(--tx-m);font-family:var(--fM);padding:4px';
+  div.textContent=text;
   board.appendChild(div);
 }
 
 function postMessage() {
-  if (!activeRoomId || !socket || !socket.connected) return;
-  const input = document.getElementById('msg-input');
-  const text  = input.value.trim();
-  if (!text) return;
-  socket.emit('send_message', {group_id: activeRoomId, text});
-  input.value = '';
-  input.style.height = 'auto';
-  input.focus();
+  if(!activeRoomId||!socket||!socket.connected) return;
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim();
+  if(!text) return;
+  socket.emit('send_message',{group_id:activeRoomId,text});
+  input.value=''; input.style.height='auto'; input.focus();
 }
 
-/* Format text: convert markdown bold, backticks */
 function formatMsgText(text) {
   return escH(text)
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-family:var(--fM);font-size:12px">$1</code>');
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`([^`]+)`/g,'<code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-family:var(--fM);font-size:12px">$1</code>');
 }
 
-/* ══════════════════════════════════════════════════════
-   UPVOTE SYSTEM
-══════════════════════════════════════════════════════ */
 async function upvoteMessage(btn) {
-  const msgId = btn.dataset.id;
-  if (!msgId || !activeRoomId) return;
+  const msgId=btn.dataset.id;
+  if(!msgId||!activeRoomId) return;
   try {
-    const r = await fetch(`/api/groups/${activeRoomId}/messages/${msgId}/upvote`, {method:'POST'});
-    const d = await r.json();
-    if (r.ok) {
-      btn.classList.toggle('upvoted', d.upvoted);
-      btn.querySelector('.upvote-count').textContent = d.upvotes > 0 ? d.upvotes : '';
-    }
-  } catch(e) {}
+    const r=await fetch(`/api/groups/${activeRoomId}/messages/${msgId}/upvote`,{method:'POST'});
+    const d=await r.json();
+    if(r.ok){ btn.classList.toggle('upvoted',d.upvoted); btn.querySelector('.upvote-count').textContent=d.upvotes>0?d.upvotes:''; }
+  } catch(e){}
 }
 
 function updateUpvoteUI(d) {
-  // Update button for all viewers when upvote changes
-  const btn = document.querySelector(`.upvote-btn[data-id="${d.msg_id}"]`);
-  if (btn) {
-    if (d.user_id === currentUid) btn.classList.toggle('upvoted', d.upvoted);
-    btn.querySelector('.upvote-count').textContent = d.upvotes > 0 ? d.upvotes : '';
+  const btn=document.querySelector(`.upvote-btn[data-id="${d.msg_id}"]`);
+  if(btn){
+    if(d.user_id===currentUid) btn.classList.toggle('upvoted',d.upvoted);
+    btn.querySelector('.upvote-count').textContent=d.upvotes>0?d.upvotes:'';
   }
 }
 
 /* ══════════════════════════════════════════════════════
-   NOTICE BOARD
+   NOTICES
 ══════════════════════════════════════════════════════ */
 async function loadNotices() {
-  if (!activeRoomId) return;
-  try {
-    const r = await fetch(`/api/groups/${activeRoomId}/notices`);
-    if (!r.ok) return;
-    const d = await r.json();
-    renderNotices(d.notices || []);
-  } catch(e) {}
+  if(!activeRoomId) return;
+  try { const r=await fetch(`/api/groups/${activeRoomId}/notices`); if(!r.ok) return; const d=await r.json(); renderNotices(d.notices||[]); } catch(e){}
 }
 
 function renderNotices(notices) {
-  const list = document.getElementById('notices-list');
-  if (!notices.length) {
-    list.innerHTML = `
-      <div class="board-empty">
-        <div class="board-empty-icon">📋</div>
-        <span>No notices yet. Post the first announcement!</span>
-      </div>`;
-    return;
-  }
-  list.innerHTML = '';
-  notices.forEach(n => appendNotice(n, false));
+  const list=document.getElementById('notices-list');
+  if(!notices.length){ list.innerHTML=`<div class="board-empty"><div class="board-empty-icon">📋</div><span>No notices yet.</span></div>`; return; }
+  list.innerHTML=''; notices.forEach(n=>appendNotice(n,false));
 }
 
-function appendNotice(notice, prepend=false) {
-  const list  = document.getElementById('notices-list');
-  const empty = list.querySelector('.board-empty');
-  if (empty) empty.remove();
-  // Avoid duplicates
-  if (list.querySelector(`[data-notice-id="${notice._id}"]`)) return;
-  const div = document.createElement('div');
-  div.className = 'notice-item' + (notice.pinned ? ' pinned-notice' : '');
-  div.dataset.noticeId = notice._id;
-  div.innerHTML = `
-    ${notice.pinned ? '<span class="notice-pin-badge">📌 Pinned</span>' : ''}
-    <div class="notice-author">
-      <strong>${escH(notice.user_name)}</strong>
-      <span>• ${fmtTime(notice.posted_at)}</span>
-    </div>
+function appendNotice(notice,prepend=false) {
+  const list=document.getElementById('notices-list');
+  const empty=list.querySelector('.board-empty');
+  if(empty) empty.remove();
+  if(list.querySelector(`[data-notice-id="${notice._id}"]`)) return;
+  const div=document.createElement('div');
+  div.className='notice-item'+(notice.pinned?' pinned-notice':'');
+  div.dataset.noticeId=notice._id;
+  div.innerHTML=`${notice.pinned?'<span class="notice-pin-badge">📌 Pinned</span>':''}
+    <div class="notice-author"><strong>${escH(notice.user_name)}</strong><span>• ${fmtTime(notice.posted_at)}</span></div>
     <div class="notice-text">${escH(notice.text)}</div>
-    <div class="notice-actions">
-      <button class="notice-act-btn" data-nid="${notice._id}"
-        onclick="pinNotice(this.dataset.nid,this)">
-        ${notice.pinned ? '📌 Unpin' : '📌 Pin'}
-      </button>
-    </div>`;
-  if (prepend && list.firstChild) list.insertBefore(div, list.firstChild);
-  else list.appendChild(div);
+    <div class="notice-actions"><button class="notice-act-btn" data-nid="${notice._id}"
+      onclick="pinNotice(this.dataset.nid,this)">${notice.pinned?'📌 Unpin':'📌 Pin'}</button></div>`;
+  if(prepend&&list.firstChild) list.insertBefore(div,list.firstChild); else list.appendChild(div);
 }
 
 async function postNotice() {
-  const input = document.getElementById('notice-input');
-  const text  = input.value.trim();
-  if (!text || !activeRoomId) return;
+  const input=document.getElementById('notice-input');
+  const text=input.value.trim();
+  if(!text||!activeRoomId) return;
   try {
-    const r = await fetch(`/api/groups/${activeRoomId}/notices`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({text})
-    });
-    if (r.ok) { input.value = ''; }
-    else {
-      const d = await r.json();
-      alert(d.error || 'Failed to post notice.');
-    }
-  } catch(e) { alert('Network error.'); }
+    const r=await fetch(`/api/groups/${activeRoomId}/notices`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+    if(r.ok) input.value=''; else { const d=await r.json(); alert(d.error||'Failed.'); }
+  } catch(e){ alert('Network error.'); }
 }
 
-async function pinNotice(noticeId, btn) {
-  if (!activeRoomId) return;
-  try {
-    const r = await fetch(`/api/groups/${activeRoomId}/notices/${noticeId}/pin`, {method:'POST'});
-    const d = await r.json();
-    if (r.ok) {
-      btn.textContent = d.pinned ? '📌 Unpin' : '📌 Pin';
-    }
-  } catch(e) {}
+async function pinNotice(noticeId,btn) {
+  if(!activeRoomId) return;
+  try { const r=await fetch(`/api/groups/${activeRoomId}/notices/${noticeId}/pin`,{method:'POST'}); const d=await r.json(); if(r.ok) btn.textContent=d.pinned?'📌 Unpin':'📌 Pin'; } catch(e){}
 }
 
 function updateNoticePinUI(d) {
-  const item = document.querySelector(`[data-notice-id="${d.notice_id}"]`);
-  if (!item) return;
-  item.classList.toggle('pinned-notice', d.pinned);
-  const badge = item.querySelector('.notice-pin-badge');
-  if (d.pinned && !badge) {
-    const b = document.createElement('span');
-    b.className = 'notice-pin-badge'; b.textContent = '📌 Pinned';
-    item.insertBefore(b, item.firstChild);
-  } else if (!d.pinned && badge) {
-    badge.remove();
-  }
-  const btn = item.querySelector('.notice-act-btn');
-  if (btn) btn.textContent = d.pinned ? '📌 Unpin' : '📌 Pin';
+  const item=document.querySelector(`[data-notice-id="${d.notice_id}"]`);
+  if(!item) return;
+  item.classList.toggle('pinned-notice',d.pinned);
+  const badge=item.querySelector('.notice-pin-badge');
+  if(d.pinned&&!badge){const b=document.createElement('span');b.className='notice-pin-badge';b.textContent='📌 Pinned';item.insertBefore(b,item.firstChild);}
+  else if(!d.pinned&&badge) badge.remove();
+  const btn=item.querySelector('.notice-act-btn');
+  if(btn) btn.textContent=d.pinned?'📌 Unpin':'📌 Pin';
 }
 
 async function summariseNotices() {
-  if (!activeRoomId) return;
-  const el    = document.getElementById('notice-ai-result');
-  el.style.display = 'block';
-  el.textContent   = 'AI is summarising…';
-  try {
-    const r = await fetch(`/api/groups/${activeRoomId}/notices/ai-summarise`, {method:'POST'});
-    const d = await r.json();
-    el.textContent = d.summary || d.error || 'Failed to summarise.';
-  } catch(e) {
-    el.textContent = 'Network error.';
-  }
+  if(!activeRoomId) return;
+  const el=document.getElementById('notice-ai-result');
+  el.style.display='block'; el.textContent='AI is summarising…';
+  try { const r=await fetch(`/api/groups/${activeRoomId}/notices/ai-summarise`,{method:'POST'}); const d=await r.json(); el.textContent=d.summary||d.error||'Failed.'; } catch(e){ el.textContent='Network error.'; }
 }
 
 /* ══════════════════════════════════════════════════════
-   SHARED NOTES
+   NOTES
 ══════════════════════════════════════════════════════ */
 async function loadNotes() {
-  if (!activeRoomId) return;
-  try {
-    const r = await fetch(`/api/groups/${activeRoomId}/notes`);
-    if (!r.ok) return;
-    const d = await r.json();
-    document.getElementById('notes-editor').value = d.content || '';
-  } catch(e) {}
+  if(!activeRoomId) return;
+  try { const r=await fetch(`/api/groups/${activeRoomId}/notes`); if(!r.ok) return; const d=await r.json(); document.getElementById('notes-editor').value=d.content||''; } catch(e){}
 }
 
 async function saveNotes() {
-  if (!activeRoomId) return;
-  const content = document.getElementById('notes-editor').value;
+  if(!activeRoomId) return;
+  const content=document.getElementById('notes-editor').value;
   try {
-    const r = await fetch(`/api/groups/${activeRoomId}/notes`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({content})
-    });
-    if (r.ok) {
-      const badge = document.getElementById('notes-saved-badge');
-      badge.classList.add('visible');
-      setTimeout(() => badge.classList.remove('visible'), 2000);
-    }
-  } catch(e) {}
+    const r=await fetch(`/api/groups/${activeRoomId}/notes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})});
+    if(r.ok){ const badge=document.getElementById('notes-saved-badge'); badge.classList.add('visible'); setTimeout(()=>badge.classList.remove('visible'),2000); }
+  } catch(e){}
 }
 
 function onNotesInput() {
-  // Emit typing event to peers
-  if (socket && activeRoomId) {
-    socket.emit('notes_typing', {group_id: activeRoomId, typing: true});
-    clearTimeout(notesTypingTimeout);
-    notesTypingTimeout = setTimeout(() => {
-      socket.emit('notes_typing', {group_id: activeRoomId, typing: false});
-    }, 2000);
-  }
-  // Auto-save after 2s inactivity
-  clearTimeout(notesSaveTimer);
-  notesSaveTimer = setTimeout(saveNotes, 2000);
+  if(socket&&activeRoomId){ socket.emit('notes_typing',{group_id:activeRoomId,typing:true}); clearTimeout(notesTypingTimeout); notesTypingTimeout=setTimeout(()=>socket.emit('notes_typing',{group_id:activeRoomId,typing:false}),2000); }
+  clearTimeout(notesSaveTimer); notesSaveTimer=setTimeout(saveNotes,2000);
 }
 
 function onRemoteNotesUpdate(d) {
-  // Only update if user is NOT currently editing
-  const editor = document.getElementById('notes-editor');
-  if (document.activeElement !== editor) {
-    editor.value = d.content || '';
-  }
-  const ind = document.getElementById('notes-editor-ind');
-  ind.textContent = `✏ ${escH(d.last_editor)} saved notes`;
-  setTimeout(() => { ind.textContent = ''; }, 3000);
+  const editor=document.getElementById('notes-editor');
+  if(document.activeElement!==editor) editor.value=d.content||'';
+  const ind=document.getElementById('notes-editor-ind');
+  ind.textContent=`✏ ${escH(d.last_editor)} saved notes`;
+  setTimeout(()=>{ind.textContent='';},3000);
 }
 
 function onNotesEditorEvent(d) {
-  const ind = document.getElementById('notes-editor-ind');
-  ind.textContent = d.typing ? `✏ ${escH(d.editor)} is editing…` : '';
+  document.getElementById('notes-editor-ind').textContent=d.typing?`✏ ${escH(d.editor)} is editing…`:'';
 }
 
 /* ══════════════════════════════════════════════════════
-   POMODORO TIMER
+   TIMER
 ══════════════════════════════════════════════════════ */
 function updateTimerDisplay() {
-  const mins = Math.floor(timerTimeLeft / 60);
-  const secs = timerTimeLeft % 60;
-  const str  = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-  const clk  = document.getElementById('timer-clock');
-  const lbl  = document.getElementById('timer-mode-lbl');
-  const bar  = document.getElementById('timer-bar');
-  if (clk) {
-    clk.textContent = str;
-    clk.className   = 'timer-clock ' + timerMode;
-  }
-  if (lbl) {
-    lbl.className   = 'timer-mode-label ' + timerMode;
-    lbl.textContent = timerMode === 'study' ? '🎯 Study Session' : '☕ Break Time';
-  }
-  if (bar) {
-    bar.style.width    = (timerTimeLeft / timerTotalTime * 100) + '%';
-    bar.className      = 'timer-progress-fill ' + timerMode;
-  }
-  document.getElementById('pomodoros-done').textContent = pomodorosDone;
-  document.getElementById('sessions-done').textContent  = sessionsDone;
+  const mins=Math.floor(timerTimeLeft/60), secs=timerTimeLeft%60;
+  const str=`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  const clk=document.getElementById('timer-clock');
+  const lbl=document.getElementById('timer-mode-lbl');
+  const bar=document.getElementById('timer-bar');
+  if(clk){clk.textContent=str;clk.className='timer-clock '+timerMode;}
+  if(lbl){lbl.className='timer-mode-label '+timerMode;lbl.textContent=timerMode==='study'?'🎯 Study Session':'☕ Break Time';}
+  if(bar){bar.style.width=(timerTimeLeft/timerTotalTime*100)+'%';bar.className='timer-progress-fill '+timerMode;}
+  document.getElementById('pomodoros-done').textContent=pomodorosDone;
+  document.getElementById('sessions-done').textContent=sessionsDone;
 }
 
 function timerStart() {
-  if (timerRunning) return;
-  timerRunning = true;
-  document.getElementById('timer-start-btn').disabled = true;
-  document.getElementById('timer-pause-btn').disabled = false;
-  // Sync with group
-  if (socket && activeRoomId) {
-    socket.emit('timer_action', {
-      group_id: activeRoomId, action: 'start',
-      time_left: timerTimeLeft, mode: timerMode
-    });
-  }
-  timerInterval = setInterval(() => {
+  if(timerRunning) return;
+  timerRunning=true;
+  document.getElementById('timer-start-btn').disabled=true;
+  document.getElementById('timer-pause-btn').disabled=false;
+  if(socket&&activeRoomId) socket.emit('timer_action',{group_id:activeRoomId,action:'start',time_left:timerTimeLeft,mode:timerMode});
+  timerInterval=setInterval(()=>{
     timerTimeLeft--;
     updateTimerDisplay();
-    if (timerTimeLeft <= 0) {
-      clearInterval(timerInterval);
-      timerRunning = false;
-      if (timerMode === 'study') {
-        pomodorosDone++;
-        sessionsDone++;
-        timerMode     = 'break';
-        timerTotalTime = BREAK_MINS * 60;
-        timerTimeLeft  = BREAK_MINS * 60;
-        document.getElementById('timer-sync-info').textContent = '☕ Break time! Great work!';
-        if (window._notifyTimer && Notification.permission === 'granted')
-          new Notification('Nexus Learn ⏱', { body: '🎯 Pomodoro done! Time for a break.', icon: '/static/favicon.ico' });
+    if(timerTimeLeft<=0){
+      clearInterval(timerInterval); timerRunning=false;
+      if(timerMode==='study'){
+        pomodorosDone++; sessionsDone++;
+        timerMode='break'; timerTotalTime=BREAK_MINS*60; timerTimeLeft=BREAK_MINS*60;
+        document.getElementById('timer-sync-info').textContent='☕ Break time! Great work!';
+        if(window._notifyTimer&&Notification.permission==='granted') new Notification('Nexus Learn ⏱',{body:'🎯 Pomodoro done! Time for a break.',icon:'/static/favicon.ico'});
       } else {
-        timerMode     = 'study';
-        timerTotalTime = WORK_MINS * 60;
-        timerTimeLeft  = WORK_MINS * 60;
-        document.getElementById('timer-sync-info').textContent = '🎯 Back to work!';
-        if (window._notifyTimer && Notification.permission === 'granted')
-          new Notification('Nexus Learn ⏱', { body: '☕ Break over! Back to studying.', icon: '/static/favicon.ico' });
+        timerMode='study'; timerTotalTime=WORK_MINS*60; timerTimeLeft=WORK_MINS*60;
+        document.getElementById('timer-sync-info').textContent='🎯 Back to work!';
+        if(window._notifyTimer&&Notification.permission==='granted') new Notification('Nexus Learn ⏱',{body:'☕ Break over! Back to studying.',icon:'/static/favicon.ico'});
       }
       updateTimerDisplay();
-      document.getElementById('timer-start-btn').disabled = false;
-      document.getElementById('timer-pause-btn').disabled = true;
-      // Auto-start next
-      setTimeout(timerStart, 2000);
+      document.getElementById('timer-start-btn').disabled=false;
+      document.getElementById('timer-pause-btn').disabled=true;
+      setTimeout(timerStart,2000);
     }
-  }, 1000);
+  },1000);
 }
 
 function timerPause() {
-  if (!timerRunning) return;
-  clearInterval(timerInterval);
-  timerRunning = false;
-  document.getElementById('timer-start-btn').disabled = false;
-  document.getElementById('timer-pause-btn').disabled = true;
-  if (socket && activeRoomId) {
-    socket.emit('timer_action', {
-      group_id: activeRoomId, action: 'pause',
-      time_left: timerTimeLeft, mode: timerMode
-    });
-  }
+  if(!timerRunning) return;
+  clearInterval(timerInterval); timerRunning=false;
+  document.getElementById('timer-start-btn').disabled=false;
+  document.getElementById('timer-pause-btn').disabled=true;
+  if(socket&&activeRoomId) socket.emit('timer_action',{group_id:activeRoomId,action:'pause',time_left:timerTimeLeft,mode:timerMode});
 }
 
 function timerReset() {
-  clearInterval(timerInterval);
-  timerRunning   = false;
-  timerMode      = 'study';
-  timerTotalTime = WORK_MINS * 60;
-  timerTimeLeft  = WORK_MINS * 60;
-  document.getElementById('timer-start-btn').disabled = false;
-  document.getElementById('timer-pause-btn').disabled = true;
+  clearInterval(timerInterval); timerRunning=false;
+  timerMode='study'; timerTotalTime=WORK_MINS*60; timerTimeLeft=WORK_MINS*60;
+  document.getElementById('timer-start-btn').disabled=false;
+  document.getElementById('timer-pause-btn').disabled=true;
   updateTimerDisplay();
-  if (socket && activeRoomId) {
-    socket.emit('timer_action', {
-      group_id: activeRoomId, action: 'reset',
-      time_left: timerTimeLeft, mode: timerMode
-    });
-  }
+  if(socket&&activeRoomId) socket.emit('timer_action',{group_id:activeRoomId,action:'reset',time_left:timerTimeLeft,mode:timerMode});
 }
 
 function onTimerSync(d) {
-  const info = document.getElementById('timer-sync-info');
-  if (d.action === 'start') {
-    info.textContent = `▶ ${escH(d.by)} started the timer`;
-    // Sync time if significantly different
-    if (Math.abs(timerTimeLeft - d.time_left) > 3) {
-      timerTimeLeft = d.time_left;
-      timerMode     = d.mode;
-      timerTotalTime = timerMode === 'study' ? WORK_MINS * 60 : BREAK_MINS * 60;
-    }
-    if (!timerRunning) timerStart();
-  } else if (d.action === 'pause') {
-    info.textContent = `⏸ ${escH(d.by)} paused the timer`;
-    timerPause();
-  } else if (d.action === 'reset') {
-    info.textContent = `↺ ${escH(d.by)} reset the timer`;
-    timerReset();
+  const info=document.getElementById('timer-sync-info');
+  if(d.action==='start'){
+    info.textContent=`▶ ${escH(d.by)} started the timer`;
+    if(Math.abs(timerTimeLeft-d.time_left)>3){timerTimeLeft=d.time_left;timerMode=d.mode;timerTotalTime=timerMode==='study'?WORK_MINS*60:BREAK_MINS*60;}
+    if(!timerRunning) timerStart();
+  } else if(d.action==='pause'){
+    info.textContent=`⏸ ${escH(d.by)} paused the timer`; timerPause();
+  } else if(d.action==='reset'){
+    info.textContent=`↺ ${escH(d.by)} reset the timer`; timerReset();
   }
-  setTimeout(() => { info.textContent = 'Timer syncs live with your group members'; }, 3000);
+  setTimeout(()=>{info.textContent='Timer syncs live with your group members';},3000);
 }
 
 /* ══════════════════════════════════════════════════════
-   QUIZ GENERATOR
+   QUIZ
 ══════════════════════════════════════════════════════ */
-function setQuizSource(btn) {
-  quizSource = btn.dataset.source;
-  document.querySelectorAll('[data-source]').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function setQuizCount(btn) {
-  quizCount = parseInt(btn.dataset.count);
-  document.querySelectorAll('[data-count]').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
+function setQuizSource(btn){quizSource=btn.dataset.source;document.querySelectorAll('[data-source]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function setQuizCount(btn){quizCount=parseInt(btn.dataset.count);document.querySelectorAll('[data-count]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
 
 async function generateQuiz() {
-  if (!activeRoomId) return;
-  const btn = document.getElementById('gen-quiz-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Generating…';
+  if(!activeRoomId) return;
+  const btn=document.getElementById('gen-quiz-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Generating…';
   try {
-    const r = await fetch(`/api/groups/${activeRoomId}/quiz`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source: quizSource, count: quizCount})
-    });
-    const d = await r.json();
-    if (r.ok && d.quiz) {
-      quizData    = d.quiz;
-      quizAnswers = {};
-      quizScored  = false;
-      renderQuiz(d.quiz);
-    } else {
-      alert(d.error || 'Failed to generate quiz. Ensure AI is running.');
-    }
-  } catch(e) {
-    alert('Network error generating quiz.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '✨ Generate Quiz';
-  }
+    const r=await fetch(`/api/groups/${activeRoomId}/quiz`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:quizSource,count:quizCount})});
+    const d=await r.json();
+    if(r.ok&&d.quiz){quizData=d.quiz;quizAnswers={};quizScored=false;renderQuiz(d.quiz);}
+    else alert(d.error||'Failed to generate quiz.');
+  } catch(e){ alert('Network error.'); }
+  finally{btn.disabled=false;btn.innerHTML='✨ Generate Quiz';}
 }
 
 function renderQuiz(quiz) {
-  const setup = document.getElementById('quiz-setup');
-  const qlist = document.getElementById('quiz-questions');
-  const score = document.getElementById('quiz-score');
-  setup.style.display = 'none';
-  score.style.display = 'none';
-  qlist.style.display = '';
-  qlist.innerHTML = '';
-
-  (quiz.questions || []).forEach((q, idx) => {
-    const div = document.createElement('div');
-    div.className = 'quiz-q';
-    let choicesHTML = '';
-    if (q.type === 'mcq') {
-      choicesHTML = `<div class="quiz-options-list">
-        ${(q.options || []).map((opt, i) => `
-          <div class="quiz-opt" data-qidx="${idx}" data-opt="${i}"
-               onclick="pickMCQ(this,${idx},'${escAttr(q.answer)}',${i})">
-            ${escH(opt)}
-          </div>`).join('')}
-      </div>`;
+  const setup=document.getElementById('quiz-setup'),qlist=document.getElementById('quiz-questions'),score=document.getElementById('quiz-score');
+  setup.style.display='none'; score.style.display='none'; qlist.style.display=''; qlist.innerHTML='';
+  (quiz.questions||[]).forEach((q,idx)=>{
+    const div=document.createElement('div');
+    div.className='quiz-q';
+    let choicesHTML='';
+    if(q.type==='mcq'){
+      choicesHTML=`<div class="quiz-options-list">${(q.options||[]).map((opt,i)=>`
+        <div class="quiz-opt" data-qidx="${idx}" data-opt="${i}"
+          onclick="pickMCQ(this,${idx},'${escAttr(q.answer)}',${i})">${escH(opt)}</div>`).join('')}</div>`;
     } else {
-      choicesHTML = `
-        <input class="quiz-short-input" type="text" placeholder="Your answer…"
-          data-qidx="${idx}" oninput="quizAnswers[${idx}]=this.value"/>
-        <button class="btn btn-outline btn-sm" style="margin-top:8px"
-          onclick="checkShort(${idx},'${escAttr(q.answer)}',this)">Check</button>`;
+      choicesHTML=`<input class="quiz-short-input" type="text" placeholder="Your answer…" data-qidx="${idx}" oninput="quizAnswers[${idx}]=this.value"/>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="checkShort(${idx},'${escAttr(q.answer)}',this)">Check</button>`;
     }
-    div.innerHTML = `
-      <div class="quiz-q-num">Q${q.id || idx+1} · ${q.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}</div>
-      <div class="quiz-q-text">${escH(q.question)}</div>
-      ${choicesHTML}
-      <div class="quiz-explanation" id="qexp-${idx}">${escH(q.explanation || '')}</div>`;
+    div.innerHTML=`<div class="quiz-q-num">Q${q.id||idx+1} · ${q.type==='mcq'?'Multiple Choice':'Short Answer'}</div>
+      <div class="quiz-q-text">${escH(q.question)}</div>${choicesHTML}
+      <div class="quiz-explanation" id="qexp-${idx}">${escH(q.explanation||'')}</div>`;
     qlist.appendChild(div);
   });
-
-  // Submit button
-  const submitDiv = document.createElement('div');
-  submitDiv.style.cssText = 'text-align:center;padding:12px 0';
-  submitDiv.innerHTML = `
-    <button class="btn btn-primary" onclick="submitQuiz()">Submit & Score</button>`;
+  const submitDiv=document.createElement('div');
+  submitDiv.style.cssText='text-align:center;padding:12px 0';
+  submitDiv.innerHTML=`<button class="btn btn-primary" onclick="submitQuiz()">Submit & Score</button>`;
   qlist.appendChild(submitDiv);
 }
 
-function pickMCQ(el, qIdx, answer, optIdx) {
-  if (quizScored) return;
-  quizAnswers[qIdx] = optIdx;
-  const opts = el.parentElement.querySelectorAll('.quiz-opt');
-  opts.forEach(o => o.style.borderColor = '');
-  el.style.borderColor = 'var(--amber)';
-}
-
-function checkShort(qIdx, answer, btn) {
-  const input = document.querySelector(`.quiz-short-input[data-qidx="${qIdx}"]`);
-  if (!input || !input.value.trim()) return;
-  const exp = document.getElementById('qexp-' + qIdx);
-  if (exp) exp.style.display = 'block';
-  btn.disabled = true;
-}
+function pickMCQ(el,qIdx,answer,optIdx){if(quizScored)return;quizAnswers[qIdx]=optIdx;el.parentElement.querySelectorAll('.quiz-opt').forEach(o=>o.style.borderColor='');el.style.borderColor='var(--amber)';}
+function checkShort(qIdx,answer,btn){const input=document.querySelector(`.quiz-short-input[data-qidx="${qIdx}"]`);if(!input||!input.value.trim())return;const exp=document.getElementById('qexp-'+qIdx);if(exp)exp.style.display='block';btn.disabled=true;}
 
 function submitQuiz() {
-  if (!quizData) return;
-  quizScored = true;
-  let correct = 0;
-  const questions = quizData.questions || [];
-
-  questions.forEach((q, idx) => {
-    const exp = document.getElementById('qexp-' + idx);
-    if (exp) exp.style.display = 'block';
-
-    if (q.type === 'mcq') {
-      const selectedIdx = quizAnswers[idx];
-      const opts = document.querySelectorAll(`.quiz-opt[data-qidx="${idx}"]`);
-      const answerIdx = (q.options || []).findIndex(o => o.startsWith(q.answer + ')'));
-      opts.forEach((opt, i) => {
-        if (i === answerIdx)    opt.classList.add('correct');
-        else if (i === selectedIdx && i !== answerIdx) opt.classList.add('wrong');
-      });
-      if (selectedIdx === answerIdx) correct++;
+  if(!quizData) return;
+  quizScored=true; let correct=0;
+  (quizData.questions||[]).forEach((q,idx)=>{
+    const exp=document.getElementById('qexp-'+idx);
+    if(exp) exp.style.display='block';
+    if(q.type==='mcq'){
+      const selectedIdx=quizAnswers[idx];
+      const opts=document.querySelectorAll(`.quiz-opt[data-qidx="${idx}"]`);
+      const answerIdx=(q.options||[]).findIndex(o=>o.startsWith(q.answer+')'));
+      opts.forEach((opt,i)=>{if(i===answerIdx)opt.classList.add('correct');else if(i===selectedIdx&&i!==answerIdx)opt.classList.add('wrong');});
+      if(selectedIdx===answerIdx) correct++;
     }
   });
-
-  const total = questions.filter(q => q.type === 'mcq').length;
-  setTimeout(() => {
-    document.getElementById('quiz-questions').style.display = 'none';
-    const scoreEl = document.getElementById('quiz-score');
-    scoreEl.style.display = 'block';
-    document.getElementById('quiz-score-val').textContent = `${correct}/${total}`;
-  }, 500);
+  const total=(quizData.questions||[]).filter(q=>q.type==='mcq').length;
+  setTimeout(()=>{
+    document.getElementById('quiz-questions').style.display='none';
+    const scoreEl=document.getElementById('quiz-score');
+    scoreEl.style.display='block';
+    document.getElementById('quiz-score-val').textContent=`${correct}/${total}`;
+  },500);
 }
 
-function resetQuiz() {
-  quizData    = null;
-  quizAnswers = {};
-  quizScored  = false;
-  document.getElementById('quiz-questions').style.display = 'none';
-  document.getElementById('quiz-score').style.display     = 'none';
-  document.getElementById('quiz-setup').style.display     = '';
-}
+function resetQuiz(){quizData=null;quizAnswers={};quizScored=false;document.getElementById('quiz-questions').style.display='none';document.getElementById('quiz-score').style.display='none';document.getElementById('quiz-setup').style.display='';}
 
 /* ══════════════════════════════════════════════════════
-   SESSION SUMMARY
+   SUMMARY
 ══════════════════════════════════════════════════════ */
 async function generateSummary() {
-  if (!activeRoomId) return;
-  const btn = document.getElementById('gen-summary-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Generating summary…';
+  if(!activeRoomId) return;
+  const btn=document.getElementById('gen-summary-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Generating…';
   try {
-    const r = await fetch(`/api/groups/${activeRoomId}/summary`, {method:'POST'});
-    const d = await r.json();
-    if (r.ok) {
-      document.getElementById('summary-setup').style.display  = 'none';
-      document.getElementById('summary-output').style.display = 'block';
-      // Render markdown-ish formatting
-      const summaryText = d.summary
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^- /gm, '• ');
-      document.getElementById('summary-text').innerHTML = summaryText;
-    } else {
-      alert(d.error || 'Failed to generate summary.');
-    }
-  } catch(e) {
-    alert('Network error.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '📊 Generate Summary';
-  }
+    const r=await fetch(`/api/groups/${activeRoomId}/summary`,{method:'POST'});
+    const d=await r.json();
+    if(r.ok){
+      document.getElementById('summary-setup').style.display='none';
+      document.getElementById('summary-output').style.display='block';
+      document.getElementById('summary-text').innerHTML=d.summary.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/^- /gm,'• ');
+    } else alert(d.error||'Failed to generate summary.');
+  } catch(e){ alert('Network error.'); }
+  finally{btn.disabled=false;btn.innerHTML='📊 Generate Summary';}
 }
 
-function resetSummary() {
-  document.getElementById('summary-setup').style.display  = '';
-  document.getElementById('summary-output').style.display = 'none';
+function resetSummary(){document.getElementById('summary-setup').style.display='';document.getElementById('summary-output').style.display='none';}
+
+/* ══════════════════════════════════════════════════════
+   FILES
+══════════════════════════════════════════════════════ */
+function toggleFilePanel(){const panel=document.getElementById('file-upload-panel');const vis=panel.style.display==='none';panel.style.display=vis?'':'none';if(vis&&activeRoomId)loadFileList();}
+
+async function loadFileList() {
+  if(!activeRoomId) return;
+  const list=document.getElementById('file-list');
+  list.innerHTML='<em style="opacity:.5;font-size:12px">Loading…</em>';
+  try {
+    const r=await fetch(`/api/groups/${activeRoomId}/files`);
+    const d=await r.json();
+    const files=d.files||[];
+    if(!files.length){list.innerHTML='<em style="opacity:.5;font-size:12px">No files uploaded yet.</em>';return;}
+    list.innerHTML=files.map(f=>`<div class="file-item" id="fitem-${escAttr(f._id)}">
+      <span class="file-name" title="${escH(f.file_name)}">📄 ${escH(f.file_name)}</span>
+      <span class="file-status ${f.status==='ready'?'ready':f.status==='error'?'error':''}">${f.status==='ready'?`✓ ${f.chunks} chunks`:f.status==='error'?'✗ Error':'⟳ Processing'}</span>
+      <button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 7px" onclick="deleteFile('${escAttr(f._id)}')">✕</button>
+    </div>`).join('');
+  } catch(e){list.innerHTML='<em style="color:#ff6464;font-size:12px">Failed to load files.</em>';}
 }
+
+async function uploadFile(input) {
+  if(!activeRoomId||!input.files.length) return;
+  const file=input.files[0]; const fd=new FormData(); fd.append('file',file);
+  const list=document.getElementById('file-list');
+  const tmpId='tmp-'+Date.now(); const row=document.createElement('div');
+  row.className='file-item'; row.id=tmpId;
+  row.innerHTML=`<span class="file-name">📄 ${escH(file.name)}</span><span class="file-status">⟳ Uploading…</span>`;
+  if(list.querySelector('em')) list.innerHTML='';
+  list.appendChild(row); input.value='';
+  try {
+    const r=await fetch(`/api/groups/${activeRoomId}/files`,{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.error){row.querySelector('.file-status').textContent='✗ '+d.error;row.querySelector('.file-status').className='file-status error';return;}
+    row.querySelector('.file-status').textContent='⟳ Processing…';
+    row.id='fitem-'+(d.file_id||'');
+    let polls=0;
+    const poll=setInterval(async()=>{
+      polls++;if(polls>30){clearInterval(poll);return;}
+      try{const pr=await fetch(`/api/groups/${activeRoomId}/files`);const pd=await pr.json();const match=(pd.files||[]).find(f=>f._id===d.file_id);if(match&&match.status!=='processing'){clearInterval(poll);loadFileList();}}catch(_){}
+    },2000);
+  } catch(e){row.querySelector('.file-status').textContent='✗ Upload failed';row.querySelector('.file-status').className='file-status error';}
+}
+
+async function deleteFile(fileId){if(!activeRoomId||!confirm('Remove this file?'))return;try{await fetch(`/api/groups/${activeRoomId}/files/${fileId}`,{method:'DELETE'});loadFileList();}catch(e){alert('Delete failed.');}}
 
 /* ══════════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════════ */
-function escH(s) {
-  return String(s || '')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function escAttr(s) {
-  return String(s || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function fmtDate(iso) {
-  if (!iso) return '';
-  return new Date(iso).toLocaleDateString([], {month:'short', day:'numeric'});
-}
-function fmtTime(iso) {
-  if (!iso) return '';
-  return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-}
-async function logout() {
-  await fetch('/api/logout', {method:'POST'});
-  location.href = '/';
-}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function fmtDate(iso){if(!iso)return'';return new Date(iso).toLocaleDateString([],{month:'short',day:'numeric'});}
+function fmtTime(iso){if(!iso)return'';return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
 
-/* ══════════════════════════════════════════════════════
-   FILE UPLOAD + RAG
-══════════════════════════════════════════════════════ */
-function toggleFilePanel() {
-  const panel = document.getElementById('file-upload-panel');
-  const btn   = document.getElementById('file-toggle-btn');
-  const vis   = panel.style.display === 'none';
-  panel.style.display = vis ? '' : 'none';
-  if (vis && activeRoomId) loadFileList();
-}
-
-async function loadFileList() {
-  if (!activeRoomId) return;
-  const list = document.getElementById('file-list');
-  list.innerHTML = '<em style="opacity:.5;font-size:12px">Loading…</em>';
-  try {
-    const r = await fetch(`/api/groups/${activeRoomId}/files`);
-    const d = await r.json();
-    const files = d.files || [];
-    if (!files.length) {
-      list.innerHTML = '<em style="opacity:.5;font-size:12px">No files uploaded yet.</em>';
-      return;
-    }
-    list.innerHTML = files.map(f => `
-      <div class="file-item" id="fitem-${escAttr(f._id)}">
-        <span class="file-name" title="${escH(f.file_name)}">📄 ${escH(f.file_name)}</span>
-        <span class="file-status ${f.status === 'ready' ? 'ready' : f.status === 'error' ? 'error' : ''}">${
-          f.status === 'ready' ? `✓ ${f.chunks} chunks` : f.status === 'error' ? '✗ Error' : '⟳ Processing'
-        }</span>
-        <button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 7px"
-          onclick="deleteFile('${escAttr(f._id)}')">✕</button>
-      </div>`).join('');
-  } catch(e) {
-    list.innerHTML = '<em style="color:#ff6464;font-size:12px">Failed to load files.</em>';
-  }
-}
-
-async function uploadFile(input) {
-  if (!activeRoomId || !input.files.length) return;
-  const file   = input.files[0];
-  const fd     = new FormData();
-  fd.append('file', file);
-  const list = document.getElementById('file-list');
-  // Optimistic row
-  const tmpId = 'tmp-' + Date.now();
-  const row   = document.createElement('div');
-  row.className = 'file-item';
-  row.id = tmpId;
-  row.innerHTML = `<span class="file-name">📄 ${escH(file.name)}</span><span class="file-status">⟳ Uploading…</span>`;
-  if (list.querySelector('em')) list.innerHTML = '';
-  list.appendChild(row);
-  input.value = '';
-  try {
-    const r = await fetch(`/api/groups/${activeRoomId}/files`, { method: 'POST', body: fd });
-    const d = await r.json();
-    if (d.error) { row.querySelector('.file-status').textContent = '✗ ' + d.error; row.querySelector('.file-status').className = 'file-status error'; return; }
-    row.querySelector('.file-status').textContent = '⟳ Processing…';
-    row.id = 'fitem-' + (d.file_id || '');
-    // Poll until ready
-    let polls = 0;
-    const poll = setInterval(async () => {
-      polls++;
-      if (polls > 30) { clearInterval(poll); return; }
-      try {
-        const pr = await fetch(`/api/groups/${activeRoomId}/files`);
-        const pd = await pr.json();
-        const match = (pd.files || []).find(f => f._id === d.file_id);
-        if (match && match.status !== 'processing') {
-          clearInterval(poll);
-          loadFileList();
-        }
-      } catch(_) {}
-    }, 2000);
-  } catch(e) {
-    row.querySelector('.file-status').textContent = '✗ Upload failed';
-    row.querySelector('.file-status').className = 'file-status error';
-  }
-}
-
-async function deleteFile(fileId) {
-  if (!activeRoomId || !confirm('Remove this file from group context?')) return;
-  try {
-    await fetch(`/api/groups/${activeRoomId}/files/${fileId}`, { method: 'DELETE' });
-    loadFileList();
-  } catch(e) { alert('Delete failed.'); }
-}
-
-/* ══════════════════════════════════════════════════════
-   INIT
-══════════════════════════════════════════════════════ */
 init();
 </script>
 </body>

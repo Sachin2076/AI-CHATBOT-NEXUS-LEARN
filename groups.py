@@ -678,10 +678,35 @@ def handle_send_message(data):
                     history.append({"role": "user", "content":
                         f"[Group Study Chat — Topic: {group_topic}]\n{context}"})
 
-                reply = ask_ollama(
-                    history=history,
-                    user_message=f"Group question from {name}: {question}",
+                GROUP_SYSTEM = (
+                    "You are Nexus AI, a helpful study assistant inside a group chat. "
+                    "Answer questions clearly and concisely. "
+                    "Do NOT generate learning packages, weekly plans, MCQs, or structured study formats. "
+                    "Just answer the question directly like a knowledgeable study buddy. "
+                    "Use markdown (bold, bullet points, code blocks) where helpful. "
+                    "Keep answers focused and reasonably short unless depth is needed."
                 )
+
+                import requests as _req, os as _os
+                OLLAMA_URL   = _os.environ.get("OLLAMA_URL",   "http://localhost:11434")
+                OLLAMA_MODEL = _os.environ.get("OLLAMA_MODEL", "llama3")
+
+                prompt_parts = [f"[SYSTEM]\n{GROUP_SYSTEM}\n"]
+                if rag_context:
+                    prompt_parts.append(f"[Document context from uploaded group files]\n{rag_context[:1200]}\n")
+                if context:
+                    prompt_parts.append(f"[Recent group chat]\n{context}\n")
+                prompt_parts.append(f"[Question from {name}]\n{question}\nNexus AI:")
+
+                _payload = {
+                    "model":  OLLAMA_MODEL,
+                    "prompt": "\n".join(prompt_parts),
+                    "stream": False,
+                    "options": {"temperature": 0.6, "top_p": 0.9, "num_predict": 512},
+                }
+                _resp  = _req.post(f"{OLLAMA_URL}/api/generate", json=_payload, timeout=120)
+                _resp.raise_for_status()
+                reply  = _resp.json().get("response", "").strip() or "Sorry, I couldn't generate a reply."
                 ai_now = datetime.now(timezone.utc)
                 ai_doc = {
                     "group_id":   group_id,

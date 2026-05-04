@@ -3,58 +3,125 @@
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Nexus Learn — AI Study Assistant</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+
 <link rel="stylesheet" href="/static/css/style.css"/>
+<script src="/static/js/theme.js"></script>
+
+<style>
+:root{
+  color-scheme: dark light;
+}
+</style>
 </head>
+
 <body>
+
+<!-- ================= NAVBAR (FIXED) ================= -->
 <nav class="navbar">
-  <div class="brand" onclick="location.href='/'">
-    <div class="brand-icon">⬡</div>NEXUS LEARN
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="mob-nav-btn" onclick="openDrawer()" aria-label="Menu">☰</button>
+
+    <div class="brand" onclick="location.href='/'">
+      <div class="brand-icon">⬡</div>
+      NEXUS LEARN
+    </div>
   </div>
+
   <div class="nav-r">
-    <a href="/login"    class="btn btn-ghost btn-sm">Sign In</a>
+    <a href="/login" class="btn btn-ghost btn-sm">Sign In</a>
     <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+
+    <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓 Theme</button>
   </div>
 </nav>
 
+<!-- ================= HERO ================= -->
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-tag">AI-Powered Learning Assistant</div>
-    <h1 class="hero-title">Study smarter with<br><em>intelligent</em> guidance.</h1>
-    <p class="hero-sub">An AI chatbot that remembers your progress, plans your week, and keeps you consistent — powered by a local LLM running on your machine.</p>
+
+    <h1 class="hero-title">
+      Study smarter with<br><em>intelligent</em> guidance.
+    </h1>
+
+    <p class="hero-sub">
+      An AI chatbot that remembers your progress, plans your week, and keeps you consistent — powered by a local LLM running on your machine.
+    </p>
+
     <div class="hero-cta">
-      <a href="/register" class="btn btn-primary btn-lg">Start for free &nbsp;→</a>
-      <a href="/login"    class="btn btn-outline btn-lg">Sign in</a>
+      <a href="/register" class="btn btn-primary btn-lg">Start for free →</a>
+      <a href="/login" class="btn btn-outline btn-lg">Sign in</a>
     </div>
   </div>
+
   <svg class="hero-svg" viewBox="0 0 460 380" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <pattern id="g" width="38" height="38" patternUnits="userSpaceOnUse">
         <path d="M38 0L0 0 0 38" fill="none" stroke="#f0a040" stroke-width="0.4" opacity="0.6"/>
       </pattern>
+
       <radialGradient id="gf" cx="50%" cy="50%" r="50%">
-        <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+        <stop offset="0%" stop-color="white"/>
         <stop offset="100%" stop-color="white" stop-opacity="0"/>
       </radialGradient>
-      <mask id="gm"><rect width="460" height="380" fill="url(#gf)"/></mask>
+
+      <mask id="gm">
+        <rect width="460" height="380" fill="url(#gf)"/>
+      </mask>
     </defs>
+
     <rect width="460" height="380" fill="url(#g)" mask="url(#gm)"/>
   </svg>
 </section>
 
+<!-- ================= FEATURES ================= -->
 <div class="features">
   <p class="sec-label">What's inside</p>
   <h2 class="sec-title">Everything you need to learn consistently.</h2>
+
   <div class="feat-grid">
-    <div class="feat-card"><span class="feat-icon">🤖</span><div class="feat-name">AI Chatbot</div><div class="feat-desc">Ask questions, get step-by-step explanations with memory of your past conversations — powered by Ollama running locally.</div></div>
-    <div class="feat-card"><span class="feat-icon">📅</span><div class="feat-name">Weekly Planner</div><div class="feat-desc">Organise your study goals day by day. Tasks persist in MongoDB so they're always there when you return.</div></div>
-    <div class="feat-card"><span class="feat-icon">💻</span><div class="feat-name">Coding Practice</div><div class="feat-desc">Interactive coding exercises with AI hints to sharpen your programming skills.</div></div>
-    <div class="feat-card"><span class="feat-icon">🎯</span><div class="feat-name">Interview Simulator</div><div class="feat-desc">Simulate technical and behavioural interviews with AI-generated questions and feedback.</div></div>
-    <div class="feat-card"><span class="feat-icon">🔥</span><div class="feat-name">Motivation Hub</div><div class="feat-desc">Daily streaks, progress insights, and encouragement to keep you going.</div></div>
-    <div class="feat-card"><span class="feat-icon">📊</span><div class="feat-name">Usage Analytics</div><div class="feat-desc">Track your engagement patterns, login frequency, and study consistency over time.</div></div>
+    <div class="feat-card">
+      <span class="feat-icon">🤖</span>
+      <div class="feat-name">AI Chatbot</div>
+      <div class="feat-desc">Ask questions, get step-by-step explanations with memory of your past conversations — powered by Ollama running locally.</div>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">📅</span>
+      <div class="feat-name">Weekly Planner</div>
+      <div class="feat-desc">Organise your study goals day by day. Tasks persist in MongoDB so they're always there when you return.</div>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">💻</span>
+      <div class="feat-name">Coding Practice</div>
+      <div class="feat-desc">Interactive coding exercises with AI hints to sharpen your programming skills.</div>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">🎯</span>
+      <div class="feat-name">Interview Simulator</div>
+      <div class="feat-desc">Simulate technical and behavioural interviews with AI-generated questions and feedback.</div>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">🔥</span>
+      <div class="feat-name">Motivation Hub</div>
+      <div class="feat-desc">Daily streaks, progress insights, and encouragement to keep you going.</div>
+    </div>
+
+    <div class="feat-card">
+      <span class="feat-icon">📊</span>
+      <div class="feat-name">Usage Analytics</div>
+      <div class="feat-desc">Track your engagement patterns, login frequency, and study consistency over time.</div>
+    </div>
   </div>
 </div>
+
 <script src="/static/js/main.js"></script>
+
 </body>
 </html>
