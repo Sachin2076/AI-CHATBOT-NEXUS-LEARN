@@ -1,18 +1,19 @@
 import os
 import json
 import re
-from dotenv import load_dotenv
 from groq import Groq
 
-load_dotenv()
+# Only load .env locally, not on Render
+if not os.environ.get("RENDER"):
+    from dotenv import load_dotenv
+    load_dotenv()
 
-groq_key = os.getenv("GROQ_API_KEY")
+groq_key = os.environ.get("GROQ_API_KEY")
 print("GROQ KEY EXISTS:", bool(groq_key))
 
 if not groq_key:
     raise ValueError("GROQ_API_KEY is missing!")
 
-# ── Groq client ──────────────────────────────────────────────────────────────
 GROQ_CLIENT = Groq(api_key=groq_key)
 GROQ_MODEL  = "llama3-70b-8192"
 
