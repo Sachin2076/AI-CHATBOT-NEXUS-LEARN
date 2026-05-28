@@ -12,7 +12,8 @@ groq_key = os.environ.get("GROQ_API_KEY")
 print("GROQ KEY EXISTS:", bool(groq_key))
 
 if not groq_key:
-    raise ValueError("GROQ_API_KEY is missing!")
+    print("WARNING: GROQ_API_KEY missing - LLM will not work")
+    groq_key = "dummy"
 
 GROQ_CLIENT = Groq(api_key=groq_key)
 GROQ_MODEL  = "llama3-70b-8192"
