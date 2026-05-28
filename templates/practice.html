@@ -115,6 +115,7 @@
 .coding-card h4{margin-bottom:8px;font-family:var(--fD)}
 .coding-task{font-size:14px;line-height:1.6;margin-bottom:10px}
 .coding-hint{font-size:13px;color:var(--tx-m);background:var(--bg-r);border:1px solid var(--bdr);border-radius:6px;padding:8px 12px;font-family:var(--fM)}
+.coding-card textarea:focus{border-color:var(--amber)!important;box-shadow:0 0 0 3px rgba(240,160,64,.15)}
 .score-card{background:var(--amber-g);border:1px solid rgba(240,160,64,.3);border-radius:18px;padding:24px;text-align:center;margin-bottom:20px}
 .score-big{font-family:var(--fM);font-size:3rem;font-weight:500;color:var(--amber);line-height:1}
 .score-grade{font-size:1.2rem;font-weight:600;margin-top:6px}
@@ -224,10 +225,15 @@ async function load(){
 
 function renderPractice(){
   const content = document.getElementById('content');
-  const days = [...new Set(practiceSet.mcq.map(q=>q.day))].sort((a,b)=>a-b);
+  const mcqDays  = practiceSet.mcq.map(q=>q.day);
+  const codeDays = (practiceSet.coding||[]).map(c=>c.day);
+  const days = [...new Set([...mcqDays, ...codeDays])].sort((a,b)=>a-b);
+  // Always show at least 7 days if we have any content
+  const maxDay = Math.max(7, ...days);
+  const allDays = Array.from({length: maxDay}, (_,i)=>i+1);
 
   // Day tabs
-  const tabsHtml = days.map(d=>`
+  const tabsHtml = allDays.map(d=>`
     <div class="day-tab ${d===currentDay?'active':''}" onclick="switchDay(${d})">Day ${d}</div>
   `).join('');
 
@@ -259,6 +265,13 @@ function renderDay(){
 
   let html = `<h3 style="font-family:var(--fD);margin-bottom:16px">Day ${currentDay} — MCQ Quiz</h3>`;
 
+  if(dayQ.length === 0){
+    html += `<div style="padding:20px;background:var(--bg-c);border:1px dashed var(--bdr);border-radius:12px;color:var(--tx-m);text-align:center;margin-bottom:16px">
+      <div style="font-size:1.5rem;margin-bottom:8px">📭</div>
+      <div style="font-size:14px">No MCQ questions for Day ${currentDay} yet.<br>Go to <a href="/chat" style="color:var(--amber)">Chat</a> and say "I want to learn ${escH(practiceSet.topic)}" to regenerate with all 7 days.</div>
+    </div>`;
+  }
+
   dayQ.forEach((q,i)=>{
     html+=`
     <div class="quiz-card" id="qcard-${i}">
@@ -276,12 +289,21 @@ function renderDay(){
 
   if(dayCode.length>0){
     html+=`<h3 style="font-family:var(--fD);margin:20px 0 14px">Day ${currentDay} — Coding Task</h3>`;
-    dayCode.forEach(c=>{
+    dayCode.forEach((c,ci)=>{
       html+=`
       <div class="coding-card">
         <h4>💻 Coding Task</h4>
         <div class="coding-task">${escH(c.task)}</div>
         <div class="coding-hint">💡 Hint: ${escH(c.hint)}</div>
+        <div style="margin-top:14px">
+          <div style="font-family:var(--fM);font-size:11px;color:var(--tx-m);margin-bottom:6px;letter-spacing:.08em">YOUR SOLUTION</div>
+          <textarea id="code-editor-${ci}" placeholder="Write your code here…" style="width:100%;min-height:160px;background:var(--bg-r);border:1px solid var(--bdr);border-radius:8px;padding:12px;font-family:var(--fM);font-size:13px;color:var(--tx-p);resize:vertical;outline:none;box-sizing:border-box;line-height:1.6" onkeydown="if(event.key==='Tab'){event.preventDefault();let s=this.selectionStart;this.value=this.value.substring(0,s)+'  '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+2;}"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary" onclick="submitCode(${ci})">✅ Submit Solution</button>
+          <button class="btn btn-outline" onclick="clearCode(${ci})">🗑 Clear</button>
+        </div>
+        <div id="code-result-${ci}" style="display:none;margin-top:12px;padding:12px;border-radius:8px;font-size:14px"></div>
       </div>`;
     });
   }
@@ -379,6 +401,28 @@ function showResults(result, dayQ){
 
 function scrollToBottom(){ window.scrollTo(0,document.body.scrollHeight); }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function clearCode(ci){
+  const el = document.getElementById(`code-editor-${ci}`);
+  if(el) el.value = '';
+  const res = document.getElementById(`code-result-${ci}`);
+  if(res){ res.style.display='none'; res.innerHTML=''; }
+}
+
+function submitCode(ci){
+  const el = document.getElementById(`code-editor-${ci}`);
+  const res = document.getElementById(`code-result-${ci}`);
+  if(!el || !res) return;
+  const code = el.value.trim();
+  if(!code){ alert('Please write your solution before submitting!'); return; }
+  res.style.display = 'block';
+  res.style.background = 'rgba(76,175,118,.1)';
+  res.style.border = '1px solid rgba(76,175,118,.3)';
+  res.style.color = 'var(--tx-p)';
+  res.innerHTML = `<div style="font-family:var(--fM);font-size:11px;color:#4caf76;margin-bottom:6px;letter-spacing:.08em">✅ SOLUTION SUBMITTED</div>
+    <div style="font-size:13px;color:var(--tx-m)">Great work! Compare your solution with the hint above. You can revise and resubmit anytime.</div>`;
+  scrollToBottom();
+}
 
 /* ── Nav drawer (hamburger) ── */
 function toggleNavDrawer() {

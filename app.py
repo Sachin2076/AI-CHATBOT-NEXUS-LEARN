@@ -748,8 +748,10 @@ def api_save_motivation():
 # ═════════════════════════════════════════════════════════════
 
 YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
+print(f"[DEBUG] Key loaded: {bool(YOUTUBE_API_KEY)} | length: {len(YOUTUBE_API_KEY)} | starts with: {YOUTUBE_API_KEY[:6]}")
 
 @app.route("/api/youtube")
+
 def api_youtube():
     uid, err = require_auth()
     if err: return err

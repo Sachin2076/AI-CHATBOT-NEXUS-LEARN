@@ -1,11 +1,12 @@
 import os
 import json
 import re
-import requests
+from groq import Groq
 from rag import retrieve_context
 
-OLLAMA_URL   = os.environ.get("OLLAMA_URL",   "http://localhost:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
+# ── Groq client ──────────────────────────────────────────────────────────────
+GROQ_CLIENT = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+GROQ_MODEL  = "llama3-70b-8192"
 
 SYSTEM_INSTRUCTION = """
 You are Nexus, a structured AI study assistant designed to help students learn effectively, stay consistent, and stay motivated.
@@ -328,22 +329,53 @@ STRICT RULES:
 - Never give one sentence answers
 - Always be structured and practical
 - Slogan: Fragmented hurts, not the technology
-- CRITICAL: For MCQ_START...MCQ_END, you MUST generate exactly 5 questions for EACH of the 7 days (DAY:1 through DAY:7). Total = 35 questions. Never skip a day.
-- CRITICAL: For CODING_START...CODING_END, you MUST generate exactly 1 coding task for EACH of the 7 days (DAY:1 through DAY:7). Total = 7 tasks. Never skip a day.
-- CRITICAL: Each MCQ question must include all 4 options (A, B, C, D) and an ANS line. Incomplete questions break the app.
-- CRITICAL: Each day's questions must be relevant to that specific day's topic from the weekly plan.
+
+╔══════════════════════════════════════════════════════════════╗
+║  ABSOLUTE OUTPUT REQUIREMENTS — FOLLOW EXACTLY               ║
+╚══════════════════════════════════════════════════════════════╝
+
+You MUST generate the MCQ block in this EXACT order with NO skipping:
+
+DAY:1 → 5 questions
+DAY:2 → 5 questions
+DAY:3 → 5 questions
+DAY:4 → 5 questions
+DAY:5 → 5 questions
+DAY:6 → 5 questions
+DAY:7 → 5 questions
+
+That is 7 day markers and 35 questions TOTAL. Not 1. Not 2. Not 4. EXACTLY 7 days.
+
+You MUST also generate the CODING block in this EXACT order:
+
+DAY:1 → 1 task
+DAY:2 → 1 task
+DAY:3 → 1 task
+DAY:4 → 1 task
+DAY:5 → 1 task
+DAY:6 → 1 task
+DAY:7 → 1 task
+
+That is 7 day markers and 7 tasks TOTAL.
+
+DO NOT skip from DAY:1 straight to DAY:7.
+DO NOT use "..." or shortcuts.
+DO NOT write "and so on" or "etc".
+WRITE EVERY DAY OUT IN FULL.
+
+Each MCQ must have:
+- A "Q:" line with the question
+- Four lines starting "A)" "B)" "C)" "D)"
+- An "ANS:" line with one letter
+
+Each day's content must be relevant to THAT day's topic from the weekly plan.
+
+BEFORE YOU FINISH RESPONDING, mentally count the DAY: markers in your MCQ block.
+If there are fewer than 7, you have failed the instruction. Start the MCQ block over.
 """
 
 
 def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
-    """
-    Build a prompt section describing the student's past quiz performance.
-    Injected after the system instruction so the LLM tailors difficulty
-    and focus areas to the individual learner.
-
-    weak_topics : list of strings like ["Python (55%)", "SQL (48%)"]
-    topic_avgs  : dict of {topic: avg_score} for all topics
-    """
     if not weak_topics and not topic_avgs:
         return ""
 
@@ -353,7 +385,6 @@ def build_adaptive_context(weak_topics: list, topic_avgs: dict) -> str:
         "Adjust responses to focus on weak areas and skip re-explaining mastered content."
     )
 
-    # Build structured user model from args for richer LLM context
     weak_model   = [
         {"topic": t.rsplit(" (", 1)[0].strip(),
          "avg_score": topic_avgs.get(t.rsplit(" (", 1)[0].strip(), 0)}
@@ -427,18 +458,12 @@ REMINDER — BEFORE YOU REPLY CHECK THESE RULES:
 
 
 def _extract_weak_topic_names(performance_context: str) -> list[str]:
-    """
-    Parse the weak topic names out of a performance_context string.
-    Returns a list of lowercase topic name strings, e.g. ['python', 'sql'].
-    """
     if not performance_context:
         return []
-    # Match lines like: Topics needing more attention (score < 70%): Python (55%), SQL (48%)
     m = re.search(r"Topics needing more attention[^:]*:\s*(.+)", performance_context)
     if not m:
         return []
     raw = m.group(1)
-    # Strip percentage annotations: "Python (55%)" → "python"
     names = []
     for part in raw.split(","):
         name = re.sub(r"\s*\(\d+%\)", "", part).strip().lower()
@@ -448,31 +473,13 @@ def _extract_weak_topic_names(performance_context: str) -> list[str]:
 
 
 def _response_addresses_weak_topics(reply: str, weak_topics: list[str]) -> bool:
-    """
-    Check whether the reply semantically addresses the student's weak topics.
-
-    Strategy (two-tier):
-      1. Cosine similarity — embed the reply and each weak-topic description,
-         compute cosine similarity. If any topic scores >= SIMILARITY_THRESHOLD
-         the reply is considered on-topic. Uses the SentenceTransformer model
-         already loaded in rag.py, so no extra dependency is added.
-      2. Keyword fallback — if the embedding model is unavailable (cold start,
-         import error) we fall back to the original substring check so the
-         adaptive loop never breaks silently.
-
-    Why cosine over keyword match:
-      A reply that thoroughly explains "variables and loops" for a student weak
-      in Python will score high similarity to "Python programming" even without
-      the word "Python" appearing. The keyword check would incorrectly flag this
-      as non-personalised and trigger an unnecessary re-prompt.
-    """
     if not weak_topics:
-        return True   # No weak topics → always acceptable
+        return True
 
-    SIMILARITY_THRESHOLD = 0.35   # tuned for sentence-transformers/all-MiniLM-L6-v2
+    SIMILARITY_THRESHOLD = 0.35
 
     try:
-        from rag import _model as _st_model   # SentenceTransformer already loaded
+        from rag import _model as _st_model
         import numpy as np
 
         reply_vec  = _st_model.encode([reply])[0]
@@ -486,10 +493,9 @@ def _response_addresses_weak_topics(reply: str, weak_topics: list[str]) -> bool:
             if similarity >= SIMILARITY_THRESHOLD:
                 return True
 
-        return False   # No weak topic reached similarity threshold → trigger re-prompt
+        return False
 
     except Exception:
-        # Fallback: original keyword substring check
         reply_lower = reply.lower()
         return any(topic in reply_lower for topic in weak_topics)
 
@@ -501,10 +507,6 @@ def _build_reprompt(
     rag_context: str,
     weak_topics: list[str],
 ) -> str:
-    """
-    Build a second prompt explicitly instructing the model to address weak topics.
-    Called only when the first response failed the adaptive check.
-    """
     topic_list = ", ".join(weak_topics)
     reprompt_instruction = (
         f"\n[ADAPTIVE REPROMPT — STRICT]\n"
@@ -522,55 +524,44 @@ def ask_ollama(
     user_message: str,
     performance_context: str = "",
 ) -> str:
-    """
-    Blocking call — returns the complete reply as a string.
-
-    Adaptive loop:
-      1. Generate a first response.
-      2. Check whether it addresses the student's weak topics.
-      3. If not, re-prompt once with an explicit instruction to cover those topics.
-      4. Return whichever response is returned (first pass or re-prompt).
-    """
     rag_context = retrieve_context(user_message)
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
-    payload = {
-        "model":  OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.5, "top_p": 0.9, "num_predict": 8192},
-    }
-    try:
-        resp = requests.post(
-            f"{OLLAMA_URL}/api/generate", json=payload, timeout=500
-        )
-        resp.raise_for_status()
-        first_reply = resp.json().get("response", "").strip()
-    except requests.exceptions.ConnectionError:
-        raise RuntimeError(
-            "Cannot connect to Ollama. Make sure Ollama is running: ollama serve"
-        )
-    except requests.exceptions.Timeout:
-        raise RuntimeError("Ollama timed out. Please try again.")
-    except requests.exceptions.HTTPError as e:
-        raise RuntimeError(f"Ollama API error: {e}")
 
-    # ── Adaptive loop check ──────────────────────────────────────────────────
+    try:
+        resp = GROQ_CLIENT.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
+                {"role": "user",   "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=8192,
+        )
+        first_reply = resp.choices[0].message.content.strip()
+    except Exception as e:
+        raise RuntimeError(f"Groq API error: {e}")
+
+    # ── Adaptive loop ────────────────────────────────────────────────────────
     weak_topics = _extract_weak_topic_names(performance_context)
     if weak_topics and not _response_addresses_weak_topics(first_reply, weak_topics):
         reprompt = _build_reprompt(
             history, user_message, performance_context, rag_context, weak_topics
         )
-        reprompt_payload = {**payload, "prompt": reprompt}
         try:
-            r2 = requests.post(
-                f"{OLLAMA_URL}/api/generate", json=reprompt_payload, timeout=500
+            r2 = GROQ_CLIENT.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
+                    {"role": "user",   "content": reprompt}
+                ],
+                temperature=0.3,
+                max_tokens=8192,
             )
-            r2.raise_for_status()
-            second_reply = r2.json().get("response", "").strip()
+            second_reply = r2.choices[0].message.content.strip()
             if second_reply:
                 return second_reply
         except Exception:
-            pass  # Fall back to first reply if re-prompt fails
+            pass
 
     return first_reply
 
@@ -580,94 +571,60 @@ def stream_ollama(
     user_message: str,
     performance_context: str = "",
 ):
-    """
-    Generator that yields text tokens from Ollama's streaming API.
-
-    Adaptive loop:
-      Streams the first response token-by-token.
-      After streaming completes, checks whether weak topics were addressed.
-      If not, yields a separator then streams a re-prompted response.
-    """
     rag_context = retrieve_context(user_message)
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
-    payload = {
-        "model":  OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": True,
-        "options": {"temperature": 0.5, "top_p": 0.9, "num_predict": 8192},
-    }
 
     first_tokens = []
 
     try:
-        with requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            json=payload,
+        stream = GROQ_CLIENT.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
+                {"role": "user",   "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=8192,
             stream=True,
-            timeout=600,
-        ) as resp:
-            resp.raise_for_status()
-            for line in resp.iter_lines():
-                if not line:
-                    continue
-                try:
-                    chunk = json.loads(line)
-                    token = chunk.get("response", "")
-                    if token:
-                        first_tokens.append(token)
-                        yield token
-                    if chunk.get("done"):
-                        break
-                except json.JSONDecodeError:
-                    continue
-    except requests.exceptions.ConnectionError:
-        raise RuntimeError(
-            "Cannot connect to Ollama. Make sure Ollama is running: ollama serve"
         )
-    except requests.exceptions.Timeout:
-        raise RuntimeError("Ollama timed out.")
-    except requests.exceptions.HTTPError as e:
-        raise RuntimeError(f"Ollama API error: {e}")
+        for chunk in stream:
+            token = chunk.choices[0].delta.content or ""
+            if token:
+                first_tokens.append(token)
+                yield token
+    except Exception as e:
+        raise RuntimeError(f"Groq stream error: {e}")
 
-    # ── Adaptive loop check ──────────────────────────────────────────────────
+    # ── Adaptive loop after stream done ─────────────────────────────────────
     first_reply = "".join(first_tokens)
     weak_topics = _extract_weak_topic_names(performance_context)
     if weak_topics and not _response_addresses_weak_topics(first_reply, weak_topics):
         reprompt = _build_reprompt(
             history, user_message, performance_context, rag_context, weak_topics
         )
-        reprompt_payload = {**payload, "prompt": reprompt}
         try:
-            with requests.post(
-                f"{OLLAMA_URL}/api/generate",
-                json=reprompt_payload,
+            stream2 = GROQ_CLIENT.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
+                    {"role": "user",   "content": reprompt}
+                ],
+                temperature=0.5,
+                max_tokens=8192,
                 stream=True,
-                timeout=600,
-            ) as resp2:
-                resp2.raise_for_status()
-                for line in resp2.iter_lines():
-                    if not line:
-                        continue
-                    try:
-                        chunk = json.loads(line)
-                        token = chunk.get("response", "")
-                        if token:
-                            yield token
-                        if chunk.get("done"):
-                            break
-                    except json.JSONDecodeError:
-                        continue
+            )
+            for chunk in stream2:
+                token = chunk.choices[0].delta.content or ""
+                if token:
+                    yield token
         except Exception:
-            pass  # Silently fall back — first reply already streamed
+            pass
 
 
 def check_ollama_status() -> dict:
+    """Kept for backward compatibility — now checks Groq instead."""
     try:
-        r = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
-        r.raise_for_status()
-        models       = [m["name"] for m in r.json().get("models", [])]
-        model_loaded = any(OLLAMA_MODEL in m for m in models)
-        return {"ok": True, "model": OLLAMA_MODEL,
-                "model_loaded": model_loaded, "available": models}
+        GROQ_CLIENT.models.list()
+        return {"ok": True, "model": GROQ_MODEL, "model_loaded": True}
     except Exception as e:
         return {"ok": False, "error": str(e)}
