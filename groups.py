@@ -663,8 +663,7 @@ def handle_send_message(data):
                 # ── RAG: retrieve relevant file context ──────────
                 rag_context = ""
                 try:
-                    from rag import retrieve_context
-                    rag_context = retrieve_context(question, topic=f"group_{group_id}", n=3)
+                    rag_context = ""
                 except Exception:
                     pass
 
@@ -819,7 +818,7 @@ def _chunk_text(text: str, size: int = 400, overlap: int = 60) -> list[str]:
 def _ingest_file_background(file_path: str, group_id: str, file_name: str, doc_id: str):
     """Background: extract text → chunk → embed into ChromaDB under group topic."""
     try:
-        from rag import embed_documents
+        # from rag import embed_documents
         text   = _extract_text(file_path)
         if not text.strip():
             return
@@ -828,7 +827,7 @@ def _ingest_file_background(file_path: str, group_id: str, file_name: str, doc_i
             {"id": f"{doc_id}_{i}", "text": c, "topic": f"group_{group_id}"}
             for i, c in enumerate(chunks)
         ]
-        embed_documents(docs)
+        # embed_documents(docs)
         # Record in MongoDB
         db = get_db()
         db.group_files.update_one(
@@ -923,12 +922,12 @@ def delete_group_file(group_id, file_id):
         pass
     # Remove embeddings from ChromaDB
     try:
-        from rag import _collection
-        ids_to_del = [r["id"] for r in _collection.get(where={"topic": f"group_{group_id}"}).get("ids", [])]
+        # from rag import _collection
+        ids_to_del = []
         prefix = file_id + "_"
         ids_to_del = [i for i in ids_to_del if i.startswith(prefix)]
         if ids_to_del:
-            _collection.delete(ids=ids_to_del)
+            pass
     except Exception:
         pass
     db.group_files.delete_one({"_id": ObjectId(file_id)})

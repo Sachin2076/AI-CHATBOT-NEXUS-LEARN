@@ -1,8 +1,10 @@
 import os
 import json
 import re
+from dotenv import load_dotenv
 from groq import Groq
-from rag import retrieve_context
+
+load_dotenv()
 
 # ── Groq client ──────────────────────────────────────────────────────────────
 GROQ_CLIENT = Groq(api_key=os.environ.get("GROQ_API_KEY"))
@@ -476,28 +478,8 @@ def _response_addresses_weak_topics(reply: str, weak_topics: list[str]) -> bool:
     if not weak_topics:
         return True
 
-    SIMILARITY_THRESHOLD = 0.35
-
-    try:
-        from rag import _model as _st_model
-        import numpy as np
-
-        reply_vec  = _st_model.encode([reply])[0]
-        reply_norm = reply_vec / (np.linalg.norm(reply_vec) + 1e-9)
-
-        for topic in weak_topics:
-            topic_desc  = f"learning and studying {topic} programming concepts"
-            topic_vec   = _st_model.encode([topic_desc])[0]
-            topic_norm  = topic_vec / (np.linalg.norm(topic_vec) + 1e-9)
-            similarity  = float(np.dot(reply_norm, topic_norm))
-            if similarity >= SIMILARITY_THRESHOLD:
-                return True
-
-        return False
-
-    except Exception:
-        reply_lower = reply.lower()
-        return any(topic in reply_lower for topic in weak_topics)
+    reply_lower = reply.lower()
+    return any(topic in reply_lower for topic in weak_topics)
 
 
 def _build_reprompt(
@@ -524,7 +506,7 @@ def ask_ollama(
     user_message: str,
     performance_context: str = "",
 ) -> str:
-    rag_context = retrieve_context(user_message)
+    rag_context = ""
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
 
     try:
@@ -571,7 +553,7 @@ def stream_ollama(
     user_message: str,
     performance_context: str = "",
 ):
-    rag_context = retrieve_context(user_message)
+    rag_context = ""
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
 
     first_tokens = []
