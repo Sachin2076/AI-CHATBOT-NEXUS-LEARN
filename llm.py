@@ -7,7 +7,7 @@ from groq import Groq
 from dotenv import load_dotenv
 load_dotenv()  # safe on Render too — just finds nothing
 
-groq_key = os.environ.get("GROQ_API_KEY")
+groq_key = os.environ.get("GROQ_API_KEY", "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")
 print(f"[DEBUG] GROQ key loaded: {bool(groq_key)}")
 print(f"[DEBUG] All env vars: {list(os.environ.keys())}")
 
