@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: nexus-learn
+    runtime: python
+    pythonVersion: "3.11"
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: GROQ_API_KEY
+        value: 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
+      - key: MONGODB_URI
+        value: mongodb+srv://sachinjha9815:Sachin123456@nexuslearn.wsb9sgg.mongodb.net/nexus_learn?appName=NexusLearn
+      - key: SECRET_KEY
+        value: nexuslearn2024abc
