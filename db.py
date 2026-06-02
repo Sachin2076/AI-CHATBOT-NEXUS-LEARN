@@ -13,7 +13,7 @@ def get_db():
     global _client, _db
     if _db is not None:
         return _db
-    uri = os.environ.get("MONGODB_URI", "mongodb+srv://sachinjha9815:Sachin123456@nexuslearn.wsb9sgg.mongodb.net/nexus_learn?appName=NexusLearn")
+    uri = "mongodb+srv://sachinjha9815:Sachin123456@nexuslearn.wsb9sgg.mongodb.net/nexus_learn?appName=NexusLearn"
     _client = MongoClient(
         uri,
         serverSelectionTimeoutMS=5000,
