@@ -2,7 +2,7 @@ services:
   - type: web
     name: nexus-learn
     runtime: python
-    pythonVersion: "3.11"
+    region: frankfurt
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
@@ -12,3 +12,5 @@ services:
         value: mongodb+srv://sachinjha9815:Sachin123456@nexuslearn.wsb9sgg.mongodb.net/nexus_learn?appName=NexusLearn
       - key: SECRET_KEY
         value: nexuslearn2024abc
+      - key: PYTHON_VERSION
+        value: "3.11.9"
