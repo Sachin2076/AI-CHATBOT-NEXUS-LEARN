@@ -3,21 +3,19 @@ import json
 import re
 from groq import Groq
 
-# Only load .env locally, not on Render
-if not os.environ.get("RENDER"):
-    from dotenv import load_dotenv
-    load_dotenv()
+# Load .env only when running locally
+from dotenv import load_dotenv
+load_dotenv()  # safe on Render too — just finds nothing
 
 groq_key = os.environ.get("GROQ_API_KEY")
-print("GROQ KEY EXISTS:", bool(groq_key))
+print(f"[DEBUG] GROQ key loaded: {bool(groq_key)}")
+print(f"[DEBUG] All env vars: {list(os.environ.keys())}")
 
 if not groq_key:
-    print("WARNING: GROQ_API_KEY missing - LLM will not work")
-    groq_key = "dummy"
+    raise ValueError("GROQ_API_KEY is missing!")
 
 GROQ_CLIENT = Groq(api_key=groq_key)
 GROQ_MODEL  = "llama3-70b-8192"
-
 SYSTEM_INSTRUCTION = """
 You are Nexus, a structured AI study assistant designed to help students learn effectively, stay consistent, and stay motivated.
 
