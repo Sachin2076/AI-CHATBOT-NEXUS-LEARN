@@ -12,8 +12,13 @@ def get_db():
     global _client, _db
     if _db is not None:
         return _db
-    uri  = os.environ.get("MONGODB_URI", "mongodb+srv://sachinjha9815:Sachin123456@nexuslearn.wsb9sgg.mongodb.net/nexus_learn?appName=NexusLearn&tlsAllowInvalidCertificates=true")
-    _client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+    uri = os.environ.get("MONGODB_URI", "mongodb+srv://sachinjha9815:Sachin123456@nexuslearn.wsb9sgg.mongodb.net/nexus_learn?appName=NexusLearn")
+    _client = MongoClient(
+        uri,
+        serverSelectionTimeoutMS=5000,
+        tls=True,
+        tlsAllowInvalidCertificates=True,
+    )
     _client.admin.command("ping")
     _db = _client["nexus_learn"]
     _ensure_indexes(_db)
