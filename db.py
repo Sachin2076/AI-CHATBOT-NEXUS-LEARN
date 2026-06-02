@@ -3,6 +3,7 @@ db.py — MongoDB connection + collection accessors
 """
 
 import os
+import certifi
 from pymongo import MongoClient, ASCENDING, DESCENDING
 
 _client = None
@@ -16,8 +17,7 @@ def get_db():
     _client = MongoClient(
         uri,
         serverSelectionTimeoutMS=5000,
-        tls=True,
-        tlsAllowInvalidCertificates=True,
+        tlsCAFile=certifi.where(),
     )
     _client.admin.command("ping")
     _db = _client["nexus_learn"]
