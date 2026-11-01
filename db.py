@@ -13,13 +13,16 @@ def get_db():
     global _client, _db
     if _db is not None:
         return _db
-    uri = "mongodb+srv://sachinjha9815:Sachin123456@nexuslearn.wsb9sgg.mongodb.net/nexus_learn?appName=NexusLearn"
-    _client = MongoClient(
-        uri,
-        serverSelectionTimeoutMS=5000,
-        tlsCAFile=certifi.where(),
-    )
-    _client.admin.command("ping")
+
+    # Reads MONGODB_URI from .env / environment. Defaults to a local MongoDB.
+    uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017/nexus_learn")
+    kwargs = {"serverSelectionTimeoutMS": 5000}
+    if uri.startswith("mongodb+srv://") or "mongodb.net" in uri:
+        kwargs["tlsCAFile"] = certifi.where()   # TLS only for Atlas, not local
+
+    client = MongoClient(uri, **kwargs)
+    client.admin.command("ping")                # raises a clear error if unreachable
+    _client = client
     _db = _client["nexus_learn"]
     _ensure_indexes(_db)
     return _db

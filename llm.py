@@ -1,21 +1,15 @@
 import os
 import json
 import re
-from groq import Groq
+import requests
 
-# Load .env only when running locally
+# Load .env when running locally
 from dotenv import load_dotenv
-load_dotenv()  # safe on Render too — just finds nothing
+load_dotenv()
 
-groq_key = os.environ.get("GROQ_API_KEY", "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")
-print(f"[DEBUG] GROQ key loaded: {bool(groq_key)}")
-print(f"[DEBUG] All env vars: {list(os.environ.keys())}")
+OLLAMA_URL   = os.environ.get("OLLAMA_URL",   "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
 
-if not groq_key:
-    raise ValueError("GROQ_API_KEY is missing!")
-
-GROQ_CLIENT = Groq(api_key=groq_key)
-GROQ_MODEL  = "llama3-70b-8192"
 SYSTEM_INSTRUCTION = """
 You are Nexus, a structured AI study assistant designed to help students learn effectively, stay consistent, and stay motivated.
 
@@ -512,44 +506,55 @@ def ask_ollama(
     user_message: str,
     performance_context: str = "",
 ) -> str:
+    """
+    Blocking call — returns the complete reply as a string.
+
+    Adaptive loop:
+      1. Generate a first response.
+      2. Check whether it addresses the student's weak topics.
+      3. If not, re-prompt once with an explicit instruction to cover those topics.
+      4. Return whichever response is returned (first pass or re-prompt).
+    """
     rag_context = ""
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
-
+    payload = {
+        "model":  OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+        "options": {"temperature": 0.5, "top_p": 0.9, "num_predict": 8192},
+    }
     try:
-        resp = GROQ_CLIENT.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
-                {"role": "user",   "content": prompt}
-            ],
-            temperature=0.3,
-            max_tokens=8192,
+        resp = requests.post(
+            f"{OLLAMA_URL}/api/generate", json=payload, timeout=500
         )
-        first_reply = resp.choices[0].message.content.strip()
-    except Exception as e:
-        raise RuntimeError(f"Groq API error: {e}")
+        resp.raise_for_status()
+        first_reply = resp.json().get("response", "").strip()
+    except requests.exceptions.ConnectionError:
+        raise RuntimeError(
+            "Cannot connect to Ollama. Make sure Ollama is running: ollama serve"
+        )
+    except requests.exceptions.Timeout:
+        raise RuntimeError("Ollama timed out. Please try again.")
+    except requests.exceptions.HTTPError as e:
+        raise RuntimeError(f"Ollama API error: {e}")
 
-    # ── Adaptive loop ────────────────────────────────────────────────────────
+    # ── Adaptive loop check ──────────────────────────────────────────────────
     weak_topics = _extract_weak_topic_names(performance_context)
     if weak_topics and not _response_addresses_weak_topics(first_reply, weak_topics):
         reprompt = _build_reprompt(
             history, user_message, performance_context, rag_context, weak_topics
         )
+        reprompt_payload = {**payload, "prompt": reprompt}
         try:
-            r2 = GROQ_CLIENT.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
-                    {"role": "user",   "content": reprompt}
-                ],
-                temperature=0.3,
-                max_tokens=8192,
+            r2 = requests.post(
+                f"{OLLAMA_URL}/api/generate", json=reprompt_payload, timeout=500
             )
-            second_reply = r2.choices[0].message.content.strip()
+            r2.raise_for_status()
+            second_reply = r2.json().get("response", "").strip()
             if second_reply:
                 return second_reply
         except Exception:
-            pass
+            pass  # Fall back to first reply if re-prompt fails
 
     return first_reply
 
@@ -559,60 +564,94 @@ def stream_ollama(
     user_message: str,
     performance_context: str = "",
 ):
+    """
+    Generator that yields text tokens from Ollama's streaming API.
+
+    Adaptive loop:
+      Streams the first response token-by-token.
+      After streaming completes, checks whether weak topics were addressed.
+      If not, yields a separator then streams a re-prompted response.
+    """
     rag_context = ""
     prompt = _build_prompt(history, user_message, performance_context, rag_context)
+    payload = {
+        "model":  OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": True,
+        "options": {"temperature": 0.5, "top_p": 0.9, "num_predict": 8192},
+    }
 
     first_tokens = []
 
     try:
-        stream = GROQ_CLIENT.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
-                {"role": "user",   "content": prompt}
-            ],
-            temperature=0.5,
-            max_tokens=8192,
+        with requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            json=payload,
             stream=True,
+            timeout=600,
+        ) as resp:
+            resp.raise_for_status()
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                try:
+                    chunk = json.loads(line)
+                    token = chunk.get("response", "")
+                    if token:
+                        first_tokens.append(token)
+                        yield token
+                    if chunk.get("done"):
+                        break
+                except json.JSONDecodeError:
+                    continue
+    except requests.exceptions.ConnectionError:
+        raise RuntimeError(
+            "Cannot connect to Ollama. Make sure Ollama is running: ollama serve"
         )
-        for chunk in stream:
-            token = chunk.choices[0].delta.content or ""
-            if token:
-                first_tokens.append(token)
-                yield token
-    except Exception as e:
-        raise RuntimeError(f"Groq stream error: {e}")
+    except requests.exceptions.Timeout:
+        raise RuntimeError("Ollama timed out.")
+    except requests.exceptions.HTTPError as e:
+        raise RuntimeError(f"Ollama API error: {e}")
 
-    # ── Adaptive loop after stream done ─────────────────────────────────────
+    # ── Adaptive loop check ──────────────────────────────────────────────────
     first_reply = "".join(first_tokens)
     weak_topics = _extract_weak_topic_names(performance_context)
     if weak_topics and not _response_addresses_weak_topics(first_reply, weak_topics):
         reprompt = _build_reprompt(
             history, user_message, performance_context, rag_context, weak_topics
         )
+        reprompt_payload = {**payload, "prompt": reprompt}
         try:
-            stream2 = GROQ_CLIENT.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are Nexus, a structured AI study assistant."},
-                    {"role": "user",   "content": reprompt}
-                ],
-                temperature=0.5,
-                max_tokens=8192,
+            with requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json=reprompt_payload,
                 stream=True,
-            )
-            for chunk in stream2:
-                token = chunk.choices[0].delta.content or ""
-                if token:
-                    yield token
+                timeout=600,
+            ) as resp2:
+                resp2.raise_for_status()
+                for line in resp2.iter_lines():
+                    if not line:
+                        continue
+                    try:
+                        chunk = json.loads(line)
+                        token = chunk.get("response", "")
+                        if token:
+                            yield token
+                        if chunk.get("done"):
+                            break
+                    except json.JSONDecodeError:
+                        continue
         except Exception:
-            pass
+            pass  # Silently fall back — first reply already streamed
 
 
 def check_ollama_status() -> dict:
-    """Kept for backward compatibility — now checks Groq instead."""
     try:
-        GROQ_CLIENT.models.list()
-        return {"ok": True, "model": GROQ_MODEL, "model_loaded": True}
+        r = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+        r.raise_for_status()
+        models       = [m["name"] for m in r.json().get("models", [])]
+        model_loaded = any(OLLAMA_MODEL in m for m in models)
+        return {"ok": True, "model": OLLAMA_MODEL,
+                "model_loaded": model_loaded, "available": models}
     except Exception as e:
         return {"ok": False, "error": str(e)}
